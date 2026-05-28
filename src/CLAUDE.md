@@ -16,7 +16,7 @@ index.tsx
   ├── db/         (openDatabase)
   ├── core/sync   (syncIfEmpty)
   └── app.tsx
-        ├── ui/hooks/useAppState  (state management)
+        ├── ui/store              (Zustand state management)
         ├── ui/components/*       (React components)
         ├── api/queries/*         (GraphQL fetches)
         ├── api/rest/*            (run/submit/poll)

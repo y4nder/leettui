@@ -19,15 +19,15 @@ All components use OpenTUI JSX intrinsics (`<box>`, `<text>`, `<scrollbox>`, `<m
 - `ResultPopup.tsx` — Run/submit result display with color-coded status lines
 - `ProgressBar.tsx` — Sync progress indicator (shown during DB sync)
 
-### hooks/
+### store/
 
-- `useAppState.ts` — Centralized state via `useReducer`. Manages:
-  - `AppMode`: `"browse" | "search" | "popup" | "select" | "result"`
-  - Topic/question selection indices with scroll windowing
-  - Search needle with real-time filtering
-  - Popup/select/result content
-  - Sync progress
-  - Exports: `state`, `dispatch`, `init()`, `moveTopic()`, `currentQuestion`, `currentTopic`
+Zustand store with four slices (each in `store/slices/`):
+
+- `navigationSlice.ts` — `topics`, `allQuestions`, `filteredQuestions`, selection indices. Actions: `init()`, `moveQuestion()`, `moveTopic()`, `setTopic()`, `refreshQuestions()`
+- `searchSlice.ts` — `searchNeedle`. Actions: `startSearch()`, `updateSearch()`, `endSearch()`
+- `uiSlice.ts` — `mode` (`AppMode`), popup/select/result content. Actions: `showPopup()`, `hidePopup()`, `showSelect()`, `hideSelect()`, `showResult()`, `hideResult()`, `showHelp()`, `hideHelp()`
+- `syncSlice.ts` — `syncProgress`. Actions: `setSyncProgress()`, `clearSyncProgress()`
+- `index.ts` — Combines slices into `useAppStore`. Re-exports `AppMode` type.
 
 ## OpenTUI prop notes
 

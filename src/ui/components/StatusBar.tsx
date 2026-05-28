@@ -1,5 +1,5 @@
 import { colors } from "../theme";
-import type { AppMode } from "../hooks/useAppState";
+import type { AppMode } from "../store";
 
 interface StatusBarProps {
   mode: AppMode;
