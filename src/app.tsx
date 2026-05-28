@@ -10,7 +10,9 @@ import { QuestionPopup } from "./ui/components/QuestionPopup";
 import { SelectPopup } from "./ui/components/SelectPopup";
 import { ResultPopup } from "./ui/components/ResultPopup";
 import { HelpPopup } from "./ui/components/HelpPopup";
+import { DebugPopup } from "./ui/components/DebugPopup";
 import { ProgressBar } from "./ui/components/ProgressBar";
+import { isDebugEnabled, logKey, logError, getEntries, dumpToString } from "./debug";
 
 import { fetchQuestionContent } from "./api/queries/question-content";
 import { fetchEditorData } from "./api/queries/editor-data";
@@ -75,6 +77,8 @@ export function App({ renderer }: AppProps) {
     hideResult,
     showHelp,
     hideHelp,
+    showDebug,
+    hideDebug,
     setSyncProgress,
     clearSyncProgress,
   } = useAppStore.getState();
@@ -83,7 +87,7 @@ export function App({ renderer }: AppProps) {
     init();
   }, []);
 
-  const handleViewProblem = async () => {
+  const handleViewProblem = async (triggerKey: string) => {
     const q = useAppStore.getState().filteredQuestions[
       useAppStore.getState().selectedQuestionIndex
     ] ?? null;
@@ -93,11 +97,12 @@ export function App({ renderer }: AppProps) {
       const md = nhm.translate(data.question.content);
       showPopup(`${q.id}. ${q.title} [${q.difficulty}]`, md);
     } catch (e: any) {
+      logError(triggerKey, "browse", "handleViewProblem", e);
       showResult(["Error fetching question:", e.message]);
     }
   };
 
-  const handleOpenEditor = async () => {
+  const handleOpenEditor = async (triggerKey: string) => {
     const q = useAppStore.getState().filteredQuestions[
       useAppStore.getState().selectedQuestionIndex
     ] ?? null;
@@ -135,11 +140,12 @@ export function App({ renderer }: AppProps) {
         }
       });
     } catch (e: any) {
+      logError(triggerKey, "browse", "handleOpenEditor", e);
       showResult(["Error fetching editor data:", e.message]);
     }
   };
 
-  const handleRunSolution = async () => {
+  const handleRunSolution = async (triggerKey: string) => {
     const q = useAppStore.getState().filteredQuestions[
       useAppStore.getState().selectedQuestionIndex
     ] ?? null;
@@ -180,11 +186,12 @@ export function App({ renderer }: AppProps) {
       const { topics: t, selectedTopicIndex: ti } = useAppStore.getState();
       refreshQuestions(getQuestionsByTopic(t[ti] ?? "all"));
     } catch (e: any) {
+      logError(triggerKey, "browse", "handleRunSolution", e);
       showResult(["Run error:", e.message]);
     }
   };
 
-  const handleSubmitSolution = async () => {
+  const handleSubmitSolution = async (triggerKey: string) => {
     const q = useAppStore.getState().filteredQuestions[
       useAppStore.getState().selectedQuestionIndex
     ] ?? null;
@@ -227,11 +234,12 @@ export function App({ renderer }: AppProps) {
       const topic = useAppStore.getState().topics[useAppStore.getState().selectedTopicIndex] ?? "all";
       refreshQuestions(getQuestionsByTopic(topic));
     } catch (e: any) {
+      logError(triggerKey, "browse", "handleSubmitSolution", e);
       showResult(["Submit error:", e.message]);
     }
   };
 
-  const handleSyncDb = async () => {
+  const handleSyncDb = async (triggerKey: string) => {
     setSyncProgress(0, 0);
     try {
       await syncQuestions((current, total) => {
@@ -242,6 +250,7 @@ export function App({ renderer }: AppProps) {
       refreshQuestions(getQuestionsByTopic(topic));
       init();
     } catch (e: any) {
+      logError(triggerKey, "browse", "handleSyncDb", e);
       clearSyncProgress();
       showResult(["Sync error:", e.message]);
     }
@@ -257,9 +266,29 @@ export function App({ renderer }: AppProps) {
   useKeyboard((event) => {
     if (event.eventType !== "press") return;
     const s = useAppStore.getState();
+    const mods = [event.ctrl && "ctrl", event.shift && "shift", event.meta && "meta"]
+      .filter(Boolean)
+      .join("+");
+    const key = event.name ?? "";
 
     if (s.mode === "help") {
-      if (event.name === "escape" || event.name === "return") hideHelp();
+      if (event.name === "escape" || event.name === "return") {
+        logKey(key, mods, s.mode, "hideHelp");
+        hideHelp();
+      }
+      return;
+    }
+
+    if (s.mode === "debug") {
+      if (event.name === "y") {
+        const log = dumpToString();
+        Bun.write("/tmp/leettui-debug.log", log).then(() => {
+          hideDebug();
+          showResult(["Log written to /tmp/leettui-debug.log"]);
+        });
+      } else if (event.name === "escape" || event.name === "return") {
+        hideDebug();
+      }
       return;
     }
 
@@ -267,14 +296,17 @@ export function App({ renderer }: AppProps) {
       switch (event.name) {
         case "escape":
         case "return":
+          logKey(key, mods, s.mode, "hidePopup");
           hidePopup();
           break;
         case "j":
         case "down":
+          logKey(key, mods, s.mode, "scrollPopup(+1)");
           scrollOffsetRef.current += 1;
           break;
         case "k":
         case "up":
+          logKey(key, mods, s.mode, "scrollPopup(-1)");
           scrollOffsetRef.current -= 1;
           break;
       }
@@ -282,7 +314,10 @@ export function App({ renderer }: AppProps) {
     }
 
     if (s.mode === "result") {
-      if (event.name === "escape" || event.name === "return") hideResult();
+      if (event.name === "escape" || event.name === "return") {
+        logKey(key, mods, s.mode, "hideResult");
+        hideResult();
+      }
       return;
     }
 
@@ -290,10 +325,13 @@ export function App({ renderer }: AppProps) {
 
     if (s.mode === "search") {
       if (event.name === "escape" || event.name === "return") {
+        logKey(key, mods, s.mode, "endSearch");
         endSearch();
       } else if (event.name === "backspace") {
+        logKey(key, mods, s.mode, "updateSearch(backspace)");
         updateSearch(s.searchNeedle.slice(0, -1));
       } else if (event.name && event.name.length === 1 && !event.ctrl && !event.meta) {
+        logKey(key, mods, s.mode, `updateSearch(+${event.name})`);
         updateSearch(s.searchNeedle + event.name);
       }
       return;
@@ -302,53 +340,72 @@ export function App({ renderer }: AppProps) {
     // Browse mode
     switch (event.name) {
       case "q":
+        logKey(key, mods, s.mode, "quit");
         renderer.destroy();
         break;
       case "j":
       case "down":
+        logKey(key, mods, s.mode, "moveQuestion(+1)");
         moveQuestion(1);
         break;
       case "k":
       case "up":
+        logKey(key, mods, s.mode, "moveQuestion(-1)");
         moveQuestion(-1);
         break;
       case "t":
+        logKey(key, mods, s.mode, "moveTopic(+1)");
         moveTopic(1);
         break;
       case "return":
-        handleViewProblem();
+        logKey(key, mods, s.mode, "handleViewProblem");
+        handleViewProblem(key);
         break;
       case "e":
-        handleOpenEditor();
+        logKey(key, mods, s.mode, "handleOpenEditor");
+        handleOpenEditor(key);
         break;
       case "r":
+        logKey(key, mods, s.mode, "handleRandomQuestion");
         handleRandomQuestion();
         break;
       case "/":
+        logKey(key, mods, s.mode, "startSearch");
         startSearch();
         break;
       case "h":
+        logKey(key, mods, s.mode, "showHelp");
         showHelp();
+        break;
+      case "`":
+        if (isDebugEnabled()) {
+          logKey(key, mods, s.mode, "showDebug");
+          showDebug();
+        }
         break;
     }
 
     if (event.shift) {
       switch (event.name) {
         case "t":
+          logKey(key, mods, s.mode, "moveTopic(-1)");
           moveTopic(-1);
           break;
         case "r":
-          handleRunSolution();
+          logKey(key, mods, s.mode, "handleRunSolution");
+          handleRunSolution(key);
           break;
       }
     }
 
     if (event.name === "s" && !event.shift && !event.ctrl) {
-      handleSubmitSolution();
+      logKey(key, mods, s.mode, "handleSubmitSolution");
+      handleSubmitSolution(key);
     }
 
     if (event.name === "*") {
-      handleSyncDb();
+      logKey(key, mods, s.mode, "handleSyncDb");
+      handleSyncDb(key);
     }
   });
 
@@ -370,7 +427,7 @@ export function App({ renderer }: AppProps) {
         />
       </box>
 
-      <StatusBar mode={mode} searchNeedle={searchNeedle} />
+      <StatusBar mode={mode} searchNeedle={searchNeedle} debugEnabled={isDebugEnabled()} />
 
       {mode === "popup" && <QuestionPopup title={popupTitle} content={popupContent} />}
 
@@ -384,7 +441,9 @@ export function App({ renderer }: AppProps) {
 
       {mode === "result" && <ResultPopup lines={resultLines} />}
 
-      {mode === "help" && <HelpPopup />}
+      {mode === "help" && <HelpPopup debugEnabled={isDebugEnabled()} />}
+
+      {mode === "debug" && <DebugPopup entries={getEntries()} />}
     </box>
   );
 }

@@ -24,13 +24,26 @@ const KEYBINDINGS: Row[] = [
   { key: "Esc / Enter",  desc: "Exit search" },
 ];
 
+const DEBUG_KEYBINDINGS: Row[] = [
+  { header: "DEBUG" },
+  { key: "`",            desc: "Open debug log overlay" },
+  { key: "y (overlay)",  desc: "Yank log to /tmp/leettui-debug.log" },
+  { key: "Esc (overlay)", desc: "Close debug overlay" },
+];
+
 const KEY_WIDTH = 16;
 
 function pad(s: string, width: number): string {
   return s.length >= width ? s : s + " ".repeat(width - s.length);
 }
 
-export function HelpPopup() {
+interface HelpPopupProps {
+  debugEnabled?: boolean;
+}
+
+export function HelpPopup({ debugEnabled }: HelpPopupProps) {
+  const rows = debugEnabled ? [...KEYBINDINGS, ...DEBUG_KEYBINDINGS] : KEYBINDINGS;
+
   return (
     <box
       position="absolute"
@@ -45,7 +58,7 @@ export function HelpPopup() {
     >
       <text fg={colors.fgAccent}> Keybindings </text>
       <scrollbox flexGrow={1}>
-        {KEYBINDINGS.map((row, i) => {
+        {rows.map((row, i) => {
           if ("header" in row) {
             return (
               <text key={i} fg={colors.fgAccent}>

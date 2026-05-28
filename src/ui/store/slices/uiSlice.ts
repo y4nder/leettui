@@ -1,7 +1,7 @@
 import type { StateCreator } from "zustand";
 import type { AppStore } from "../index";
 
-export type AppMode = "browse" | "search" | "popup" | "select" | "result" | "help";
+export type AppMode = "browse" | "search" | "popup" | "select" | "result" | "help" | "debug";
 
 export interface UiSlice {
   mode: AppMode;
@@ -21,6 +21,8 @@ export interface UiSlice {
   hideResult: () => void;
   showHelp: () => void;
   hideHelp: () => void;
+  showDebug: () => void;
+  hideDebug: () => void;
 }
 
 export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => ({
@@ -47,4 +49,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
 
   showHelp: () => set({ mode: "help" }),
   hideHelp: () => set({ mode: "browse" }),
+
+  showDebug: () => set({ mode: "debug" }),
+  hideDebug: () => set({ mode: "browse" }),
 });

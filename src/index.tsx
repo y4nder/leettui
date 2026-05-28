@@ -1,7 +1,11 @@
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
 
+import { initDebug } from "./debug";
 import { loadConfig, getDbPath } from "./config";
+
+const debugFlag = process.env.LEETTUI_DEBUG === "1" || process.argv.includes("--debug");
+initDebug(debugFlag);
 import { initClient } from "./api/client";
 import { openDatabase } from "./db";
 import { syncIfEmpty } from "./core/sync";
