@@ -19,6 +19,9 @@ lc_session = ""
 
 # [language]
 # default = "python3"
+
+# [theme]
+# name = "tokyo-night"  # available: tokyo-night, catppuccin
 `;
 
 let _config: Config | null = null;
@@ -65,4 +68,9 @@ export function getEditorCommand(): string {
 export function getDefaultLanguage(): string {
   const config = loadConfig();
   return config.language?.default || "python3";
+}
+
+export function getThemeName(): string | undefined {
+  const config = loadConfig();
+  return config.theme?.name;
 }

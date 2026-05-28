@@ -105,3 +105,26 @@ export function getQuestionCount(): number {
     .get() as { count: number };
   return row.count;
 }
+
+export interface StatusCounts {
+  solved: number;
+  attempted: number;
+  total: number;
+}
+
+export function getStatusCounts(): StatusCounts {
+  const row = getDb()
+    .query(
+      `SELECT
+         SUM(CASE WHEN status = 'ac' THEN 1 ELSE 0 END) as solved,
+         SUM(CASE WHEN status = 'notac' THEN 1 ELSE 0 END) as attempted,
+         COUNT(*) as total
+       FROM questions`
+    )
+    .get() as { solved: number | null; attempted: number | null; total: number };
+  return {
+    solved: row.solved ?? 0,
+    attempted: row.attempted ?? 0,
+    total: row.total,
+  };
+}

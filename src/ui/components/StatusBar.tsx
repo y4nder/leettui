@@ -1,13 +1,15 @@
 import { colors } from "../theme";
 import type { AppMode } from "../store";
+import type { StatusCounts } from "../../db/questions";
 
 interface StatusBarProps {
   mode: AppMode;
   searchNeedle: string;
+  stats: StatusCounts;
   debugEnabled?: boolean;
 }
 
-export function StatusBar({ mode, searchNeedle, debugEnabled }: StatusBarProps) {
+export function StatusBar({ mode, searchNeedle, stats, debugEnabled }: StatusBarProps) {
   if (mode === "search") {
     return (
       <box
@@ -36,6 +38,10 @@ export function StatusBar({ mode, searchNeedle, debugEnabled }: StatusBarProps) 
         j/k:Navigate t/T:Topic Enter:View e:Edit R:Run s:Submit /:Search
       </text>
       <box flexDirection="row">
+        <text fg={colors.accepted}>✓ {stats.solved}</text>
+        <text fg={colors.fgDim}>  </text>
+        <text fg={colors.attempted}>~ {stats.attempted}</text>
+        <text fg={colors.fgDim}>  / {stats.total}</text>
         {debugEnabled && <text fg={colors.hard}> [DEBUG] </text>}
         <text fg={colors.fgDim}> ?:Help q:Quit </text>
       </box>

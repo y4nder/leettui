@@ -11,4 +11,7 @@ export interface Config {
   language?: {
     default?: string;
   };
+  theme?: {
+    name?: string;
+  };
 }

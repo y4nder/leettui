@@ -1,5 +1,8 @@
+// type: ui
+// Owns the search needle and the mode toggle around search input. Asks the
+// domain slice to recompute filteredQuestions; never reads the DB itself.
+
 import type { StateCreator } from "zustand";
-import { filterQuestions } from "../../../core/search";
 import type { AppStore } from "../index";
 
 export interface SearchSlice {
@@ -15,22 +18,17 @@ export const createSearchSlice: StateCreator<AppStore, [], [], SearchSlice> = (s
 
   startSearch: () => {
     set({ mode: "search", searchNeedle: "" });
+    get().applySearch("");
   },
 
   updateSearch: (needle) => {
-    const { allQuestions } = get();
-    set({
-      searchNeedle: needle,
-      filteredQuestions: filterQuestions(allQuestions, needle),
-      selectedQuestionIndex: 0,
-    });
+    set({ searchNeedle: needle, selectedQuestionIndex: 0 });
+    get().applySearch(needle);
   },
 
   endSearch: () => {
-    const { searchNeedle, allQuestions } = get();
-    set({
-      mode: "browse",
-      filteredQuestions: searchNeedle ? filterQuestions(allQuestions, searchNeedle) : allQuestions,
-    });
+    const { searchNeedle, applySearch } = get();
+    set({ mode: "browse" });
+    applySearch(searchNeedle);
   },
 });

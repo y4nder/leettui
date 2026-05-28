@@ -1,17 +1,20 @@
 import { create } from "zustand";
-import { createNavigationSlice } from "./slices/navigationSlice";
+import { createQuestionsSlice } from "./slices/questionsSlice";
+import { createSelectionSlice } from "./slices/selectionSlice";
 import { createSearchSlice } from "./slices/searchSlice";
 import { createUiSlice } from "./slices/uiSlice";
 import { createSyncSlice } from "./slices/syncSlice";
-import type { NavigationSlice } from "./slices/navigationSlice";
+import type { QuestionsSlice } from "./slices/questionsSlice";
+import type { SelectionSlice } from "./slices/selectionSlice";
 import type { SearchSlice } from "./slices/searchSlice";
 import type { UiSlice } from "./slices/uiSlice";
 import type { SyncSlice } from "./slices/syncSlice";
 
-export type AppStore = NavigationSlice & SearchSlice & UiSlice & SyncSlice;
+export type AppStore = QuestionsSlice & SelectionSlice & SearchSlice & UiSlice & SyncSlice;
 
 export const useAppStore = create<AppStore>()((...a) => ({
-  ...createNavigationSlice(...a),
+  ...createQuestionsSlice(...a),
+  ...createSelectionSlice(...a),
   ...createSearchSlice(...a),
   ...createUiSlice(...a),
   ...createSyncSlice(...a),

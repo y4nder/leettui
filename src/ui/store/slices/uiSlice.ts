@@ -1,7 +1,19 @@
+// type: ui
+// Owns the active mode and the ephemeral content of every popup. No domain data.
+
 import type { StateCreator } from "zustand";
 import type { AppStore } from "../index";
+import type { ResultView } from "../../../views/browse/resultView";
 
-export type AppMode = "browse" | "search" | "popup" | "select" | "result" | "help" | "debug";
+export type AppMode =
+  | "browse"
+  | "search"
+  | "popup"
+  | "select"
+  | "result"
+  | "help"
+  | "debug"
+  | "palette";
 
 export interface UiSlice {
   mode: AppMode;
@@ -10,19 +22,21 @@ export interface UiSlice {
   selectTitle: string;
   selectItems: string[];
   selectResolve: ((index: number | null) => void) | null;
-  resultLines: string[];
+  resultView: ResultView | null;
 
   setMode: (mode: AppMode) => void;
   showPopup: (title: string, content: string) => void;
   hidePopup: () => void;
   showSelect: (title: string, items: string[], resolve: (index: number | null) => void) => void;
   hideSelect: () => void;
-  showResult: (lines: string[]) => void;
+  showResult: (view: ResultView) => void;
   hideResult: () => void;
   showHelp: () => void;
   hideHelp: () => void;
   showDebug: () => void;
   hideDebug: () => void;
+  showPalette: () => void;
+  hidePalette: () => void;
 }
 
 export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => ({
@@ -32,7 +46,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   selectTitle: "",
   selectItems: [],
   selectResolve: null,
-  resultLines: [],
+  resultView: null,
 
   setMode: (mode) => set({ mode }),
 
@@ -44,12 +58,15 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   hideSelect: () =>
     set({ mode: "browse", selectTitle: "", selectItems: [], selectResolve: null }),
 
-  showResult: (lines) => set({ mode: "result", resultLines: lines }),
-  hideResult: () => set({ mode: "browse", resultLines: [] }),
+  showResult: (view) => set({ mode: "result", resultView: view }),
+  hideResult: () => set({ mode: "browse", resultView: null }),
 
   showHelp: () => set({ mode: "help" }),
   hideHelp: () => set({ mode: "browse" }),
 
   showDebug: () => set({ mode: "debug" }),
   hideDebug: () => set({ mode: "browse" }),
+
+  showPalette: () => set({ mode: "palette" }),
+  hidePalette: () => set({ mode: "browse" }),
 });

@@ -59,6 +59,20 @@ export interface CodeSnippet {
   code: string;
 }
 
+// activeDailyCodingChallengeQuestion
+export interface DailyChallengeData {
+  activeDailyCodingChallengeQuestion: {
+    date: string;
+    link: string;
+    question: {
+      titleSlug: string;
+      title: string;
+      difficulty: "Easy" | "Medium" | "Hard";
+      frontendQuestionId: string;
+    };
+  };
+}
+
 // consolePanelConfig
 export interface ConsolePanelConfigData {
   question: {
