@@ -1,5 +1,7 @@
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
+import { createOpenTuiKeymap } from "@opentui/keymap/opentui";
+import { KeymapProvider } from "@opentui/keymap/react";
 
 import { initDebug } from "./debug";
 import { loadConfig, getDbPath, getThemeName } from "./config";
@@ -11,6 +13,7 @@ import { initClient } from "./api/client";
 import { openDatabase } from "./db";
 import { syncIfEmpty } from "./core/sync";
 import { App } from "./app";
+import { installKeymap } from "./ui/keymap";
 
 const config = loadConfig();
 
@@ -32,4 +35,11 @@ const renderer = await createCliRenderer({
   screenMode: "alternate-screen",
 });
 
-createRoot(renderer).render(<App renderer={renderer} />);
+const keymap = createOpenTuiKeymap(renderer);
+installKeymap(keymap, renderer);
+
+createRoot(renderer).render(
+  <KeymapProvider keymap={keymap}>
+    <App renderer={renderer} />
+  </KeymapProvider>,
+);

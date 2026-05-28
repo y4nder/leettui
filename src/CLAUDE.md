@@ -31,8 +31,8 @@ index.tsx
 
 ## Key architecture decisions
 
-- **Keymap-driven dispatch**: `BrowseView`'s `useKeyboard` resolves each event through `ui/keymap.ts` to an `ActionId`, then a single `dispatchAction` switch invokes the right handler. Adding a keybinding means editing `keymap.ts` and that one switch.
-- **View modules own orchestration**: `views/browse/handlers.ts` holds the async action functions (`handleViewProblem`, `handleOpenEditor`, `handleRunSolution`, etc.). They live outside React so future views can reuse them and so `BrowseView.tsx` stays layout-focused.
+- **Keymap-driven dispatch**: `ui/keymap.ts` defines a command catalog (one `Command` per action with `title`/`category`/`group` metadata) plus per-scope binding-only specs (`browseBindings`, `popupBindings`, …). At boot, `installKeymap(keymap, renderer)` registers every command in a global layer and wires the search-mode text-input intercept. Each binding layer is mounted via `useBindings` from a React component that only renders in its mode — conditional rendering does the activation, not field-gating. Adding a binding = adding one `Command` and one `bindingsFor(...)` entry.
+- **View modules own orchestration**: `views/browse/handlers.ts` holds the async action functions (`handleViewProblem`, `handleOpenEditor`, `handleRunSolution`, etc.). They live outside React so future views can reuse them and so `BrowseView.tsx` stays layout-focused. Commands' `run(...)` delegates to these handlers.
 - **Editor integration** suspends/resumes the renderer around `Bun.spawn` of `$EDITOR` (in `handleOpenEditor`).
 - **HTML→Markdown** conversion uses `node-html-markdown` before passing to OpenTUI's `<markdown>` component.
-- **SelectPopup and CommandPalette** own their own `useKeyboard` hooks; `BrowseView` returns early on `mode === "select" | "palette"` so the inputs don't double-fire.
+- **Popups own their own bindings**: each popup component (`QuestionPopup`, `ResultPopup`, `HelpPopup`, `DebugPopup`, `SelectPopup`, `CommandPalette`) calls `useBindings` directly. Since popups are conditionally rendered by mode, their layers register/unregister automatically. No more `mode === "select" | "palette"` early-return in the parent.

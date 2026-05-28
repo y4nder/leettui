@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useKeyboard } from "@opentui/react";
+import { useBindings } from "@opentui/keymap/react";
 import { colors } from "../theme";
 
 interface SelectPopupProps {
@@ -11,24 +11,19 @@ interface SelectPopupProps {
 export function SelectPopup({ title, items, onSelect }: SelectPopupProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  useKeyboard((event) => {
-    switch (event.name) {
-      case "j":
-      case "down":
-        setSelectedIndex((i: number) => Math.min(i + 1, items.length - 1));
-        break;
-      case "k":
-      case "up":
-        setSelectedIndex((i: number) => Math.max(i - 1, 0));
-        break;
-      case "return":
-        onSelect(selectedIndex);
-        break;
-      case "escape":
-        onSelect(null);
-        break;
-    }
-  });
+  useBindings(
+    () => ({
+      bindings: [
+        { key: "j",       cmd: () => setSelectedIndex((i) => Math.min(i + 1, items.length - 1)) },
+        { key: "down",    cmd: () => setSelectedIndex((i) => Math.min(i + 1, items.length - 1)) },
+        { key: "k",       cmd: () => setSelectedIndex((i) => Math.max(i - 1, 0)) },
+        { key: "up",      cmd: () => setSelectedIndex((i) => Math.max(i - 1, 0)) },
+        { key: "return",  cmd: () => onSelect(selectedIndex) },
+        { key: "escape",  cmd: () => onSelect(null) },
+      ],
+    }),
+    [items.length, selectedIndex, onSelect],
+  );
 
   return (
     <box

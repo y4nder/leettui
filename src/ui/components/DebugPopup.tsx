@@ -1,4 +1,6 @@
+import { useBindings } from "@opentui/keymap/react";
 import { colors } from "../theme";
+import { debugBindings } from "../keymap";
 import type { DebugEntry } from "../../debug";
 
 interface DebugPopupProps {
@@ -6,6 +8,7 @@ interface DebugPopupProps {
 }
 
 export function DebugPopup({ entries }: DebugPopupProps) {
+  useBindings(() => ({ bindings: debugBindings }), []);
   const reversed = [...entries].reverse();
 
   return (

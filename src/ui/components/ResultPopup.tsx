@@ -1,4 +1,6 @@
+import { useBindings } from "@opentui/keymap/react";
 import { colors } from "../theme";
+import { resultBindings } from "../keymap";
 import type { ResultView, ResultKind } from "../../views/browse/resultView";
 
 interface ResultPopupProps {
@@ -39,6 +41,7 @@ function Section({ label, color, value }: { label: string; color: string; value:
 }
 
 export function ResultPopup({ view }: ResultPopupProps) {
+  useBindings(() => ({ bindings: resultBindings }), []);
   const headerColor = titleColor(view.kind);
 
   return (

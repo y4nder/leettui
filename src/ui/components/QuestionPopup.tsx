@@ -1,5 +1,7 @@
 import { SyntaxStyle } from "@opentui/core";
+import { useBindings } from "@opentui/keymap/react";
 import { colors } from "../theme";
+import { popupBindings } from "../keymap";
 
 const defaultSyntaxStyle = SyntaxStyle.create();
 
@@ -9,6 +11,7 @@ interface QuestionPopupProps {
 }
 
 export function QuestionPopup({ title, content }: QuestionPopupProps) {
+  useBindings(() => ({ bindings: popupBindings }), []);
   return (
     <box
       position="absolute"

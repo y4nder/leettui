@@ -30,7 +30,8 @@ On first run, a config file is created at `~/.config/leettui/config.toml`. Add y
 ### Key patterns
 
 - **JSX**: Uses `@opentui/react` intrinsics (`<box>`, `<text>`, `<scrollbox>`, `<markdown>`)
-- **State**: React `useReducer` for centralized app state; mode determines active keybindings
+- **State**: Zustand store split into ui/domain slices (`src/ui/store/`); `mode` field drives conditional rendering of popups, which in turn mount/unmount their `useBindings` layers
+- **Keymap**: `@opentui/keymap` — global command catalog registered at boot in `src/ui/keymap.ts`, per-scope binding-only layers attached via `useBindings` from the components that own each scope
 - **API auth**: Cookie-based (`LEETCODE_SESSION` + `csrftoken` from config)
 - **DB sync**: Paginated fetch of all LeetCode problems on first run, stored in SQLite
 

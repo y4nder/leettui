@@ -5,7 +5,11 @@ OpenTUI React components, state management, theme, and keymap.
 ## Files
 
 - `theme.ts` — Color constants (Tokyo Night inspired) and helper functions: `difficultyColor()`, `statusIcon()`, `statusColor()`
-- `keymap.ts` — Typed action table. Defines `ActionId`, `ACTIONS` (id → title/category/display metadata), and `resolveAction(mode, chord)` which the active view's `useKeyboard` calls. `browseActions()` returns the palette-visible subset.
+- `keymap.ts` — Command catalog and binding specs built on `@opentui/keymap`. Exports:
+  - `installKeymap(keymap, renderer)` — registers every `Command` (with `title`/`category`/`group` metadata) in a global layer and wires the search-mode `key:after` text-input intercept. Called once from `src/index.tsx`.
+  - `browseBindings`, `popupBindings`, `resultBindings`, `helpBindings`, `debugBindings`, `searchBindings` — `Binding[]` arrays passed to `useBindings` from each scope-owning component.
+  - `getKeymap()` — accessor for code that needs the `Keymap` instance outside React (rare; React code uses `useKeymap()` from `@opentui/keymap/react`).
+  Commands with `group: "modal"` are hidden from the command palette and help popup; `group: "debug"` shows only when `LEETTUI_DEBUG=1`.
 
 ### components/
 
@@ -17,10 +21,10 @@ All components use OpenTUI JSX intrinsics (`<box>`, `<text>`, `<scrollbox>`, `<m
 - `QuestionPopup.tsx` — Centered absolute-positioned modal with `<scrollbox>` + `<markdown>` for problem descriptions. Requires `SyntaxStyle.create()` from `@opentui/core`.
 - `SelectPopup.tsx` — Language selection modal with j/k navigation. Uses `useKeyboard` hook internally.
 - `ResultPopup.tsx` — Run/submit result display with color-coded status lines
-- `HelpPopup.tsx` — Hardcoded keybinding cheat-sheet (should be regenerated from `keymap.ts`; see Stage 3 roadmap)
-- `DebugPopup.tsx` — Live key/error log overlay (debug mode only)
+- `HelpPopup.tsx` — Auto-generated from `keymap.getCommandEntries()`. Groups commands by `category`, formats key sequences with `formatCommandBindings`. Debug entries only appear when `LEETTUI_DEBUG=1`.
+- `DebugPopup.tsx` — Live key/error log overlay (debug mode only). Owns `debugBindings` via `useBindings`.
 - `ProgressBar.tsx` — Sync progress indicator (shown during DB sync)
-- `CommandPalette.tsx` — Ctrl+P fuzzy-searchable list of actions sourced from `browseActions()`. Owns its own `useKeyboard` hook; executes the selected action through `BrowseView`'s `dispatchAction` via the `onRun` callback.
+- `CommandPalette.tsx` — Ctrl+P fuzzy-searchable list of commands sourced from `keymap.getCommandEntries()`. Owns its own `useBindings` layer for navigation and a `key:after` intercept for needle text input. Executes the selected command via `keymap.runCommand(name)`.
 
 ### store/
 

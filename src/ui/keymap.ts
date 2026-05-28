@@ -1,178 +1,342 @@
-// Typed keymap table. Maps (mode, chord) -> ActionId, plus action metadata
-// consumed by the command palette and (in the future) the help screen.
+// Command catalog and per-scope binding specs built on top of @opentui/keymap.
 //
-// Search mode is special: only escape/return/backspace are bound here; any
-// other 1-char key with no modifiers falls through to the search text-input
-// handler in BrowseView.
+// Architecture:
+// - One global command-only layer holds every command + its metadata. It is
+//   registered once at boot via `installKeymap`.
+// - Per-scope binding-only layers (browseBindings, popupBindings, ...) are
+//   registered via `useBindings` from within React components that only mount
+//   while their mode is active. No mode field-gating; conditional rendering
+//   handles activation.
+// - Search-mode 1-char text input falls through via a `key:after` intercept
+//   installed in `installKeymap`.
 
-import type { AppMode } from "./store";
+import type { CliRenderer, KeyEvent, Renderable } from "@opentui/core";
+import type { Binding, Command, KeyLike, Keymap } from "@opentui/keymap";
+import { registerDefaultKeys, registerMetadataFields } from "@opentui/keymap/addons";
 
-export type ActionId =
-  | "moveQuestionDown"
-  | "moveQuestionUp"
-  | "moveTopicNext"
-  | "moveTopicPrev"
-  | "viewProblem"
-  | "viewDailyChallenge"
-  | "openEditor"
-  | "runSolution"
-  | "submitSolution"
-  | "startSearch"
-  | "showHelp"
-  | "showDebug"
-  | "syncDb"
-  | "randomQuestion"
-  | "showCommandPalette"
-  | "quit"
-  | "scrollPopupDown"
-  | "scrollPopupUp"
-  | "closePopup"
-  | "closeResult"
-  | "closeHelp"
-  | "closeDebug"
-  | "yankDebug"
-  | "closePalette"
-  | "searchBackspace"
-  | "endSearch";
+import { useAppStore } from "./store";
+import { isDebugEnabled, dumpToString, logKey } from "../debug";
+import {
+  handleViewProblem,
+  handleViewDailyChallenge,
+  handleOpenEditor,
+  handleRunSolution,
+  handleSubmitSolution,
+  handleSyncDb,
+  handleRandomQuestion,
+} from "../views/browse/handlers";
+
+export type AppKeymap = Keymap<Renderable, KeyEvent>;
 
 export type ActionCategory = "Navigation" | "Solve" | "View" | "Search" | "System";
 
-export interface ActionMeta {
-  id: ActionId;
+let _renderer: CliRenderer | null = null;
+let _keymap: AppKeymap | null = null;
+const _popupScroll = { current: 0 };
+
+export function getKeymap(): AppKeymap {
+  if (!_keymap) throw new Error("Keymap not initialized; call installKeymap() at boot");
+  return _keymap;
+}
+
+export function popupScrollRef(): { current: number } {
+  return _popupScroll;
+}
+
+interface CommandSpec {
+  name: string;
   title: string;
   category: ActionCategory;
-  display: string; // shown in palette / cheatsheet
+  group?: "modal" | "debug";
+  run: () => void;
 }
 
-export interface KeyChord {
-  key: string;
-  ctrl?: boolean;
-  shift?: boolean;
-  meta?: boolean;
+function makeCommand(spec: CommandSpec): Command<Renderable, KeyEvent> {
+  const cmd: Command<Renderable, KeyEvent> = {
+    name: spec.name,
+    title: spec.title,
+    category: spec.category,
+    run: () => {
+      try {
+        spec.run();
+      } catch (err) {
+        logKey(spec.name, "", useAppStore.getState().mode, `error: ${(err as Error).message}`);
+      }
+    },
+  };
+  if (spec.group) cmd.group = spec.group;
+  return cmd;
 }
 
-export const ACTIONS: Record<ActionId, ActionMeta> = {
-  moveQuestionDown:    { id: "moveQuestionDown",    title: "Next question",                   category: "Navigation", display: "j / ↓" },
-  moveQuestionUp:      { id: "moveQuestionUp",      title: "Previous question",               category: "Navigation", display: "k / ↑" },
-  moveTopicNext:       { id: "moveTopicNext",       title: "Next topic",                      category: "Navigation", display: "t" },
-  moveTopicPrev:       { id: "moveTopicPrev",       title: "Previous topic",                  category: "Navigation", display: "T" },
-  randomQuestion:      { id: "randomQuestion",      title: "Jump to random question",         category: "Navigation", display: "r" },
-  viewProblem:         { id: "viewProblem",         title: "View problem description",        category: "View",       display: "Enter" },
-  viewDailyChallenge:  { id: "viewDailyChallenge",  title: "Today's daily challenge",         category: "View",       display: "d" },
-  openEditor:          { id: "openEditor",          title: "Open in editor",                  category: "Solve",      display: "e" },
-  runSolution:         { id: "runSolution",         title: "Run solution against examples",   category: "Solve",      display: "R" },
-  submitSolution:      { id: "submitSolution",      title: "Submit solution",                 category: "Solve",      display: "s" },
-  startSearch:         { id: "startSearch",         title: "Search / filter questions",       category: "Search",     display: "/" },
-  showHelp:            { id: "showHelp",            title: "Show help screen",                category: "System",     display: "h" },
-  showDebug:           { id: "showDebug",           title: "Show debug overlay",              category: "System",     display: "`" },
-  syncDb:              { id: "syncDb",              title: "Sync problem database",           category: "System",     display: "*" },
-  showCommandPalette:  { id: "showCommandPalette",  title: "Open command palette",            category: "System",     display: "Ctrl+P" },
-  quit:                { id: "quit",                title: "Quit",                            category: "System",     display: "q" },
+const COMMANDS: Command<Renderable, KeyEvent>[] = [
+  makeCommand({
+    name: "question.next",
+    title: "Next question",
+    category: "Navigation",
+    run: () => useAppStore.getState().moveQuestion(1),
+  }),
+  makeCommand({
+    name: "question.prev",
+    title: "Previous question",
+    category: "Navigation",
+    run: () => useAppStore.getState().moveQuestion(-1),
+  }),
+  makeCommand({
+    name: "topic.next",
+    title: "Next topic",
+    category: "Navigation",
+    run: () => useAppStore.getState().moveTopic(1),
+  }),
+  makeCommand({
+    name: "topic.prev",
+    title: "Previous topic",
+    category: "Navigation",
+    run: () => useAppStore.getState().moveTopic(-1),
+  }),
+  makeCommand({
+    name: "question.random",
+    title: "Jump to random question",
+    category: "Navigation",
+    run: () => handleRandomQuestion(),
+  }),
 
-  // Modal-only actions — not surfaced in the palette.
-  scrollPopupDown:     { id: "scrollPopupDown",     title: "Scroll popup down",               category: "View",       display: "j / ↓" },
-  scrollPopupUp:       { id: "scrollPopupUp",       title: "Scroll popup up",                 category: "View",       display: "k / ↑" },
-  closePopup:          { id: "closePopup",          title: "Close popup",                     category: "View",       display: "Esc / Enter" },
-  closeResult:         { id: "closeResult",         title: "Close result",                    category: "View",       display: "Esc / Enter" },
-  closeHelp:           { id: "closeHelp",           title: "Close help",                      category: "View",       display: "Esc / Enter" },
-  closeDebug:          { id: "closeDebug",          title: "Close debug",                     category: "View",       display: "Esc / Enter" },
-  yankDebug:           { id: "yankDebug",           title: "Yank debug log to file",          category: "System",     display: "y" },
-  closePalette:        { id: "closePalette",        title: "Close command palette",           category: "View",       display: "Esc" },
-  searchBackspace:     { id: "searchBackspace",     title: "Search: delete char",             category: "Search",     display: "Backspace" },
-  endSearch:           { id: "endSearch",           title: "Exit search",                     category: "Search",     display: "Esc / Enter" },
-};
+  makeCommand({
+    name: "problem.view",
+    title: "View problem description",
+    category: "View",
+    run: () => handleViewProblem("return"),
+  }),
+  makeCommand({
+    name: "problem.daily",
+    title: "Today's daily challenge",
+    category: "View",
+    run: () => handleViewDailyChallenge("d"),
+  }),
 
-type Binding = { chord: string; id: ActionId };
+  makeCommand({
+    name: "problem.openEditor",
+    title: "Open in editor",
+    category: "Solve",
+    run: () => {
+      if (_renderer) handleOpenEditor("e", _renderer);
+    },
+  }),
+  makeCommand({
+    name: "problem.run",
+    title: "Run solution against examples",
+    category: "Solve",
+    run: () => handleRunSolution("R"),
+  }),
+  makeCommand({
+    name: "problem.submit",
+    title: "Submit solution",
+    category: "Solve",
+    run: () => handleSubmitSolution("s"),
+  }),
 
-function chordKey(c: KeyChord): string {
-  const mods = [c.ctrl && "ctrl", c.shift && "shift", c.meta && "meta"].filter(Boolean).join("+");
-  return mods ? `${mods}+${c.key}` : c.key;
+  makeCommand({
+    name: "search.start",
+    title: "Search / filter questions",
+    category: "Search",
+    run: () => useAppStore.getState().startSearch(),
+  }),
+
+  makeCommand({
+    name: "help.open",
+    title: "Show help screen",
+    category: "System",
+    run: () => useAppStore.getState().showHelp(),
+  }),
+  makeCommand({
+    name: "debug.open",
+    title: "Show debug overlay",
+    category: "System",
+    group: "debug",
+    run: () => {
+      if (isDebugEnabled()) useAppStore.getState().showDebug();
+    },
+  }),
+  makeCommand({
+    name: "db.sync",
+    title: "Sync problem database",
+    category: "System",
+    run: () => handleSyncDb("*"),
+  }),
+  makeCommand({
+    name: "palette.open",
+    title: "Open command palette",
+    category: "System",
+    run: () => useAppStore.getState().showPalette(),
+  }),
+  makeCommand({
+    name: "app.quit",
+    title: "Quit",
+    category: "System",
+    run: () => _renderer?.destroy(),
+  }),
+
+  // Modal-only commands. Hidden from the palette via group: "modal".
+  makeCommand({
+    name: "popup.scrollDown",
+    title: "Scroll popup down",
+    category: "View",
+    group: "modal",
+    run: () => {
+      _popupScroll.current += 1;
+    },
+  }),
+  makeCommand({
+    name: "popup.scrollUp",
+    title: "Scroll popup up",
+    category: "View",
+    group: "modal",
+    run: () => {
+      _popupScroll.current -= 1;
+    },
+  }),
+  makeCommand({
+    name: "popup.close",
+    title: "Close popup",
+    category: "View",
+    group: "modal",
+    run: () => useAppStore.getState().hidePopup(),
+  }),
+  makeCommand({
+    name: "result.close",
+    title: "Close result",
+    category: "View",
+    group: "modal",
+    run: () => useAppStore.getState().hideResult(),
+  }),
+  makeCommand({
+    name: "help.close",
+    title: "Close help",
+    category: "View",
+    group: "modal",
+    run: () => useAppStore.getState().hideHelp(),
+  }),
+  makeCommand({
+    name: "debug.close",
+    title: "Close debug",
+    category: "View",
+    group: "modal",
+    run: () => useAppStore.getState().hideDebug(),
+  }),
+  makeCommand({
+    name: "debug.yank",
+    title: "Yank debug log to file",
+    category: "System",
+    group: "debug",
+    run: () => {
+      const s = useAppStore.getState();
+      const log = dumpToString();
+      Bun.write("/tmp/leettui-debug.log", log).then(() => {
+        s.hideDebug();
+        s.showResult({ kind: "info", title: "Log written to /tmp/leettui-debug.log" });
+      });
+    },
+  }),
+  makeCommand({
+    name: "palette.close",
+    title: "Close command palette",
+    category: "View",
+    group: "modal",
+    run: () => useAppStore.getState().hidePalette(),
+  }),
+  makeCommand({
+    name: "search.backspace",
+    title: "Search: delete char",
+    category: "Search",
+    group: "modal",
+    run: () => {
+      const s = useAppStore.getState();
+      s.updateSearch(s.searchNeedle.slice(0, -1));
+    },
+  }),
+  makeCommand({
+    name: "search.end",
+    title: "Exit search",
+    category: "Search",
+    group: "modal",
+    run: () => useAppStore.getState().endSearch(),
+  }),
+];
+
+// Expand `{ command: keys-or-key }` into a Binding[] suitable for a Layer.
+// `commandBindings` from @opentui/keymap/extras only accepts a single key per
+// command; this helper supports an array of aliases per command.
+function bindingsFor(spec: Record<string, KeyLike | KeyLike[]>): Binding<Renderable, KeyEvent>[] {
+  const out: Binding<Renderable, KeyEvent>[] = [];
+  for (const [cmd, key] of Object.entries(spec)) {
+    const keys = Array.isArray(key) ? key : [key];
+    for (const k of keys) out.push({ key: k, cmd });
+  }
+  return out;
 }
 
-const BINDINGS: Record<AppMode, Binding[]> = {
-  browse: [
-    { chord: "j",              id: "moveQuestionDown" },
-    { chord: "down",           id: "moveQuestionDown" },
-    { chord: "k",              id: "moveQuestionUp" },
-    { chord: "up",             id: "moveQuestionUp" },
-    { chord: "t",              id: "moveTopicNext" },
-    { chord: "shift+t",        id: "moveTopicPrev" },
-    { chord: "return",         id: "viewProblem" },
-    { chord: "d",              id: "viewDailyChallenge" },
-    { chord: "e",              id: "openEditor" },
-    { chord: "shift+r",        id: "runSolution" },
-    { chord: "s",              id: "submitSolution" },
-    { chord: "/",              id: "startSearch" },
-    { chord: "r",              id: "randomQuestion" },
-    { chord: "h",              id: "showHelp" },
-    { chord: "`",              id: "showDebug" },
-    { chord: "*",              id: "syncDb" },
-    { chord: "ctrl+p",         id: "showCommandPalette" },
-    { chord: "q",              id: "quit" },
-  ],
-  popup: [
-    { chord: "escape",         id: "closePopup" },
-    { chord: "return",         id: "closePopup" },
-    { chord: "j",              id: "scrollPopupDown" },
-    { chord: "down",           id: "scrollPopupDown" },
-    { chord: "k",              id: "scrollPopupUp" },
-    { chord: "up",             id: "scrollPopupUp" },
-  ],
-  result: [
-    { chord: "escape",         id: "closeResult" },
-    { chord: "return",         id: "closeResult" },
-  ],
-  help: [
-    { chord: "escape",         id: "closeHelp" },
-    { chord: "return",         id: "closeHelp" },
-  ],
-  debug: [
-    { chord: "escape",         id: "closeDebug" },
-    { chord: "return",         id: "closeDebug" },
-    { chord: "y",              id: "yankDebug" },
-  ],
-  search: [
-    { chord: "escape",         id: "endSearch" },
-    { chord: "return",         id: "endSearch" },
-    { chord: "backspace",      id: "searchBackspace" },
-  ],
-  // SelectPopup and CommandPalette own their own useKeyboard hooks for
-  // navigation, so dispatch is a no-op while those modes are active.
-  select: [],
-  palette: [],
-};
+export const browseBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "question.next":      ["j", "down"],
+  "question.prev":      ["k", "up"],
+  "topic.next":         "t",
+  "topic.prev":         "shift+t",
+  "question.random":    "r",
+  "problem.view":       "return",
+  "problem.daily":      "d",
+  "problem.openEditor": "e",
+  "problem.run":        "shift+r",
+  "problem.submit":     "s",
+  "search.start":       "/",
+  "help.open":          "h",
+  "debug.open":         "`",
+  "db.sync":            "*",
+  "palette.open":       "ctrl+p",
+  "app.quit":           "q",
+});
 
-const TABLE: Record<AppMode, Map<string, ActionId>> = {
-  browse:  new Map(BINDINGS.browse.map((b) => [b.chord, b.id])),
-  popup:   new Map(BINDINGS.popup.map((b) => [b.chord, b.id])),
-  result:  new Map(BINDINGS.result.map((b) => [b.chord, b.id])),
-  help:    new Map(BINDINGS.help.map((b) => [b.chord, b.id])),
-  debug:   new Map(BINDINGS.debug.map((b) => [b.chord, b.id])),
-  search:  new Map(BINDINGS.search.map((b) => [b.chord, b.id])),
-  select:  new Map(),
-  palette: new Map(),
-};
+export const popupBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "popup.close":      ["escape", "return"],
+  "popup.scrollDown": ["j", "down"],
+  "popup.scrollUp":   ["k", "up"],
+});
 
-export function resolveAction(mode: AppMode, chord: KeyChord): ActionId | null {
-  return TABLE[mode].get(chordKey(chord)) ?? null;
-}
+export const resultBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "result.close": ["escape", "return"],
+});
 
-// Actions surfaced in the command palette. Modal-only actions are excluded —
-// the palette is only reachable from browse mode.
-const PALETTE_EXCLUDED: ReadonlySet<ActionId> = new Set([
-  "scrollPopupDown",
-  "scrollPopupUp",
-  "closePopup",
-  "closeResult",
-  "closeHelp",
-  "closeDebug",
-  "yankDebug",
-  "closePalette",
-  "searchBackspace",
-  "endSearch",
-  "showCommandPalette",
-]);
+export const helpBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "help.close": ["escape", "return"],
+});
 
-export function browseActions(): ActionMeta[] {
-  return Object.values(ACTIONS).filter((a) => !PALETTE_EXCLUDED.has(a.id));
+export const debugBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "debug.close": ["escape", "return"],
+  "debug.yank":  "y",
+});
+
+export const searchBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "search.end":       ["escape", "return"],
+  "search.backspace": "backspace",
+});
+
+export function installKeymap(keymap: AppKeymap, renderer: CliRenderer): void {
+  _keymap = keymap;
+  _renderer = renderer;
+
+  registerDefaultKeys(keymap);
+  registerMetadataFields(keymap);
+
+  keymap.registerLayer({ commands: COMMANDS });
+
+  // Search-mode text input fallthrough: any unbound 1-char printable key with
+  // no modifiers gets appended to the search needle.
+  keymap.intercept("key:after", (ctx) => {
+    if (ctx.reason !== "no-match") return;
+    if (ctx.eventType !== "press") return;
+    const s = useAppStore.getState();
+    if (s.mode !== "search") return;
+    const name = ctx.event.name ?? "";
+    if (name.length !== 1) return;
+    if (ctx.event.ctrl || ctx.event.meta) return;
+    logKey(name, "", s.mode, `updateSearch(+${name})`);
+    s.updateSearch(s.searchNeedle + name);
+  });
 }
