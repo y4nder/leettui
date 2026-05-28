@@ -158,33 +158,51 @@ export function App({ renderer }: AppProps) {
         return;
       }
 
-      const langSlug = getLangSlugFromFilename(existing[0]!) ?? getDefaultLanguage();
-      const code = readSolutionFile(q.id, q.title_slug, langSlug);
-      if (!code) {
-        showResult(["Could not read solution file."]);
+      const doRun = async (filename: string) => {
+        const langSlug = getLangSlugFromFilename(filename) ?? getDefaultLanguage();
+        const code = readSolutionFile(q.id, q.title_slug, langSlug);
+        if (!code) {
+          showResult(["Could not read solution file."]);
+          return;
+        }
+
+        const config = await fetchConsolePanelConfig(q.title_slug);
+        const testCases = config.question.exampleTestcaseList.join("\n");
+        const editorData = await fetchEditorData(q.title_slug);
+
+        showResult(["Running solution..."]);
+
+        const runResponse = await runCode(
+          q.title_slug,
+          langSlug,
+          editorData.question.questionId,
+          code,
+          testCases
+        );
+
+        const result = await pollResult(runResponse.interpret_id);
+        showResult(formatResult(result));
+
+        markAttempted(q.id);
+        const { topics: t, selectedTopicIndex: ti } = useAppStore.getState();
+        refreshQuestions(getQuestionsByTopic(t[ti] ?? "all"));
+      };
+
+      if (existing.length > 1) {
+        showSelect("Select Solution to Run", existing, async (index) => {
+          hideSelect();
+          if (index === null) return;
+          try {
+            await doRun(existing[index]!);
+          } catch (e: any) {
+            logError(triggerKey, "browse", "handleRunSolution", e);
+            showResult(["Run error:", e.message]);
+          }
+        });
         return;
       }
 
-      const config = await fetchConsolePanelConfig(q.title_slug);
-      const testCases = config.question.exampleTestcaseList.join("\n");
-      const editorData = await fetchEditorData(q.title_slug);
-
-      showResult(["Running solution..."]);
-
-      const runResponse = await runCode(
-        q.title_slug,
-        langSlug,
-        editorData.question.questionId,
-        code,
-        testCases
-      );
-
-      const result = await pollResult(runResponse.interpret_id);
-      showResult(formatResult(result));
-
-      markAttempted(q.id);
-      const { topics: t, selectedTopicIndex: ti } = useAppStore.getState();
-      refreshQuestions(getQuestionsByTopic(t[ti] ?? "all"));
+      await doRun(existing[0]!);
     } catch (e: any) {
       logError(triggerKey, "browse", "handleRunSolution", e);
       showResult(["Run error:", e.message]);
@@ -204,35 +222,53 @@ export function App({ renderer }: AppProps) {
         return;
       }
 
-      const langSlug = getLangSlugFromFilename(existing[0]!) ?? getDefaultLanguage();
-      const code = readSolutionFile(q.id, q.title_slug, langSlug);
-      if (!code) {
-        showResult(["Could not read solution file."]);
+      const doSubmit = async (filename: string) => {
+        const langSlug = getLangSlugFromFilename(filename) ?? getDefaultLanguage();
+        const code = readSolutionFile(q.id, q.title_slug, langSlug);
+        if (!code) {
+          showResult(["Could not read solution file."]);
+          return;
+        }
+
+        const editorData = await fetchEditorData(q.title_slug);
+
+        showResult(["Submitting solution..."]);
+
+        const submitResponse = await submitCode(
+          q.title_slug,
+          langSlug,
+          editorData.question.questionId,
+          code
+        );
+
+        const result = await pollResult(submitResponse.submission_id);
+        showResult(formatResult(result));
+
+        if (result.type === "submit_accepted") {
+          markAccepted(q.id);
+        } else {
+          markAttempted(q.id);
+        }
+
+        const topic = useAppStore.getState().topics[useAppStore.getState().selectedTopicIndex] ?? "all";
+        refreshQuestions(getQuestionsByTopic(topic));
+      };
+
+      if (existing.length > 1) {
+        showSelect("Select Solution to Submit", existing, async (index) => {
+          hideSelect();
+          if (index === null) return;
+          try {
+            await doSubmit(existing[index]!);
+          } catch (e: any) {
+            logError(triggerKey, "browse", "handleSubmitSolution", e);
+            showResult(["Submit error:", e.message]);
+          }
+        });
         return;
       }
 
-      const editorData = await fetchEditorData(q.title_slug);
-
-      showResult(["Submitting solution..."]);
-
-      const submitResponse = await submitCode(
-        q.title_slug,
-        langSlug,
-        editorData.question.questionId,
-        code
-      );
-
-      const result = await pollResult(submitResponse.submission_id);
-      showResult(formatResult(result));
-
-      if (result.type === "submit_accepted") {
-        markAccepted(q.id);
-      } else {
-        markAttempted(q.id);
-      }
-
-      const topic = useAppStore.getState().topics[useAppStore.getState().selectedTopicIndex] ?? "all";
-      refreshQuestions(getQuestionsByTopic(topic));
+      await doSubmit(existing[0]!);
     } catch (e: any) {
       logError(triggerKey, "browse", "handleSubmitSolution", e);
       showResult(["Submit error:", e.message]);
@@ -460,14 +496,14 @@ function formatResult(result: ParsedResponse): string[] {
         `Runtime: ${result.data.status_runtime ?? "N/A"}`,
         `Memory: ${result.data.status_memory ?? "N/A"}`,
         `Tests: ${result.data.total_correct}/${result.data.total_testcases}`,
-        ...(result.data.code_answer ?? []).map((a, i) => `  Output ${i + 1}: ${a}`),
+        ...(result.data.code_answer ?? []).filter((a) => a !== "").map((a, i) => `  Output ${i + 1}: ${a}`),
       ];
     case "run_wrong_answer":
       return [
         "✗ Wrong Answer (Run)",
         `Tests: ${result.data.total_correct}/${result.data.total_testcases}`,
-        ...(result.data.code_answer ?? []).map((a, i) => `  Output ${i + 1}: ${a}`),
-        ...(result.data.expected_code_answer ?? []).map(
+        ...(result.data.code_answer ?? []).filter((a) => a !== "").map((a, i) => `  Output ${i + 1}: ${a}`),
+        ...(result.data.expected_code_answer ?? []).filter((a) => a !== "").map(
           (a, i) => `  Expected ${i + 1}: ${a}`
         ),
       ];
