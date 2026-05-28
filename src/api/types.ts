@@ -200,3 +200,34 @@ export const LANGUAGE_EXTENSIONS: Record<string, string> = {
 export function getExtension(langSlug: string): string {
   return LANGUAGE_EXTENSIONS[langSlug] ?? "txt";
 }
+
+// Reverse map: file extension → preferred langSlug for run/submit
+export const EXTENSION_TO_LANGSLUG: Record<string, string> = {
+  cpp: "cpp",
+  java: "java",
+  py: "python3",
+  sql: "mysql",
+  c: "c",
+  cs: "csharp",
+  js: "javascript",
+  rb: "ruby",
+  sh: "bash",
+  swift: "swift",
+  go: "golang",
+  scala: "scala",
+  html: "html",
+  kt: "kotlin",
+  rs: "rust",
+  php: "php",
+  ts: "typescript",
+  rkt: "racket",
+  erl: "erlang",
+  ex: "elixir",
+  dart: "dart",
+  jsx: "react",
+};
+
+export function getLangSlugFromFilename(filename: string): string | null {
+  const ext = filename.split(".").pop() ?? "";
+  return EXTENSION_TO_LANGSLUG[ext] ?? null;
+}

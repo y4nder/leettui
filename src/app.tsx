@@ -20,7 +20,7 @@ import { fetchConsolePanelConfig } from "./api/queries/console-panel-config";
 import { runCode } from "./api/rest/run";
 import { submitCode } from "./api/rest/submit";
 import { pollResult } from "./api/rest/check";
-import { parseCheckResponse, type ParsedResponse } from "./api/types";
+import { parseCheckResponse, getLangSlugFromFilename, type ParsedResponse } from "./api/types";
 import { getQuestionsByTopic, markAccepted, markAttempted } from "./db/questions";
 import { createSolutionFile, readSolutionFile, findExistingSolutions } from "./core/solutions";
 import { syncQuestions } from "./core/sync";
@@ -158,7 +158,7 @@ export function App({ renderer }: AppProps) {
         return;
       }
 
-      const langSlug = existing[0]!.split(".").pop() === "py" ? "python3" : getDefaultLanguage();
+      const langSlug = getLangSlugFromFilename(existing[0]!) ?? getDefaultLanguage();
       const code = readSolutionFile(q.id, q.title_slug, langSlug);
       if (!code) {
         showResult(["Could not read solution file."]);
@@ -204,7 +204,7 @@ export function App({ renderer }: AppProps) {
         return;
       }
 
-      const langSlug = existing[0]!.split(".").pop() === "py" ? "python3" : getDefaultLanguage();
+      const langSlug = getLangSlugFromFilename(existing[0]!) ?? getDefaultLanguage();
       const code = readSolutionFile(q.id, q.title_slug, langSlug);
       if (!code) {
         showResult(["Could not read solution file."]);
@@ -366,8 +366,10 @@ export function App({ renderer }: AppProps) {
         handleOpenEditor(key);
         break;
       case "r":
-        logKey(key, mods, s.mode, "handleRandomQuestion");
-        handleRandomQuestion();
+        if (!event.shift) {
+          logKey(key, mods, s.mode, "handleRandomQuestion");
+          handleRandomQuestion();
+        }
         break;
       case "/":
         logKey(key, mods, s.mode, "startSearch");
