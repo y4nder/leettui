@@ -1,23 +1,34 @@
 import { resolveTheme, type Theme } from "./themes";
+import { useAppStore } from "./store";
 
-const _colors: Theme = { ...resolveTheme() };
+let _currentTheme: Theme = resolveTheme();
 
-export const colors: Theme = _colors;
+// Proxy so every colors.xxx read is always live — no stale captures from module init order
+export const colors: Theme = new Proxy({} as Theme, {
+  get(_, key) {
+    return _currentTheme[key as keyof Theme];
+  },
+});
 
 export function setTheme(name?: string): void {
-  Object.assign(_colors, resolveTheme(name));
+  _currentTheme = resolveTheme(name);
+  try {
+    useAppStore.getState().bumpThemeVersion();
+  } catch {
+    // store not yet initialized (called during module bootstrap)
+  }
 }
 
 export function difficultyColor(difficulty: string): string {
   switch (difficulty) {
     case "Easy":
-      return colors.easy;
+      return _currentTheme.easy;
     case "Medium":
-      return colors.medium;
+      return _currentTheme.medium;
     case "Hard":
-      return colors.hard;
+      return _currentTheme.hard;
     default:
-      return colors.fg;
+      return _currentTheme.fg;
   }
 }
 
@@ -35,10 +46,10 @@ export function statusIcon(status: string | null): string {
 export function statusColor(status: string | null): string {
   switch (status) {
     case "ac":
-      return colors.accepted;
+      return _currentTheme.accepted;
     case "notac":
-      return colors.attempted;
+      return _currentTheme.attempted;
     default:
-      return colors.fgDim;
+      return _currentTheme.fgDim;
   }
 }

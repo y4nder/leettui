@@ -45,6 +45,7 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
   const stats = useAppStore((s) => s.stats);
 
   const mode = useAppStore((s) => s.mode);
+  useAppStore((s) => s.themeVersion);
   const popupTitle = useAppStore((s) => s.popupTitle);
   const popupContent = useAppStore((s) => s.popupContent);
   const selectTitle = useAppStore((s) => s.selectTitle);

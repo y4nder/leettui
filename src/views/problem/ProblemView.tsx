@@ -70,6 +70,7 @@ function HintsFooter() {
 
 export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
   const { height } = useTerminalDimensions();
+  useAppStore((s) => s.themeVersion);
   const stats = useAppStore((s) => s.stats);
   const mode = useAppStore((s) => s.mode);
   const searchNeedle = useAppStore((s) => s.searchNeedle);

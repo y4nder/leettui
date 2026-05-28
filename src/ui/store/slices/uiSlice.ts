@@ -36,6 +36,7 @@ export interface ProblemViewState {
 
 export interface UiSlice {
   mode: AppMode;
+  themeVersion: number;
   popupTitle: string;
   popupContent: string;
   selectTitle: string;
@@ -44,6 +45,7 @@ export interface UiSlice {
   resultView: ResultView | null;
   problem: ProblemViewState | null;
 
+  bumpThemeVersion: () => void;
   setMode: (mode: AppMode) => void;
   showPopup: (title: string, content: string) => void;
   hidePopup: () => void;
@@ -73,6 +75,7 @@ export interface UiSlice {
 
 export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => ({
   mode: "browse",
+  themeVersion: 0,
   popupTitle: "",
   popupContent: "",
   selectTitle: "",
@@ -81,6 +84,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   resultView: null,
   problem: null,
 
+  bumpThemeVersion: () => set((s) => ({ themeVersion: s.themeVersion + 1 })),
   setMode: (mode) => set({ mode }),
 
   showPopup: (title, content) => set({ mode: "popup", popupTitle: title, popupContent: content }),
