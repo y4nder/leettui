@@ -1,0 +1,14 @@
+export interface Config {
+  csrftoken: string;
+  lc_session: string;
+  editor?: {
+    command?: string;
+  };
+  paths?: {
+    db?: string;
+    solutions?: string;
+  };
+  language?: {
+    default?: string;
+  };
+}
