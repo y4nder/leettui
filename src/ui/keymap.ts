@@ -17,7 +17,6 @@ import { registerDefaultKeys, registerMetadataFields } from "@opentui/keymap/add
 import { useAppStore } from "./store";
 import { isDebugEnabled, dumpToString, logKey } from "../debug";
 import {
-  handleViewProblem,
   handleViewDailyChallenge,
   handleOpenEditor,
   handleRunSolution,
@@ -25,6 +24,15 @@ import {
   handleSyncDb,
   handleRandomQuestion,
 } from "../views/browse/handlers";
+import {
+  handleEnterProblemView,
+  handleExitProblemView,
+  handleProblemOpenEditor,
+  handleProblemRun,
+  handleProblemSubmit,
+  handleProblemLangConfirm,
+  handleProblemLangCancel,
+} from "../views/problem/handlers";
 
 export type AppKeymap = Keymap<Renderable, KeyEvent>;
 
@@ -101,16 +109,104 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
   }),
 
   makeCommand({
-    name: "problem.view",
-    title: "View problem description",
+    name: "problem.enter",
+    title: "Open problem view",
     category: "View",
-    run: () => handleViewProblem("return"),
+    run: () => handleEnterProblemView("return"),
   }),
   makeCommand({
     name: "problem.daily",
     title: "Today's daily challenge",
     category: "View",
     run: () => handleViewDailyChallenge("d"),
+  }),
+  makeCommand({
+    name: "problem.exit",
+    title: "Close problem view",
+    category: "View",
+    group: "modal",
+    run: () => handleExitProblemView(),
+  }),
+  makeCommand({
+    name: "problem.focusNext",
+    title: "Focus next solution",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().moveFocusedSolution(1),
+  }),
+  makeCommand({
+    name: "problem.focusPrev",
+    title: "Focus previous solution",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().moveFocusedSolution(-1),
+  }),
+  makeCommand({
+    name: "problem.openEditor",
+    title: "Open solution in editor",
+    category: "Solve",
+    group: "modal",
+    run: () => {
+      if (_renderer) handleProblemOpenEditor("e", _renderer);
+    },
+  }),
+  makeCommand({
+    name: "problem.run",
+    title: "Run focused solution",
+    category: "Solve",
+    group: "modal",
+    run: () => handleProblemRun("shift+r"),
+  }),
+  makeCommand({
+    name: "problem.submit",
+    title: "Submit focused solution",
+    category: "Solve",
+    group: "modal",
+    run: () => handleProblemSubmit("s"),
+  }),
+  makeCommand({
+    name: "problem.langConfirm",
+    title: "Confirm language",
+    category: "Solve",
+    group: "modal",
+    run: () => {
+      if (_renderer) handleProblemLangConfirm("return", _renderer);
+    },
+  }),
+  makeCommand({
+    name: "problem.langCancel",
+    title: "Cancel language picker",
+    category: "Solve",
+    group: "modal",
+    run: () => handleProblemLangCancel(),
+  }),
+  // Context-sensitive Enter/Esc for the problem scope. Confirm/cancel the
+  // language picker when it's active; otherwise no-op (Enter) or exit (Esc).
+  makeCommand({
+    name: "problem.return",
+    title: "Confirm (problem view)",
+    category: "View",
+    group: "modal",
+    run: () => {
+      const s = useAppStore.getState();
+      if (s.problem?.langPicker && _renderer) {
+        handleProblemLangConfirm("return", _renderer);
+      }
+    },
+  }),
+  makeCommand({
+    name: "problem.escape",
+    title: "Escape (problem view)",
+    category: "View",
+    group: "modal",
+    run: () => {
+      const s = useAppStore.getState();
+      if (s.problem?.langPicker) {
+        handleProblemLangCancel();
+      } else {
+        handleExitProblemView();
+      }
+    },
   }),
 
   makeCommand({
@@ -280,7 +376,7 @@ export const browseBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "topic.next":         "t",
   "topic.prev":         "shift+t",
   "question.random":    "r",
-  "problem.view":       "return",
+  "problem.enter":      "return",
   "problem.daily":      "d",
   "problem.openEditor": "e",
   "problem.run":        "shift+r",
@@ -315,6 +411,16 @@ export const debugBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
 export const searchBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "search.end":       ["escape", "return"],
   "search.backspace": "backspace",
+});
+
+export const problemBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "problem.focusNext":  ["j", "down"],
+  "problem.focusPrev":  ["k", "up"],
+  "problem.openEditor": "e",
+  "problem.run":        "shift+r",
+  "problem.submit":     "s",
+  "problem.return":     "return",
+  "problem.escape":     ["escape", "q"],
 });
 
 export function installKeymap(keymap: AppKeymap, renderer: CliRenderer): void {

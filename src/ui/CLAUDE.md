@@ -18,9 +18,11 @@ All components use OpenTUI JSX intrinsics (`<box>`, `<text>`, `<scrollbox>`, `<m
 - `TopicList.tsx` — Left panel: scrollable topic list with `►` selection indicator
 - `QuestionList.tsx` — Right panel: question list with status icon, ID, title, difficulty color. Uses `backgroundColor` for selected row highlight.
 - `StatusBar.tsx` — Bottom bar: shows keybinding hints in browse mode, search input in search mode
-- `QuestionPopup.tsx` — Centered absolute-positioned modal with `<scrollbox>` + `<markdown>` for problem descriptions. Requires `SyntaxStyle.create()` from `@opentui/core`.
+- `QuestionPopup.tsx` — Centered absolute-positioned modal with `<scrollbox>` + `<markdown>` for problem descriptions. Used by the daily-challenge flow. Requires `SyntaxStyle.create()` from `@opentui/core`.
 - `SelectPopup.tsx` — Language selection modal with j/k navigation. Uses `useKeyboard` hook internally.
-- `ResultPopup.tsx` — Run/submit result display with color-coded status lines
+- `ResultPopup.tsx` — Modal frame around `<ResultBody>` for browse-mode run/submit results.
+- `ResultBody.tsx` — Pure rendering of a `ResultView` (metrics, diff, outputs, error). Reused by `ResultPopup` and by `ProblemView`'s inline Result panel.
+- `SolutionsPanel.tsx` — Right-rail panel for `ProblemView`. Renders solution-file list with focused-row highlight, or swaps to an inline language picker when `langPicker` is non-null.
 - `HelpPopup.tsx` — Auto-generated from `keymap.getCommandEntries()`. Groups commands by `category`, formats key sequences with `formatCommandBindings`. Debug entries only appear when `LEETTUI_DEBUG=1`.
 - `DebugPopup.tsx` — Live key/error log overlay (debug mode only). Owns `debugBindings` via `useBindings`.
 - `ProgressBar.tsx` — Sync progress indicator (shown during DB sync)
@@ -33,7 +35,7 @@ Zustand store. **UI vs domain rule:** every slice file starts with a `// type: u
 - `questionsSlice.ts` (**domain**) — `topics`, `allQuestions`, `filteredQuestions`. Actions: `init()`, `refreshQuestions()`, `loadTopic(topic)`, `applySearch(needle)`. Owns DB reads and search filtering.
 - `selectionSlice.ts` (**ui**) — `selectedTopicIndex`, `selectedQuestionIndex`. Actions: `moveQuestion()`, `moveTopic()`, `setTopicIndex()`. Calls into the domain slice when moving topics.
 - `searchSlice.ts` (**ui**) — `searchNeedle`. Actions: `startSearch()`, `updateSearch()`, `endSearch()`. Asks the domain slice to recompute `filteredQuestions`.
-- `uiSlice.ts` (**ui**) — `mode` (`AppMode`), popup/select/result content. Actions for showing/hiding every modal (`showPopup`, `hidePopup`, … `showPalette`, `hidePalette`).
+- `uiSlice.ts` (**ui**) — `mode` (`AppMode`), popup/select/result content, plus `problem: ProblemViewState | null` (active question, description, solutions list, focused index, inline result, inline language picker). Actions for showing/hiding every modal (`showPopup`, `hidePopup`, …) and managing the problem view (`enterProblemView`, `exitProblemView`, `setProblemSolutions`, `moveFocusedSolution`, `setProblemResult`, `openLangPicker`, `moveLangPicker`, `closeLangPicker`).
 - `syncSlice.ts` (**ui**) — `syncProgress`. Actions: `setSyncProgress()`, `clearSyncProgress()`.
 - `index.ts` — Combines slices into `useAppStore`. Re-exports `AppMode` type.
 

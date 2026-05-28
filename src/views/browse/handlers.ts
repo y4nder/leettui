@@ -51,25 +51,6 @@ export async function handleViewDailyChallenge(triggerKey: string) {
   }
 }
 
-export async function handleViewProblem(triggerKey: string) {
-  const q = currentQuestion();
-  if (!q) return;
-  const { showPopup, showResult } = useAppStore.getState();
-  try {
-    const data = await fetchQuestionContent(q.title_slug);
-    const html = data.question?.content;
-    if (!html) {
-      showResult(info("No description available (problem may be premium-only)."));
-      return;
-    }
-    const md = nhm.translate(html);
-    showPopup(`${q.id}. ${q.title} [${q.difficulty}]`, md);
-  } catch (e: any) {
-    logError(triggerKey, "browse", "handleViewProblem", e);
-    showResult(errorView("Error fetching question", e.message));
-  }
-}
-
 export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
   const q = currentQuestion();
   if (!q) return;
