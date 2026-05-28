@@ -1,51 +1,70 @@
 import { fetchQuestionList } from "../api/queries/problemset-question-list";
 import { upsertQuestion, upsertQuestionTopics, getQuestionCount } from "../db/questions";
 import { getDb } from "../db/index";
+import type { ApiQuestion } from "../api/types";
 
-const PAGE_SIZE = 1000;
+const PAGE_SIZE = 100;
+const CONCURRENCY = 5;
+
+function persistPage(questions: ApiQuestion[]): void {
+  const db = getDb();
+  const insertAll = db.transaction(() => {
+    for (const q of questions) {
+      const id = parseInt(q.frontendQuestionId, 10);
+      if (isNaN(id)) continue;
+
+      upsertQuestion({
+        id,
+        title: q.title,
+        titleSlug: q.titleSlug,
+        difficulty: q.difficulty,
+        paidOnly: q.paidOnly,
+        status: q.status,
+        acRate: q.acRate,
+      });
+
+      const topicSlugs = q.topicTags.map((t) => t.slug);
+      if (topicSlugs.length > 0) {
+        upsertQuestionTopics(id, topicSlugs);
+      }
+    }
+  });
+  insertAll();
+}
 
 export async function syncQuestions(
   onProgress?: (fetched: number, total: number) => void
 ): Promise<number> {
-  let skip = 0;
-  let total = 0;
-  let fetched = 0;
+  const first = await fetchQuestionList(PAGE_SIZE, 0);
+  const total = first.problemsetQuestionList.total;
 
-  const db = getDb();
+  persistPage(first.problemsetQuestionList.questions);
+  let fetched = first.problemsetQuestionList.questions.length;
+  onProgress?.(fetched, total);
 
-  do {
-    const data = await fetchQuestionList(PAGE_SIZE, skip);
-    const list = data.problemsetQuestionList;
-    total = list.total;
+  if (fetched >= total || first.problemsetQuestionList.questions.length === 0) {
+    return fetched;
+  }
 
-    const insertAll = db.transaction(() => {
-      for (const q of list.questions) {
-        const id = parseInt(q.frontendQuestionId, 10);
-        if (isNaN(id)) continue;
+  const skips: number[] = [];
+  for (let s = fetched; s < total; s += PAGE_SIZE) skips.push(s);
 
-        upsertQuestion({
-          id,
-          title: q.title,
-          titleSlug: q.titleSlug,
-          difficulty: q.difficulty,
-          paidOnly: q.paidOnly,
-          status: q.status,
-          acRate: q.acRate,
-        });
+  let cursor = 0;
+  async function worker() {
+    while (cursor < skips.length) {
+      const skip = skips[cursor++]!;
+      const data = await fetchQuestionList(PAGE_SIZE, skip);
+      const questions = data.problemsetQuestionList.questions;
+      if (questions.length === 0) return;
+      persistPage(questions);
+      fetched += questions.length;
+      onProgress?.(Math.min(fetched, total), total);
+    }
+  }
 
-        const topicSlugs = q.topicTags.map((t) => t.slug);
-        if (topicSlugs.length > 0) {
-          upsertQuestionTopics(id, topicSlugs);
-        }
-      }
-    });
-
-    insertAll();
-
-    fetched += list.questions.length;
-    skip += PAGE_SIZE;
-    onProgress?.(fetched, total);
-  } while (fetched < total);
+  await Promise.all(
+    Array.from({ length: Math.min(CONCURRENCY, skips.length) }, () => worker())
+  );
 
   return fetched;
 }
