@@ -30,8 +30,11 @@ import {
   handleProblemOpenEditor,
   handleProblemRun,
   handleProblemSubmit,
-  handleProblemLangConfirm,
-  handleProblemLangCancel,
+  handleOpenSolutionPicker,
+  handlePickerMove,
+  handlePickerCancel,
+  handlePickerConfirm,
+  handlePickerOpenEditor,
 } from "../views/problem/handlers";
 
 export type AppKeymap = Keymap<Renderable, KeyEvent>;
@@ -128,21 +131,14 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     run: () => handleExitProblemView(),
   }),
   makeCommand({
-    name: "problem.focusNext",
-    title: "Focus next solution",
-    category: "Navigation",
+    name: "problem.openPicker",
+    title: "Open solution picker",
+    category: "Solve",
     group: "modal",
-    run: () => useAppStore.getState().moveFocusedSolution(1),
+    run: () => handleOpenSolutionPicker("f"),
   }),
   makeCommand({
-    name: "problem.focusPrev",
-    title: "Focus previous solution",
-    category: "Navigation",
-    group: "modal",
-    run: () => useAppStore.getState().moveFocusedSolution(-1),
-  }),
-  makeCommand({
-    name: "problem.openEditor",
+    name: "problem.editorOpen",
     title: "Open solution in editor",
     category: "Solve",
     group: "modal",
@@ -151,62 +147,68 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     },
   }),
   makeCommand({
-    name: "problem.run",
+    name: "problem.runFocused",
     title: "Run focused solution",
     category: "Solve",
     group: "modal",
     run: () => handleProblemRun("shift+r"),
   }),
   makeCommand({
-    name: "problem.submit",
+    name: "problem.submitFocused",
     title: "Submit focused solution",
     category: "Solve",
     group: "modal",
     run: () => handleProblemSubmit("s"),
   }),
   makeCommand({
-    name: "problem.langConfirm",
-    title: "Confirm language",
-    category: "Solve",
-    group: "modal",
-    run: () => {
-      if (_renderer) handleProblemLangConfirm("return", _renderer);
-    },
-  }),
-  makeCommand({
-    name: "problem.langCancel",
-    title: "Cancel language picker",
-    category: "Solve",
-    group: "modal",
-    run: () => handleProblemLangCancel(),
-  }),
-  // Context-sensitive Enter/Esc for the problem scope. Confirm/cancel the
-  // language picker when it's active; otherwise no-op (Enter) or exit (Esc).
-  makeCommand({
-    name: "problem.return",
-    title: "Confirm (problem view)",
-    category: "View",
-    group: "modal",
-    run: () => {
-      const s = useAppStore.getState();
-      if (s.problem?.langPicker && _renderer) {
-        handleProblemLangConfirm("return", _renderer);
-      }
-    },
-  }),
-  makeCommand({
     name: "problem.escape",
-    title: "Escape (problem view)",
+    title: "Close problem view",
     category: "View",
     group: "modal",
     run: () => {
-      const s = useAppStore.getState();
-      if (s.problem?.langPicker) {
-        handleProblemLangCancel();
-      } else {
-        handleExitProblemView();
-      }
+      // Defer to the picker's own cancel binding when it's open.
+      if (useAppStore.getState().problem?.solutionPicker) return;
+      handleExitProblemView();
     },
+  }),
+  makeCommand({
+    name: "picker.next",
+    title: "Picker: next entry",
+    category: "Navigation",
+    group: "modal",
+    run: () => handlePickerMove(1),
+  }),
+  makeCommand({
+    name: "picker.prev",
+    title: "Picker: previous entry",
+    category: "Navigation",
+    group: "modal",
+    run: () => handlePickerMove(-1),
+  }),
+  makeCommand({
+    name: "picker.confirm",
+    title: "Picker: select (existing) or create + edit (new)",
+    category: "Solve",
+    group: "modal",
+    run: () => {
+      if (_renderer) handlePickerConfirm("return", _renderer);
+    },
+  }),
+  makeCommand({
+    name: "picker.openEditor",
+    title: "Picker: select + open in editor",
+    category: "Solve",
+    group: "modal",
+    run: () => {
+      if (_renderer) handlePickerOpenEditor("o", _renderer);
+    },
+  }),
+  makeCommand({
+    name: "picker.cancel",
+    title: "Picker: cancel",
+    category: "Solve",
+    group: "modal",
+    run: () => handlePickerCancel(),
   }),
 
   makeCommand({
@@ -414,13 +416,19 @@ export const searchBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
 });
 
 export const problemBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
-  "problem.focusNext":  ["j", "down"],
-  "problem.focusPrev":  ["k", "up"],
-  "problem.openEditor": "e",
-  "problem.run":        "shift+r",
-  "problem.submit":     "s",
-  "problem.return":     "return",
-  "problem.escape":     ["escape", "q"],
+  "problem.openPicker":    "f",
+  "problem.editorOpen":    "e",
+  "problem.runFocused":    "shift+r",
+  "problem.submitFocused": "s",
+  "problem.escape":        ["escape", "q"],
+});
+
+export const pickerBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "picker.next":       ["j", "down"],
+  "picker.prev":       ["k", "up"],
+  "picker.confirm":    "return",
+  "picker.openEditor": "o",
+  "picker.cancel":     ["escape", "q"],
 });
 
 export function installKeymap(keymap: AppKeymap, renderer: CliRenderer): void {

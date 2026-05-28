@@ -28,16 +28,16 @@ index.tsx
         │           ├── core/submission   (run/submit service)
         │           └── core/sync         (manual re-sync)
         └── views/problem/ProblemView    (mode === "problem")
-              ├── ui/components/SolutionsPanel
+              ├── ui/components/SolutionPickerModal  (telescope-style picker, opens with `f`)
               ├── ui/components/ResultBody
-              └── views/problem/handlers (enter/exit/openEditor/run/submit)
+              └── views/problem/handlers (enter/exit/openEditor/run/submit/picker)
 ```
 
 ## Key architecture decisions
 
 - **Keymap-driven dispatch**: `ui/keymap.ts` defines a command catalog (one `Command` per action with `title`/`category`/`group` metadata) plus per-scope binding-only specs (`browseBindings`, `popupBindings`, …). At boot, `installKeymap(keymap, renderer)` registers every command in a global layer and wires the search-mode text-input intercept. Each binding layer is mounted via `useBindings` from a React component that only renders in its mode — conditional rendering does the activation, not field-gating. Adding a binding = adding one `Command` and one `bindingsFor(...)` entry.
 - **View modules own orchestration**: `views/browse/handlers.ts` and `views/problem/handlers.ts` hold the async action functions (`handleOpenEditor`, `handleRunSolution`, `handleEnterProblemView`, `handleProblemRun`, etc.). They live outside React so views can reuse them and stay layout-focused. Commands' `run(...)` delegates to these handlers.
-- **Dedicated problem view**: Pressing `Enter` on a question in browse transitions to `ProblemView` — a two-column layout (description left, solutions list + inline result + hints right). All solve actions (`e`/`R`/`s`) operate in-place; results render inline via `<ResultBody>` (no popup). Multi-file disambiguation = focused row in the Solutions panel. Language picker for new files renders inline inside the Solutions panel (no overlay).
+- **Dedicated problem view**: Pressing `Enter` on a question in browse transitions to `ProblemView` — a two-column layout (description left, active-solution strip + inline result + hints right). All solve actions (`e`/`R`/`s`) operate in-place against the active solution; results render inline via `<ResultBody>` (no popup). Picking which solution is active — and creating a new one for any of LeetCode's available languages — happens in `SolutionPickerModal`, a telescope-style overlay (`f` to open) with a syntax-highlighted code preview alongside the language list.
 - **Editor integration** suspends/resumes the renderer around `Bun.spawn` of `$EDITOR` (in `handleOpenEditor`).
 - **HTML→Markdown** conversion uses `node-html-markdown` before passing to OpenTUI's `<markdown>` component.
 - **Popups own their own bindings**: each popup component (`QuestionPopup`, `ResultPopup`, `HelpPopup`, `DebugPopup`, `SelectPopup`, `CommandPalette`) calls `useBindings` directly. Since popups are conditionally rendered by mode, their layers register/unregister automatically. No more `mode === "select" | "palette"` early-return in the parent.

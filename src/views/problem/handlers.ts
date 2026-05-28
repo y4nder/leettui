@@ -67,54 +67,124 @@ function refreshProblemSolutions(focusFilename?: string) {
   useAppStore.getState().setProblemSolutions(solutions, focusFilename);
 }
 
+function buildExistingByLangSlug(filenames: string[]): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const f of filenames) {
+    const slug = getLangSlugFromFilename(f);
+    if (slug) out[slug] = f;
+  }
+  return out;
+}
+
 export async function handleProblemOpenEditor(triggerKey: string, renderer: Renderer) {
   const p = useAppStore.getState().problem;
   if (!p) return;
 
-  // If a file is already focused, just open it.
   const focused = focusedSolutionFilename();
-  if (focused) {
-    await openInEditor(renderer, focused);
-    refreshProblemSolutions(focused);
+  if (!focused) {
+    useAppStore
+      .getState()
+      .setProblemResult(info("No solution selected. Press 'f' to pick a language."));
     return;
   }
+  await openInEditor(renderer, focused);
+  refreshProblemSolutions(focused);
+}
 
-  // Otherwise, fetch snippets and open the inline language picker.
+export async function handleOpenSolutionPicker(triggerKey: string) {
+  const p = useAppStore.getState().problem;
+  if (!p) return;
   try {
     const editorData = await fetchEditorData(p.question.title_slug);
     const snippets = editorData.question.codeSnippets;
     if (!snippets || snippets.length === 0) {
-      useAppStore.getState().setProblemResult(info("No code snippets available for this problem."));
+      useAppStore
+        .getState()
+        .setProblemResult(info("No code snippets available for this problem."));
       return;
     }
-    useAppStore.getState().openLangPicker(snippets);
+    const existing = findExistingSolutions(p.question.id, p.question.title_slug);
+    const existingByLangSlug = buildExistingByLangSlug(existing);
+
+    // Sort: existing (in problem's solutions[] order) first, then the rest.
+    const existingSet = new Set(Object.keys(existingByLangSlug));
+    const sorted = [
+      ...snippets.filter((s) => existingSet.has(s.langSlug)),
+      ...snippets.filter((s) => !existingSet.has(s.langSlug)),
+    ];
+
+    const currentFocused = focusedSolutionFilename();
+    const initialLangSlug = currentFocused ? getLangSlugFromFilename(currentFocused) : undefined;
+
+    useAppStore
+      .getState()
+      .openSolutionPicker(sorted, existingByLangSlug, initialLangSlug ?? undefined);
   } catch (e: any) {
-    logError(triggerKey, "problem", "handleProblemOpenEditor", e);
-    useAppStore.getState().setProblemResult(errorView("Error fetching editor data", e.message));
+    logError(triggerKey, "problem", "handleOpenSolutionPicker", e);
+    useAppStore
+      .getState()
+      .setProblemResult(errorView("Error fetching editor data", e.message));
   }
 }
 
-export async function handleProblemLangConfirm(_triggerKey: string, renderer: Renderer) {
-  const p = useAppStore.getState().problem;
-  if (!p || !p.langPicker) return;
-  const snippet = p.langPicker.snippets[p.langPicker.index];
-  if (!snippet) return;
-
-  const path = createSolutionFile(
-    p.question.id,
-    p.question.title_slug,
-    snippet.langSlug,
-    snippet.code
-  );
-  const filename = getSolutionFilename(p.question.id, p.question.title_slug, snippet.langSlug);
-
-  useAppStore.getState().closeLangPicker();
-  await openInEditorPath(renderer, path);
-  refreshProblemSolutions(filename);
+export function handlePickerMove(delta: number) {
+  useAppStore.getState().movePicker(delta);
 }
 
-export function handleProblemLangCancel() {
-  useAppStore.getState().closeLangPicker();
+export function handlePickerCancel() {
+  useAppStore.getState().closeSolutionPicker();
+}
+
+// Enter: for existing files, just set as active and close the picker. For
+// uncreated languages, there's no useful "select" without authoring the file,
+// so we create it and open the editor (same as `o`).
+export async function handlePickerConfirm(triggerKey: string, renderer: Renderer) {
+  const p = useAppStore.getState().problem;
+  const picker = p?.solutionPicker;
+  if (!p || !picker) return;
+
+  const snippet = picker.snippets[picker.index];
+  if (!snippet) return;
+
+  const existingFilename = picker.existingByLangSlug[snippet.langSlug];
+  if (existingFilename) {
+    useAppStore.getState().closeSolutionPicker();
+    refreshProblemSolutions(existingFilename);
+    return;
+  }
+  await handlePickerOpenEditor(triggerKey, renderer);
+}
+
+// `o`: always select + open in editor. Creates the file from the snippet if
+// it doesn't exist yet.
+export async function handlePickerOpenEditor(_triggerKey: string, renderer: Renderer) {
+  const p = useAppStore.getState().problem;
+  const picker = p?.solutionPicker;
+  if (!p || !picker) return;
+
+  const snippet = picker.snippets[picker.index];
+  if (!snippet) return;
+
+  const existingFilename = picker.existingByLangSlug[snippet.langSlug];
+  let filename: string;
+  let path: string;
+
+  if (existingFilename) {
+    filename = existingFilename;
+    path = getSolutionPath(p.question.id, p.question.title_slug, snippet.langSlug);
+  } else {
+    path = createSolutionFile(
+      p.question.id,
+      p.question.title_slug,
+      snippet.langSlug,
+      snippet.code
+    );
+    filename = getSolutionFilename(p.question.id, p.question.title_slug, snippet.langSlug);
+  }
+
+  useAppStore.getState().closeSolutionPicker();
+  await openInEditorPath(renderer, path);
+  refreshProblemSolutions(filename);
 }
 
 async function openInEditor(renderer: Renderer, filename: string) {
@@ -145,7 +215,9 @@ export async function handleProblemRun(triggerKey: string) {
   if (!p) return;
   const filename = focusedSolutionFilename();
   if (!filename) {
-    useAppStore.getState().setProblemResult(info("No solution file found. Press 'e' to create one."));
+    useAppStore
+      .getState()
+      .setProblemResult(info("No solution selected. Press 'f' to pick a language."));
     return;
   }
   const langSlug = getLangSlugFromFilename(filename) ?? getDefaultLanguage();
@@ -168,7 +240,9 @@ export async function handleProblemSubmit(triggerKey: string) {
   if (!p) return;
   const filename = focusedSolutionFilename();
   if (!filename) {
-    useAppStore.getState().setProblemResult(info("No solution file found. Press 'e' to create one."));
+    useAppStore
+      .getState()
+      .setProblemResult(info("No solution selected. Press 'f' to pick a language."));
     return;
   }
   const langSlug = getLangSlugFromFilename(filename) ?? getDefaultLanguage();

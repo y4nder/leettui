@@ -5,10 +5,10 @@ import type { createCliRenderer } from "@opentui/core";
 
 import { useAppStore } from "../../ui/store";
 import { colors, difficultyColor } from "../../ui/theme";
-import { SolutionsPanel } from "../../ui/components/SolutionsPanel";
 import { ResultBody } from "../../ui/components/ResultBody";
 import { StatusBar } from "../../ui/components/StatusBar";
 import { ProgressBar } from "../../ui/components/ProgressBar";
+import { SolutionPickerModal } from "../../ui/components/SolutionPickerModal";
 import { problemBindings } from "../../ui/keymap";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
@@ -38,7 +38,24 @@ function Header({ id, title, difficulty }: { id: number; title: string; difficul
   );
 }
 
-function HintsFooter({ langPicker }: { langPicker: boolean }) {
+function ActiveSolutionStrip({ filename }: { filename: string | null }) {
+  return (
+    <box
+      flexDirection="row"
+      width="100%"
+      height={1}
+      backgroundColor={colors.statusBar}
+    >
+      {filename ? (
+        <text fg={colors.fgAccent}> ● {filename} </text>
+      ) : (
+        <text fg={colors.fgDim}> No solution selected — press f </text>
+      )}
+    </box>
+  );
+}
+
+function HintsFooter() {
   return (
     <box
       flexDirection="column"
@@ -46,14 +63,7 @@ function HintsFooter({ langPicker }: { langPicker: boolean }) {
       borderColor={colors.border}
       width="100%"
     >
-      {langPicker ? (
-        <text fg={colors.fgDim}> j/k:Lang Enter:Open Esc:Cancel </text>
-      ) : (
-        <>
-          <text fg={colors.fgDim}> j/k:Focus  e:Edit  R:Run  s:Submit </text>
-          <text fg={colors.fgDim}> Esc/q:Back </text>
-        </>
-      )}
+      <text fg={colors.fgDim}> f:Solutions  e:Edit  R:Run  s:Submit  Esc/q:Back </text>
     </box>
   );
 }
@@ -76,7 +86,8 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
     );
   }
 
-  const { question, description, solutions, focusedSolutionIndex, result, langPicker } = problem;
+  const { question, description, solutions, focusedSolutionIndex, result, solutionPicker } = problem;
+  const focusedFilename = solutions[focusedSolutionIndex] ?? null;
 
   return (
     <box flexDirection="column" width="100%" height="100%">
@@ -103,11 +114,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
           </box>
 
           <box flexDirection="column" width="40%">
-            <SolutionsPanel
-              solutions={solutions}
-              focusedIndex={focusedSolutionIndex}
-              langPicker={langPicker}
-            />
+            <ActiveSolutionStrip filename={focusedFilename} />
 
             <box
               flexDirection="column"
@@ -126,12 +133,14 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
               </scrollbox>
             </box>
 
-            <HintsFooter langPicker={langPicker !== null} />
+            <HintsFooter />
           </box>
         </box>
       </box>
 
       <StatusBar mode={mode} searchNeedle={searchNeedle} stats={stats} />
+
+      {solutionPicker && <SolutionPickerModal />}
     </box>
   );
 }

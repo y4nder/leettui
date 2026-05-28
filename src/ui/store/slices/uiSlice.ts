@@ -18,8 +18,10 @@ export type AppMode =
   | "palette"
   | "problem";
 
-export interface ProblemLangPicker {
+export interface SolutionPickerState {
   snippets: CodeSnippet[];
+  // langSlug -> filename for solutions that already exist on disk
+  existingByLangSlug: Record<string, string>;
   index: number;
 }
 
@@ -29,7 +31,7 @@ export interface ProblemViewState {
   solutions: string[];
   focusedSolutionIndex: number;
   result: ResultView | null;
-  langPicker: ProblemLangPicker | null;
+  solutionPicker: SolutionPickerState | null;
 }
 
 export interface UiSlice {
@@ -63,11 +65,10 @@ export interface UiSlice {
   }) => void;
   exitProblemView: () => void;
   setProblemSolutions: (solutions: string[], focusFilename?: string) => void;
-  moveFocusedSolution: (delta: number) => void;
   setProblemResult: (view: ResultView | null) => void;
-  openLangPicker: (snippets: CodeSnippet[]) => void;
-  moveLangPicker: (delta: number) => void;
-  closeLangPicker: () => void;
+  openSolutionPicker: (snippets: CodeSnippet[], existingByLangSlug: Record<string, string>, initialLangSlug?: string) => void;
+  movePicker: (delta: number) => void;
+  closeSolutionPicker: () => void;
 }
 
 export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => ({
@@ -111,7 +112,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
         solutions,
         focusedSolutionIndex: 0,
         result: null,
-        langPicker: null,
+        solutionPicker: null,
       },
     }),
 
@@ -131,48 +132,39 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
       return { problem: { ...state.problem, solutions, focusedSolutionIndex } };
     }),
 
-  moveFocusedSolution: (delta) =>
-    set((state) => {
-      if (!state.problem) return {};
-      const p = state.problem;
-      if (p.langPicker) {
-        const next = Math.max(
-          0,
-          Math.min(p.langPicker.snippets.length - 1, p.langPicker.index + delta)
-        );
-        return { problem: { ...p, langPicker: { ...p.langPicker, index: next } } };
-      }
-      if (p.solutions.length === 0) return {};
-      const next = Math.max(
-        0,
-        Math.min(p.solutions.length - 1, p.focusedSolutionIndex + delta)
-      );
-      return { problem: { ...p, focusedSolutionIndex: next } };
-    }),
-
   setProblemResult: (view) =>
     set((state) => {
       if (!state.problem) return {};
       return { problem: { ...state.problem, result: view } };
     }),
 
-  openLangPicker: (snippets) =>
+  openSolutionPicker: (snippets, existingByLangSlug, initialLangSlug) =>
     set((state) => {
       if (!state.problem) return {};
-      return { problem: { ...state.problem, langPicker: { snippets, index: 0 } } };
+      let index = 0;
+      if (initialLangSlug) {
+        const found = snippets.findIndex((s) => s.langSlug === initialLangSlug);
+        if (found >= 0) index = found;
+      }
+      return {
+        problem: {
+          ...state.problem,
+          solutionPicker: { snippets, existingByLangSlug, index },
+        },
+      };
     }),
 
-  moveLangPicker: (delta) =>
+  movePicker: (delta) =>
     set((state) => {
-      if (!state.problem?.langPicker) return {};
-      const lp = state.problem.langPicker;
-      const next = Math.max(0, Math.min(lp.snippets.length - 1, lp.index + delta));
-      return { problem: { ...state.problem, langPicker: { ...lp, index: next } } };
+      const picker = state.problem?.solutionPicker;
+      if (!state.problem || !picker) return {};
+      const next = Math.max(0, Math.min(picker.snippets.length - 1, picker.index + delta));
+      return { problem: { ...state.problem, solutionPicker: { ...picker, index: next } } };
     }),
 
-  closeLangPicker: () =>
+  closeSolutionPicker: () =>
     set((state) => {
       if (!state.problem) return {};
-      return { problem: { ...state.problem, langPicker: null } };
+      return { problem: { ...state.problem, solutionPicker: null } };
     }),
 });
