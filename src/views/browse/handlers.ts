@@ -38,7 +38,12 @@ export async function handleViewDailyChallenge(triggerKey: string) {
     const daily = await fetchDailyChallenge();
     const q = daily.activeDailyCodingChallengeQuestion.question;
     const content = await fetchQuestionContent(q.titleSlug);
-    const md = nhm.translate(content.question.content);
+    const html = content.question?.content;
+    if (!html) {
+      showResult(info("No description available (problem may be premium-only)."));
+      return;
+    }
+    const md = nhm.translate(html);
     showPopup(`${q.frontendQuestionId}. ${q.title} [${q.difficulty}] — Daily`, md);
   } catch (e: any) {
     logError(triggerKey, "browse", "handleViewDailyChallenge", e);
@@ -52,7 +57,12 @@ export async function handleViewProblem(triggerKey: string) {
   const { showPopup, showResult } = useAppStore.getState();
   try {
     const data = await fetchQuestionContent(q.title_slug);
-    const md = nhm.translate(data.question.content);
+    const html = data.question?.content;
+    if (!html) {
+      showResult(info("No description available (problem may be premium-only)."));
+      return;
+    }
+    const md = nhm.translate(html);
     showPopup(`${q.id}. ${q.title} [${q.difficulty}]`, md);
   } catch (e: any) {
     logError(triggerKey, "browse", "handleViewProblem", e);

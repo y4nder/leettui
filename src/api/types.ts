@@ -35,9 +35,9 @@ export interface TopicTag {
 // questionContent
 export interface QuestionContentData {
   question: {
-    content: string;
+    content: string | null;
     titleSlug: string;
-  };
+  } | null;
 }
 
 // questionEditorData
