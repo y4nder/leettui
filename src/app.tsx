@@ -9,6 +9,7 @@ import { StatusBar } from "./ui/components/StatusBar";
 import { QuestionPopup } from "./ui/components/QuestionPopup";
 import { SelectPopup } from "./ui/components/SelectPopup";
 import { ResultPopup } from "./ui/components/ResultPopup";
+import { HelpPopup } from "./ui/components/HelpPopup";
 import { ProgressBar } from "./ui/components/ProgressBar";
 
 import { fetchQuestionContent } from "./api/queries/question-content";
@@ -222,6 +223,13 @@ export function App({ renderer }: AppProps) {
   useKeyboard((event) => {
     if (event.eventType !== "press") return;
 
+    if (state.mode === "help") {
+      if (event.name === "escape" || event.name === "return") {
+        dispatch({ type: "HIDE_HELP" });
+      }
+      return;
+    }
+
     if (state.mode === "popup") {
       switch (event.name) {
         case "escape":
@@ -298,6 +306,9 @@ export function App({ renderer }: AppProps) {
       case "/":
         dispatch({ type: "START_SEARCH" });
         break;
+      case "h":
+        dispatch({ type: "SHOW_HELP" });
+        break;
     }
 
     if (event.shift) {
@@ -365,6 +376,8 @@ export function App({ renderer }: AppProps) {
       )}
 
       {state.mode === "result" && <ResultPopup lines={state.resultLines} />}
+
+      {state.mode === "help" && <HelpPopup />}
     </box>
   );
 }

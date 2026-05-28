@@ -4,7 +4,7 @@ import { getQuestionsByTopic } from "../../db/questions";
 import { getAllTopicsWithAll } from "../../db/topics";
 import { filterQuestions } from "../../core/search";
 
-export type AppMode = "browse" | "search" | "popup" | "select" | "result";
+export type AppMode = "browse" | "search" | "popup" | "select" | "result" | "help";
 
 export interface AppState {
   mode: AppMode;
@@ -38,6 +38,8 @@ type Action =
   | { type: "HIDE_SELECT" }
   | { type: "SHOW_RESULT"; lines: string[] }
   | { type: "HIDE_RESULT" }
+  | { type: "SHOW_HELP" }
+  | { type: "HIDE_HELP" }
   | { type: "SYNC_PROGRESS"; current: number; total: number }
   | { type: "SYNC_DONE" }
   | { type: "REFRESH_QUESTIONS"; questions: DbQuestion[] };
@@ -170,6 +172,12 @@ function reducer(state: AppState, action: Action): AppState {
 
     case "HIDE_RESULT":
       return { ...state, mode: "browse", resultLines: [] };
+
+    case "SHOW_HELP":
+      return { ...state, mode: "help" };
+
+    case "HIDE_HELP":
+      return { ...state, mode: "browse" };
 
     case "SYNC_PROGRESS":
       return {
