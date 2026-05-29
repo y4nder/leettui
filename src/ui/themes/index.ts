@@ -1,6 +1,8 @@
 import type { RGBA } from "@opentui/core";
 import { tokyoNight } from "./tokyo-night";
 import { catppuccin } from "./catppuccin";
+import { rosePine } from "./rose-pine";
+import { nord } from "./nord";
 import { buildSystemTheme } from "./system";
 
 export type ThemeColor = string | RGBA;
@@ -49,12 +51,14 @@ export interface Theme {
 // `system` is built lazily because its RGBA values must be constructed at
 // runtime (after `@opentui/core` is loaded). The build is cheap, so we just
 // re-invoke on each resolve.
-export const PRESET_NAMES = ["tokyo-night", "catppuccin", "system"] as const;
+export const PRESET_NAMES = ["tokyo-night", "catppuccin", "rose-pine", "nord", "system"] as const;
 export type PresetName = (typeof PRESET_NAMES)[number];
 
 const STATIC_PRESETS: Partial<Record<PresetName, Theme>> = {
   "tokyo-night": tokyoNight,
   catppuccin: catppuccin,
+  "rose-pine": rosePine,
+  nord: nord,
 };
 
 const DEFAULT: PresetName = "tokyo-night";
