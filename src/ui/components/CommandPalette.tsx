@@ -63,9 +63,7 @@ export function CommandPalette() {
             });
           },
         },
-        { key: "j",    cmd: () => setSelectedIndex((i) => Math.min(i + 1, Math.max(filtered.length - 1, 0))) },
         { key: "down", cmd: () => setSelectedIndex((i) => Math.min(i + 1, Math.max(filtered.length - 1, 0))) },
-        { key: "k",    cmd: () => setSelectedIndex((i) => Math.max(i - 1, 0)) },
         { key: "up",   cmd: () => setSelectedIndex((i) => Math.max(i - 1, 0)) },
         {
           key: "backspace",
@@ -130,7 +128,7 @@ export function CommandPalette() {
           })
         )}
       </scrollbox>
-      <text fg={colors.fgDim}> Type:Filter j/k:Navigate Enter:Run Esc:Cancel </text>
+      <text fg={colors.fgDim}> Type:Filter ↑↓:Navigate Enter:Run Esc:Cancel</text>
     </box>
   );
 }
