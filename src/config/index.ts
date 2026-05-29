@@ -21,7 +21,7 @@ lc_session = ""
 # default = "python3"
 
 # [theme]
-# name = "tokyo-night"  # available: tokyo-night, catppuccin
+# name = "tokyo-night"  # available: tokyo-night, catppuccin, system
 `;
 
 let _config: Config | null = null;
@@ -73,4 +73,34 @@ export function getDefaultLanguage(): string {
 export function getThemeName(): string | undefined {
   const config = loadConfig();
   return config.theme?.name;
+}
+
+// Surgical rewrite of `~/.config/leettui/config.toml` to update the active
+// theme name. Regex-based rather than parse→stringify so we preserve the
+// user's comments and formatting. Three cases: replace an existing value,
+// add `name` to an existing [theme] section, or append a new section.
+export function persistThemeName(name: string): void {
+  if (!existsSync(CONFIG_FILE)) return;
+  const escaped = name.replace(/"/g, '\\"');
+  const content = readFileSync(CONFIG_FILE, "utf-8");
+
+  const hasSection = /^\s*\[theme\]/m.test(content);
+  const hasName = hasSection && /^\s*\[theme\][\s\S]*?^\s*name\s*=\s*"[^"]*"/m.test(content);
+
+  let next: string;
+  if (hasName) {
+    next = content.replace(
+      /(^\s*\[theme\][\s\S]*?^\s*)name\s*=\s*"[^"]*"/m,
+      `$1name = "${escaped}"`,
+    );
+  } else if (hasSection) {
+    next = content.replace(/(^\s*\[theme\]\s*\n)/m, `$1name = "${escaped}"\n`);
+  } else {
+    next = content.trimEnd() + `\n\n[theme]\nname = "${escaped}"\n`;
+  }
+
+  writeFileSync(CONFIG_FILE, next);
+  // Refresh the in-process config so getThemeName() reflects the persisted value
+  // on the next call (e.g., for diagnostics).
+  _config = null;
 }

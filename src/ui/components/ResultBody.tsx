@@ -1,24 +1,25 @@
 import { colors } from "../theme";
+import type { ThemeColor } from "../themes";
 import type { ResultView, ResultKind } from "../../views/browse/resultView";
 
 interface ResultBodyProps {
   view: ResultView;
 }
 
-function titleColor(kind: ResultKind): string {
+function titleColor(kind: ResultKind): ThemeColor {
   switch (kind) {
     case "accepted":
-      return colors.accepted;
+      return colors.success;
     case "wrong":
     case "error":
-      return colors.hard;
+      return colors.error;
     case "pending":
     case "info":
-      return colors.fgDim;
+      return colors.subtle;
   }
 }
 
-function Section({ label, color, value }: { label: string; color: string; value: string }) {
+function Section({ label, color, value }: { label: string; color: ThemeColor; value: string }) {
   const lines = value.split("\n");
   return (
     <box
@@ -48,9 +49,9 @@ export function ResultBody({ view }: ResultBodyProps) {
         <box flexDirection="column" marginTop={1}>
           {view.metrics.map((m, i) => (
             <box key={i} flexDirection="row">
-              <text fg={colors.fgDim}> {m.label}: </text>
+              <text fg={colors.subtle}> {m.label}: </text>
               <text fg={colors.fg}>{m.value}</text>
-              {m.subtle && <text fg={colors.fgDim}> ({m.subtle})</text>}
+              {m.subtle && <text fg={colors.subtle}> ({m.subtle})</text>}
             </box>
           ))}
         </box>
@@ -61,12 +62,12 @@ export function ResultBody({ view }: ResultBodyProps) {
           {view.diff.testcase && (
             <Section
               label="Last Testcase"
-              color={colors.fgAccent}
+              color={colors.info}
               value={view.diff.testcase}
             />
           )}
-          <Section label="Expected" color={colors.accepted} value={view.diff.expected} />
-          <Section label="Your Output" color={colors.hard} value={view.diff.actual} />
+          <Section label="Expected" color={colors.success} value={view.diff.expected} />
+          <Section label="Your Output" color={colors.error} value={view.diff.actual} />
         </box>
       )}
 
@@ -76,7 +77,7 @@ export function ResultBody({ view }: ResultBodyProps) {
             const expected = o.label.startsWith("Expected");
             return (
               <box key={i} flexDirection="row">
-                <text fg={expected ? colors.accepted : colors.fgAccent}>
+                <text fg={expected ? colors.success : colors.info}>
                   {" "}
                   {o.label}:{" "}
                 </text>
@@ -90,7 +91,7 @@ export function ResultBody({ view }: ResultBodyProps) {
       {view.error && (
         <box flexDirection="column" marginTop={1}>
           {view.error.split("\n").map((line, i) => (
-            <text key={i} fg={colors.hard}>
+            <text key={i} fg={colors.error}>
               {" "}
               {line}
             </text>

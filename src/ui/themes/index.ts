@@ -1,43 +1,75 @@
+import type { RGBA } from "@opentui/core";
 import { tokyoNight } from "./tokyo-night";
 import { catppuccin } from "./catppuccin";
+import { buildSystemTheme } from "./system";
+
+export type ThemeColor = string | RGBA;
 
 export interface Theme {
-  easy: string;
-  medium: string;
-  hard: string;
+  // Difficulty (LeetCode-specific)
+  easy: ThemeColor;
+  medium: ThemeColor;
+  hard: ThemeColor;
 
-  accepted: string;
-  attempted: string;
-  locked: string;
+  // Per-question status
+  accepted: ThemeColor;
+  attempted: ThemeColor;
+  locked: ThemeColor;
 
-  border: string;
-  borderFocused: string;
+  // Borders
+  border: ThemeColor;
+  borderFocused: ThemeColor;
 
-  bg: string;
-  bgHighlight: string;
-  bgPopup: string;
+  // Surfaces
+  bg: ThemeColor;
+  bgHighlight: ThemeColor;
+  bgPopup: ThemeColor;
+  surface: ThemeColor;
+  surfaceAlt: ThemeColor;
 
-  fg: string;
-  fgDim: string;
-  fgAccent: string;
+  // Foreground
+  fg: ThemeColor;
+  fgDim: ThemeColor;
+  fgAccent: ThemeColor;
+  subtle: ThemeColor;
+  accent: ThemeColor;
+  mutedAccent: ThemeColor;
 
-  statusBar: string;
-  statusBarFg: string;
+  // Status / feedback (semantic, not difficulty)
+  success: ThemeColor;
+  warn: ThemeColor;
+  error: ThemeColor;
+  info: ThemeColor;
+
+  // Status bar
+  statusBar: ThemeColor;
+  statusBarFg: ThemeColor;
 }
 
-export const PRESETS: Record<string, Theme> = {
+// `system` is built lazily because its RGBA values must be constructed at
+// runtime (after `@opentui/core` is loaded). The build is cheap, so we just
+// re-invoke on each resolve.
+export const PRESET_NAMES = ["tokyo-night", "catppuccin", "system"] as const;
+export type PresetName = (typeof PRESET_NAMES)[number];
+
+const STATIC_PRESETS: Partial<Record<PresetName, Theme>> = {
   "tokyo-night": tokyoNight,
   catppuccin: catppuccin,
 };
 
-const DEFAULT = "tokyo-night";
+const DEFAULT: PresetName = "tokyo-night";
+
+export function listThemeNames(): string[] {
+  return [...PRESET_NAMES];
+}
 
 export function resolveTheme(name?: string): Theme {
-  if (!name) return PRESETS[DEFAULT]!;
-  const preset = PRESETS[name];
+  if (!name) return STATIC_PRESETS[DEFAULT]!;
+  if (name === "system") return buildSystemTheme();
+  const preset = STATIC_PRESETS[name as PresetName];
   if (preset) return preset;
   console.warn(
-    `Unknown theme "${name}". Available: ${Object.keys(PRESETS).join(", ")}. Falling back to ${DEFAULT}.`
+    `Unknown theme "${name}". Available: ${PRESET_NAMES.join(", ")}. Falling back to ${DEFAULT}.`,
   );
-  return PRESETS[DEFAULT]!;
+  return STATIC_PRESETS[DEFAULT]!;
 }

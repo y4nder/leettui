@@ -15,10 +15,20 @@ export const tokyoNight: Theme = {
   bg: "#1a1b26",
   bgHighlight: "#292e42",
   bgPopup: "#1e2030",
+  surface: "#24283b",
+  surfaceAlt: "#1e2030",
 
   fg: "#c0caf5",
   fgDim: "#565f89",
   fgAccent: "#7aa2f7",
+  subtle: "#565f89",
+  accent: "#7aa2f7",
+  mutedAccent: "#3d59a1",
+
+  success: "#9ece6a",
+  warn: "#e0af68",
+  error: "#f7768e",
+  info: "#7dcfff",
 
   statusBar: "#16161e",
   statusBarFg: "#a9b1d6",

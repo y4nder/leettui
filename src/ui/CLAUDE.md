@@ -4,7 +4,9 @@ OpenTUI React components, state management, theme, and keymap.
 
 ## Files
 
-- `theme.ts` — Color constants (Tokyo Night inspired) and helper functions: `difficultyColor()`, `statusIcon()`, `statusColor()`
+- `theme.ts` — Theme controller. Owns the `colors` Proxy (live token reads), `setTheme(name, { persist })`, `cycleTheme(±1)`, `getCurrentThemeName()`, `listThemeNames()`, `rebuildSystemTheme()` (called by `palette.ts` on terminal-palette changes), and helpers `difficultyColor()`, `statusIcon()`, `statusColor()`. Switching a theme bumps `themeVersion` on the store; `BrowseView` and `ProblemView` subscribe to it so their subtrees rerender.
+- `themes/` — Preset palettes implementing the `Theme` interface (token values are `string | RGBA`, since OpenTUI's `fg`/`backgroundColor` props accept both). Three presets: `tokyo-night.ts`, `catppuccin.ts` (hex literals), and `system.ts` (RGBA-based — uses `RGBA.defaultForeground()`/`defaultBackground()`/`fromIndex(n)` so colors honor the user's terminal palette). The interface includes both legacy tokens (`bg`/`fg`/`fgAccent`/...) and semantic tokens (`surface`/`subtle`/`accent`/`success`/`warn`/`error`/`info`).
+- `palette.ts` — Boot-time `attachPaletteListener(renderer)`. Warms `renderer.getPalette()` to unlock OSC detection, then subscribes to `CliRenderEvents.PALETTE` so the system theme can re-derive when the user changes their terminal colorscheme.
 - `keymap.ts` — Command catalog and binding specs built on `@opentui/keymap`. Exports:
   - `installKeymap(keymap, renderer)` — registers every `Command` (with `title`/`category`/`group` metadata) in a global layer and wires the search-mode `key:after` text-input intercept. Called once from `src/index.tsx`.
   - `browseBindings`, `popupBindings`, `resultBindings`, `helpBindings`, `debugBindings`, `searchBindings` — `Binding[]` arrays passed to `useBindings` from each scope-owning component.

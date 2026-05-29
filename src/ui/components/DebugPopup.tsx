@@ -19,21 +19,21 @@ export function DebugPopup({ entries }: DebugPopupProps) {
       width="80%"
       height="90%"
       borderStyle="rounded"
-      borderColor={colors.hard}
+      borderColor={colors.error}
       backgroundColor={colors.bgPopup}
       flexDirection="column"
     >
-      <text fg={colors.hard}> Debug Log ({entries.length} entries) </text>
+      <text fg={colors.error}> Debug Log ({entries.length} entries) </text>
       <scrollbox flexGrow={1}>
         {reversed.map((e, i) => {
           const modPart = e.mods ? `+${e.mods}` : "";
           const header = `[${e.ts}] key=${e.key}${modPart} mode=${e.mode} → ${e.action}`;
           return (
             <box key={i} flexDirection="column">
-              <text fg={e.error ? colors.hard : colors.fg}>{` ${header}`}</text>
+              <text fg={e.error ? colors.error : colors.fg}>{` ${header}`}</text>
               {e.error &&
                 e.error.split("\n").map((line, j) => (
-                  <text key={j} fg={colors.hard}>{`   ${line}`}</text>
+                  <text key={j} fg={colors.error}>{`   ${line}`}</text>
                 ))}
             </box>
           );

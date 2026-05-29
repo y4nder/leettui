@@ -15,6 +15,7 @@ import type { Binding, Command, KeyLike, Keymap } from "@opentui/keymap";
 import { registerDefaultKeys, registerMetadataFields } from "@opentui/keymap/addons";
 
 import { useAppStore } from "./store";
+import { setTheme, cycleTheme, listThemeNames } from "./theme";
 import { isDebugEnabled, dumpToString, logKey } from "../debug";
 import {
   handleViewDailyChallenge,
@@ -77,6 +78,25 @@ function makeCommand(spec: CommandSpec): Command<Renderable, KeyEvent> {
   };
   if (spec.group) cmd.group = spec.group;
   return cmd;
+}
+
+function prettyThemeName(name: string): string {
+  // kebab → Title Case: "tokyo-night" → "Tokyo Night", "system" → "System"
+  return name
+    .split(/[-_]/)
+    .map((p) => (p.length ? p[0]!.toUpperCase() + p.slice(1) : p))
+    .join(" ");
+}
+
+function buildThemeSetCommands(): Command<Renderable, KeyEvent>[] {
+  return listThemeNames().map((name) =>
+    makeCommand({
+      name: `theme.set.${name}`,
+      title: `Theme: ${prettyThemeName(name)}`,
+      category: "System",
+      run: () => setTheme(name, { persist: true }),
+    }),
+  );
 }
 
 const COMMANDS: Command<Renderable, KeyEvent>[] = [
@@ -272,6 +292,23 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     category: "System",
     run: () => _renderer?.destroy(),
   }),
+
+  makeCommand({
+    name: "theme.cycle.next",
+    title: "Theme: cycle next",
+    category: "System",
+    run: () => cycleTheme(1),
+  }),
+  makeCommand({
+    name: "theme.cycle.prev",
+    title: "Theme: cycle previous",
+    category: "System",
+    run: () => cycleTheme(-1),
+  }),
+
+  // theme.set.<name> commands are appended below (one per preset) so each
+  // shows up as its own searchable entry in the command palette.
+  ...buildThemeSetCommands(),
 
   // Modal-only commands. Hidden from the palette via group: "modal".
   makeCommand({

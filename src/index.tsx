@@ -6,6 +6,7 @@ import { KeymapProvider } from "@opentui/keymap/react";
 import { initDebug } from "./debug";
 import { loadConfig, getDbPath, getThemeName } from "./config";
 import { setTheme } from "./ui/theme";
+import { attachPaletteListener } from "./ui/palette";
 
 const debugFlag = process.env.LEETTUI_DEBUG === "1" || process.argv.includes("--debug");
 initDebug(debugFlag);
@@ -34,6 +35,8 @@ const renderer = await createCliRenderer({
   exitOnCtrlC: true,
   screenMode: "alternate-screen",
 });
+
+attachPaletteListener(renderer);
 
 const keymap = createOpenTuiKeymap(renderer);
 installKeymap(keymap, renderer);
