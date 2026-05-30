@@ -17,7 +17,19 @@ export function openDatabase(dbPath: string): Database {
     _db.exec(sql);
   }
 
+  // Additive columns introduced after the initial schema. `ALTER TABLE ... ADD
+  // COLUMN` is not idempotent, so guard each against the live column set.
+  ensureColumn(_db, "questions", "last_runtime", "TEXT");
+  ensureColumn(_db, "questions", "last_memory", "TEXT");
+
   return _db;
+}
+
+function ensureColumn(db: Database, table: string, column: string, type: string): void {
+  const cols = db.query(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  if (!cols.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+  }
 }
 
 export function getDb(): Database {

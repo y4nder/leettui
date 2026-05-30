@@ -11,6 +11,10 @@ Business logic that bridges the API, database, and UI layers.
   - `createSolutionFile(id, slug, langSlug, code)` — writes file only if it doesn't exist
   - `readSolutionFile(id, slug, langSlug)` — reads solution code
   - `findExistingSolutions(id, slug)` — lists all solution files for a problem
+  - `listSolutionQuestionIds()` — one `readdir` returning the set of question IDs with any solution file (backs the question-list "solution exists" marker)
+- `submission.ts` — `runSolution`/`submitSolution` services. On `submit_accepted` also records `last_runtime`/`last_memory` via `setSubmissionStats`.
+- `session.ts` — Persists the last-viewed browse position (`{ topicSlug, questionId }`) to `~/.local/share/leettui/session.json`. `loadSession()` on boot; `saveSession()` is debounced (~400ms) because navigation fires per keypress.
+- `clipboard.ts` — `copyToClipboard(text)` via the OSC 52 terminal escape (works over SSH, no external helper); `problemUrl(slug)` builds the canonical problem URL.
 
 ## Dependencies
 

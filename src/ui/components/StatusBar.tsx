@@ -1,15 +1,23 @@
-import { colors } from "../theme";
+import { colors, difficultyColor } from "../theme";
 import type { AppMode } from "../store";
+import type { DifficultyFilter } from "../store/slices/filtersSlice";
 import type { StatusCounts } from "../../db/questions";
 
 interface StatusBarProps {
   mode: AppMode;
   searchNeedle: string;
   stats: StatusCounts;
+  difficultyFilter: DifficultyFilter;
   debugEnabled?: boolean;
 }
 
-export function StatusBar({ mode, searchNeedle, stats, debugEnabled }: StatusBarProps) {
+export function StatusBar({
+  mode,
+  searchNeedle,
+  stats,
+  difficultyFilter,
+  debugEnabled,
+}: StatusBarProps) {
   if (mode === "search") {
     return (
       <box
@@ -35,9 +43,12 @@ export function StatusBar({ mode, searchNeedle, stats, debugEnabled }: StatusBar
     >
       <text fg={colors.statusBarFg}>
         {" "}
-        j/k:Navigate t/T:Topic Enter:View e:Edit R:Run s:Submit /:Search
+        j/k:Navigate t/T:Topic D:Difficulty Enter:View e:Edit R:Run s:Submit /:Search
       </text>
       <box flexDirection="row">
+        {difficultyFilter !== "all" && (
+          <text fg={difficultyColor(difficultyFilter)}> [{difficultyFilter}] </text>
+        )}
         <text fg={colors.accepted}>✓ {stats.solved}</text>
         <text fg={colors.fgDim}>  </text>
         <text fg={colors.attempted}>~ {stats.attempted}</text>

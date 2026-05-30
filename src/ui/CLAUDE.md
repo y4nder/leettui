@@ -18,8 +18,8 @@ OpenTUI React components, state management, theme, and keymap.
 All components use OpenTUI JSX intrinsics (`<box>`, `<text>`, `<scrollbox>`, `<markdown>`).
 
 - `TopicList.tsx` — Left panel: scrollable topic list with `►` selection indicator
-- `QuestionList.tsx` — Right panel: question list with status icon, ID, title, difficulty color. Uses `backgroundColor` for selected row highlight.
-- `StatusBar.tsx` — Bottom bar: shows keybinding hints in browse mode, search input in search mode
+- `QuestionList.tsx` — Right panel: per-row status icon, solution-exists marker (`◆`, accent color, from `solutionFileIds`), ID, title, acceptance-rate %, difficulty color, and last-accepted runtime. Uses `backgroundColor` for selected row highlight.
+- `StatusBar.tsx` — Bottom bar: shows keybinding hints in browse mode, search input in search mode, and the active difficulty filter (e.g. `[Easy]`) when one is set
 - `QuestionPopup.tsx` — Centered absolute-positioned modal with `<scrollbox>` + `<markdown>` for problem descriptions. Used by the daily-challenge flow. Requires `SyntaxStyle.create()` from `@opentui/core`.
 - `SelectPopup.tsx` — Language selection modal with j/k navigation. Uses `useKeyboard` hook internally.
 - `ResultPopup.tsx` — Modal frame around `<ResultBody>` for browse-mode run/submit results.
@@ -34,9 +34,10 @@ All components use OpenTUI JSX intrinsics (`<box>`, `<text>`, `<scrollbox>`, `<m
 
 Zustand store. **UI vs domain rule:** every slice file starts with a `// type: ui` or `// type: domain` header. UI slices own cursors, modes, and ephemeral display state. Domain slices own data sourced from DB/API. A UI slice may call domain actions; a domain slice never imports UI state. If a new slice would mix both, split it.
 
-- `questionsSlice.ts` (**domain**) — `topics`, `allQuestions`, `filteredQuestions`. Actions: `init()`, `refreshQuestions()`, `loadTopic(topic)`, `applySearch(needle)`. Owns DB reads and search filtering.
-- `selectionSlice.ts` (**ui**) — `selectedTopicIndex`, `selectedQuestionIndex`. Actions: `moveQuestion()`, `moveTopic()`, `setTopicIndex()`. Calls into the domain slice when moving topics.
+- `questionsSlice.ts` (**domain**) — `topics`, `allQuestions`, `filteredQuestions`, `stats`, `solutionFileIds` (set of question IDs with a solution file). Actions: `init()`, `refreshQuestions()`, `refreshSolutionFiles()`, `loadTopic(topic)`, `applySearch(needle)`, `applyFilters()`. Owns DB reads and the `project(all, needle, difficulty)` filter pipeline (difficulty predicate then fuzzy search).
+- `selectionSlice.ts` (**ui**) — `selectedTopicIndex`, `selectedQuestionIndex`. Actions: `moveQuestion()`, `setQuestionIndex()` (backs gg/G), `moveTopic()`, `setTopicIndex()`, `restoreSession()`. Calls into the domain slice when moving topics; mirrors the cursor to disk (debounced) via `core/session`.
 - `searchSlice.ts` (**ui**) — `searchNeedle`. Actions: `startSearch()`, `updateSearch()`, `endSearch()`. Asks the domain slice to recompute `filteredQuestions`.
+- `filtersSlice.ts` (**ui**) — `difficultyFilter` (`all`/`Easy`/`Medium`/`Hard`). Action: `cycleDifficulty()` (bound to `D`); applied alongside the search needle by the domain slice's `applyFilters()`.
 - `uiSlice.ts` (**ui**) — `mode` (`AppMode`), popup/select/result content, plus `problem: ProblemViewState | null` (active question, description, solutions list, focused index, inline result, modal solution-picker state). Actions for showing/hiding every modal (`showPopup`, `hidePopup`, …) and managing the problem view (`enterProblemView`, `exitProblemView`, `setProblemSolutions`, `setProblemResult`, `openSolutionPicker`, `movePicker`, `closeSolutionPicker`).
 - `syncSlice.ts` (**ui**) — `syncProgress`. Actions: `setSyncProgress()`, `clearSyncProgress()`.
 - `index.ts` — Combines slices into `useAppStore`. Re-exports `AppMode` type.

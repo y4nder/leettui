@@ -74,6 +74,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
   const stats = useAppStore((s) => s.stats);
   const mode = useAppStore((s) => s.mode);
   const searchNeedle = useAppStore((s) => s.searchNeedle);
+  const difficultyFilter = useAppStore((s) => s.difficultyFilter);
   const syncProgress = useAppStore((s) => s.syncProgress);
   const problem = useAppStore((s) => s.problem);
 
@@ -139,7 +140,12 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
         </box>
       </box>
 
-      <StatusBar mode={mode} searchNeedle={searchNeedle} stats={stats} />
+      <StatusBar
+        mode={mode}
+        searchNeedle={searchNeedle}
+        stats={stats}
+        difficultyFilter={difficultyFilter}
+      />
 
       {solutionPicker && <SolutionPickerModal />}
     </box>

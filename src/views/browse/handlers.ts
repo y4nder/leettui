@@ -13,6 +13,7 @@ import { getLangSlugFromFilename } from "../../api/types";
 import { getQuestionsByTopic } from "../../db/questions";
 import { createSolutionFile, findExistingSolutions } from "../../core/solutions";
 import { runSolution, submitSolution, SolutionError } from "../../core/submission";
+import { copyToClipboard, problemUrl } from "../../core/clipboard";
 import { syncQuestions } from "../../core/sync";
 import { getEditorCommand, getDefaultLanguage } from "../../config";
 import { logError } from "../../debug";
@@ -83,6 +84,8 @@ export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
       } finally {
         renderer.resume();
       }
+      // A newly created file should immediately show the "solution exists" mark.
+      useAppStore.getState().refreshSolutionFiles();
     });
   } catch (e: any) {
     logError(triggerKey, "browse", "handleOpenEditor", e);
@@ -189,6 +192,20 @@ export async function handleSyncDb(triggerKey: string) {
     logError(triggerKey, "browse", "handleSyncDb", e);
     clearSyncProgress();
     showResult(errorView("Sync error", e.message));
+  }
+}
+
+export function handleYankUrl(triggerKey: string) {
+  const q = currentQuestion();
+  if (!q) return;
+  const { showResult } = useAppStore.getState();
+  try {
+    const url = problemUrl(q.title_slug);
+    copyToClipboard(url);
+    showResult(info(`Copied URL: ${url}`));
+  } catch (e: any) {
+    logError(triggerKey, "browse", "handleYankUrl", e);
+    showResult(errorView("Could not copy URL", e.message));
   }
 }
 

@@ -43,6 +43,8 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
 
   const searchNeedle = useAppStore((s) => s.searchNeedle);
   const stats = useAppStore((s) => s.stats);
+  const difficultyFilter = useAppStore((s) => s.difficultyFilter);
+  const solutionFileIds = useAppStore((s) => s.solutionFileIds);
 
   const mode = useAppStore((s) => s.mode);
   useAppStore((s) => s.themeVersion);
@@ -72,10 +74,17 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
           selectedIndex={selectedQuestionIndex}
           height={mainHeight}
           topic={currentTopic}
+          solutionFileIds={solutionFileIds}
         />
       </box>
 
-      <StatusBar mode={mode} searchNeedle={searchNeedle} stats={stats} debugEnabled={isDebugEnabled()} />
+      <StatusBar
+        mode={mode}
+        searchNeedle={searchNeedle}
+        stats={stats}
+        difficultyFilter={difficultyFilter}
+        debugEnabled={isDebugEnabled()}
+      />
 
       {mode === "popup" && <QuestionPopup title={popupTitle} content={popupContent} />}
 

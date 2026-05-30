@@ -8,6 +8,8 @@ export interface DbQuestion {
   paid_only: number;
   status: string | null;
   ac_rate: number | null;
+  last_runtime: string | null;
+  last_memory: string | null;
 }
 
 export function getAllQuestions(): DbQuestion[] {
@@ -89,6 +91,18 @@ export function markAccepted(questionId: number): void {
   getDb()
     .query("UPDATE questions SET status = 'ac' WHERE id = ?")
     .run(questionId);
+}
+
+// Records the runtime/memory of the latest accepted submission so the question
+// list can surface a problem's best-known stats at a glance.
+export function setSubmissionStats(
+  questionId: number,
+  runtime: string | null,
+  memory: string | null
+): void {
+  getDb()
+    .query("UPDATE questions SET last_runtime = ?, last_memory = ? WHERE id = ?")
+    .run(runtime, memory, questionId);
 }
 
 export function markAttempted(questionId: number): void {

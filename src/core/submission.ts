@@ -1,5 +1,5 @@
 import type { DbQuestion } from "../db/questions";
-import { markAccepted, markAttempted } from "../db/questions";
+import { markAccepted, markAttempted, setSubmissionStats } from "../db/questions";
 import type { ParsedResponse } from "../api/types";
 import { fetchEditorData } from "../api/queries/editor-data";
 import { fetchConsolePanelConfig } from "../api/queries/console-panel-config";
@@ -64,6 +64,11 @@ export async function submitSolution(
   const result = await pollResult(submitResponse.submission_id);
   if (result.type === "submit_accepted") {
     markAccepted(question.id);
+    setSubmissionStats(
+      question.id,
+      result.data.status_runtime ?? null,
+      result.data.status_memory ?? null
+    );
   } else {
     markAttempted(question.id);
   }

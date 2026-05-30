@@ -14,6 +14,7 @@ export function App({ renderer }: AppProps) {
 
   useEffect(() => {
     useAppStore.getState().init();
+    useAppStore.getState().restoreSession();
   }, []);
 
   if (mode === "problem") {

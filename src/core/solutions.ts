@@ -42,6 +42,21 @@ export function findExistingSolutions(
   return readdirSync(dir).filter((f) => f.startsWith(prefix));
 }
 
+// Scans the solutions dir once and returns the set of question IDs that have at
+// least one solution file. Cheaper than calling `findExistingSolutions` per row
+// when the question list needs a "solution exists" indicator.
+export function listSolutionQuestionIds(): Set<number> {
+  const dir = getSolutionsDir();
+  if (!existsSync(dir)) return new Set();
+
+  const ids = new Set<number>();
+  for (const f of readdirSync(dir)) {
+    const m = /^(\d+)_/.exec(f);
+    if (m) ids.add(parseInt(m[1]!, 10));
+  }
+  return ids;
+}
+
 export function createSolutionFile(
   id: number,
   titleSlug: string,

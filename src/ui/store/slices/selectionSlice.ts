@@ -1,23 +1,38 @@
 // type: ui
 // Owns the cursors into the topic and question lists. Mutating the topic index
 // asks the domain slice to load the new topic's questions; this slice never
-// touches the DB directly.
+// touches the DB directly. Cursor changes are mirrored to disk (debounced) so
+// the last-viewed position survives restarts.
 
 import type { StateCreator } from "zustand";
 import type { AppStore } from "../index";
+import { loadSession, saveSession } from "../../../core/session";
 
 export interface SelectionSlice {
   selectedTopicIndex: number;
   selectedQuestionIndex: number;
 
   moveQuestion: (delta: number) => void;
+  setQuestionIndex: (index: number) => void;
   moveTopic: (delta: number) => void;
   setTopicIndex: (index: number) => void;
+  restoreSession: () => void;
 }
 
 function clamp(index: number, length: number): number {
   if (length === 0) return 0;
   return Math.max(0, Math.min(index, length - 1));
+}
+
+// Snapshots the current topic slug + focused question id to disk so the next
+// launch can reopen here. Question id (not index) is persisted because indices
+// shift as the filtered list changes.
+function persistPosition(get: () => AppStore): void {
+  const s = get();
+  saveSession({
+    topicSlug: s.topics[s.selectedTopicIndex],
+    questionId: s.filteredQuestions[s.selectedQuestionIndex]?.id,
+  });
 }
 
 export const createSelectionSlice: StateCreator<AppStore, [], [], SelectionSlice> = (set, get) => ({
@@ -27,6 +42,12 @@ export const createSelectionSlice: StateCreator<AppStore, [], [], SelectionSlice
   moveQuestion: (delta) => {
     const { selectedQuestionIndex, filteredQuestions } = get();
     set({ selectedQuestionIndex: clamp(selectedQuestionIndex + delta, filteredQuestions.length) });
+    persistPosition(get);
+  },
+
+  setQuestionIndex: (index) => {
+    set({ selectedQuestionIndex: clamp(index, get().filteredQuestions.length) });
+    persistPosition(get);
   },
 
   moveTopic: (delta) => {
@@ -36,6 +57,7 @@ export const createSelectionSlice: StateCreator<AppStore, [], [], SelectionSlice
     if (!topic) return;
     loadTopic(topic);
     set({ selectedTopicIndex: newIndex, selectedQuestionIndex: 0 });
+    persistPosition(get);
   },
 
   setTopicIndex: (index) => {
@@ -45,5 +67,22 @@ export const createSelectionSlice: StateCreator<AppStore, [], [], SelectionSlice
     if (!topic) return;
     loadTopic(topic);
     set({ selectedTopicIndex: newIndex, selectedQuestionIndex: 0 });
+    persistPosition(get);
+  },
+
+  // Restores the last-viewed topic + question after init() has loaded data.
+  restoreSession: () => {
+    const session = loadSession();
+    if (session.topicSlug) {
+      const idx = get().topics.indexOf(session.topicSlug);
+      if (idx > 0) {
+        get().loadTopic(get().topics[idx]!);
+        set({ selectedTopicIndex: idx });
+      }
+    }
+    if (session.questionId != null) {
+      const qIndex = get().filteredQuestions.findIndex((q) => q.id === session.questionId);
+      if (qIndex >= 0) set({ selectedQuestionIndex: qIndex });
+    }
   },
 });

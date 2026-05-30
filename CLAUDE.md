@@ -44,8 +44,9 @@ On first run, a config file is created at `~/.config/leettui/config.toml`. Add y
 
 ### Key bindings (browse mode)
 
-j/k or arrows: Navigate questions | t/T: Next/prev topic | Enter: View problem
-e: Open in editor | R: Run solution | s: Submit solution | /: Search | q: Quit
+j/k or arrows: Navigate questions | gg/G: Jump to first/last | t/T: Next/prev topic
+D: Cycle difficulty filter | d: Daily challenge | Enter: View problem | e: Open in editor
+R: Run solution | s: Submit solution | y: Yank problem URL | /: Search | q: Quit
 
 ### Config file (`~/.config/leettui/config.toml`)
 

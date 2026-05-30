@@ -24,6 +24,7 @@ import {
   handleSubmitSolution,
   handleSyncDb,
   handleRandomQuestion,
+  handleYankUrl,
 } from "../views/browse/handlers";
 import {
   handleEnterProblemView,
@@ -129,6 +130,24 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     title: "Jump to random question",
     category: "Navigation",
     run: () => handleRandomQuestion(),
+  }),
+  makeCommand({
+    name: "question.first",
+    title: "Jump to first question",
+    category: "Navigation",
+    run: () => useAppStore.getState().setQuestionIndex(0),
+  }),
+  makeCommand({
+    name: "question.last",
+    title: "Jump to last question",
+    category: "Navigation",
+    run: () => useAppStore.getState().setQuestionIndex(Number.MAX_SAFE_INTEGER),
+  }),
+  makeCommand({
+    name: "filter.cycleDifficulty",
+    title: "Cycle difficulty filter (Easy → Medium → Hard → All)",
+    category: "View",
+    run: () => useAppStore.getState().cycleDifficulty(),
   }),
 
   makeCommand({
@@ -250,6 +269,13 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     title: "Submit solution",
     category: "Solve",
     run: () => handleSubmitSolution("s"),
+  }),
+
+  makeCommand({
+    name: "question.yankUrl",
+    title: "Yank problem URL to clipboard",
+    category: "View",
+    run: () => handleYankUrl("y"),
   }),
 
   makeCommand({
@@ -412,9 +438,13 @@ function bindingsFor(spec: Record<string, KeyLike | KeyLike[]>): Binding<Rendera
 export const browseBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "question.next":      ["j", "down"],
   "question.prev":      ["k", "up"],
+  "question.first":     "gg",
+  "question.last":      "shift+g",
   "topic.next":         "t",
   "topic.prev":         "shift+t",
   "question.random":    "r",
+  "question.yankUrl":   "y",
+  "filter.cycleDifficulty": "shift+d",
   "problem.enter":      "return",
   "problem.daily":      "d",
   "problem.openEditor": "e",
