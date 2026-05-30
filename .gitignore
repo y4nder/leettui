@@ -8,7 +8,7 @@ dist/
 
 # Bun
 .bun/
-bun.lock
+# bun.lock is committed for reproducible installs (pins exact dep versions)
 
 # TypeScript
 *.tsbuildinfo
