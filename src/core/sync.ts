@@ -7,8 +7,7 @@ const PAGE_SIZE = 100;
 const CONCURRENCY = 5;
 
 function persistPage(questions: ApiQuestion[]): void {
-  const db = getDb();
-  const insertAll = db.transaction(() => {
+  getDb().transaction(() => {
     for (const q of questions) {
       const id = parseInt(q.frontendQuestionId, 10);
       if (isNaN(id)) continue;
@@ -29,7 +28,6 @@ function persistPage(questions: ApiQuestion[]): void {
       }
     }
   });
-  insertAll();
 }
 
 export async function syncQuestions(

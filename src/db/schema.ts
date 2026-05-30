@@ -1,21 +1,41 @@
-export const MIGRATIONS = [
-  `CREATE TABLE IF NOT EXISTS questions (
-    id         INTEGER PRIMARY KEY,
-    title      TEXT NOT NULL,
-    title_slug TEXT NOT NULL UNIQUE,
-    difficulty TEXT NOT NULL,
-    paid_only  INTEGER NOT NULL DEFAULT 0,
-    status     TEXT,
-    ac_rate    REAL
-  )`,
-  `CREATE TABLE IF NOT EXISTS topics (
-    slug TEXT PRIMARY KEY
-  )`,
-  `CREATE TABLE IF NOT EXISTS question_topics (
-    question_id INTEGER NOT NULL REFERENCES questions(id),
-    topic_slug  TEXT NOT NULL REFERENCES topics(slug),
-    PRIMARY KEY (question_id, topic_slug)
-  )`,
-  `CREATE INDEX IF NOT EXISTS idx_qt_topic ON question_topics(topic_slug)`,
-  `CREATE INDEX IF NOT EXISTS idx_qt_question ON question_topics(question_id)`,
-];
+import {
+  sqliteTable,
+  integer,
+  text,
+  real,
+  primaryKey,
+  index,
+} from "drizzle-orm/sqlite-core";
+
+export const questions = sqliteTable("questions", {
+  id: integer("id").primaryKey(),
+  title: text("title").notNull(),
+  titleSlug: text("title_slug").notNull().unique(),
+  difficulty: text("difficulty").notNull(),
+  paidOnly: integer("paid_only").notNull().default(0),
+  status: text("status"),
+  acRate: real("ac_rate"),
+  lastRuntime: text("last_runtime"),
+  lastMemory: text("last_memory"),
+});
+
+export const topics = sqliteTable("topics", {
+  slug: text("slug").primaryKey(),
+});
+
+export const questionTopics = sqliteTable(
+  "question_topics",
+  {
+    questionId: integer("question_id")
+      .notNull()
+      .references(() => questions.id),
+    topicSlug: text("topic_slug")
+      .notNull()
+      .references(() => topics.slug),
+  },
+  (t) => [
+    primaryKey({ columns: [t.questionId, t.topicSlug] }),
+    index("idx_qt_topic").on(t.topicSlug),
+    index("idx_qt_question").on(t.questionId),
+  ],
+);

@@ -1,4 +1,6 @@
+import { eq, and, asc, isNull, sql } from "drizzle-orm";
 import { getDb } from "./index";
+import { questions, questionTopics, topics } from "./schema";
 
 export interface DbQuestion {
   id: number;
@@ -12,29 +14,51 @@ export interface DbQuestion {
   last_memory: string | null;
 }
 
+// Drizzle infers camelCase fields from the schema; the rest of the app consumes
+// the snake_case `DbQuestion` shape, so map at the data-access boundary.
+function toDbQuestion(row: typeof questions.$inferSelect): DbQuestion {
+  return {
+    id: row.id,
+    title: row.title,
+    title_slug: row.titleSlug,
+    difficulty: row.difficulty as DbQuestion["difficulty"],
+    paid_only: row.paidOnly,
+    status: row.status,
+    ac_rate: row.acRate,
+    last_runtime: row.lastRuntime,
+    last_memory: row.lastMemory,
+  };
+}
+
 export function getAllQuestions(): DbQuestion[] {
   return getDb()
-    .query("SELECT * FROM questions ORDER BY id")
-    .all() as DbQuestion[];
+    .select()
+    .from(questions)
+    .orderBy(asc(questions.id))
+    .all()
+    .map(toDbQuestion);
 }
 
 export function getQuestionsByTopic(topicSlug: string): DbQuestion[] {
   if (topicSlug === "all") return getAllQuestions();
 
   return getDb()
-    .query(
-      `SELECT q.* FROM questions q
-       JOIN question_topics qt ON q.id = qt.question_id
-       WHERE qt.topic_slug = ?
-       ORDER BY q.id`
-    )
-    .all(topicSlug) as DbQuestion[];
+    .select()
+    .from(questions)
+    .innerJoin(questionTopics, eq(questions.id, questionTopics.questionId))
+    .where(eq(questionTopics.topicSlug, topicSlug))
+    .orderBy(asc(questions.id))
+    .all()
+    .map((row) => toDbQuestion(row.questions));
 }
 
 export function getQuestionBySlug(slug: string): DbQuestion | null {
-  return getDb()
-    .query("SELECT * FROM questions WHERE title_slug = ?")
-    .get(slug) as DbQuestion | null;
+  const row = getDb()
+    .select()
+    .from(questions)
+    .where(eq(questions.titleSlug, slug))
+    .get();
+  return row ? toDbQuestion(row) : null;
 }
 
 export function upsertQuestion(q: {
@@ -46,27 +70,31 @@ export function upsertQuestion(q: {
   status: string | null;
   acRate: number | null;
 }): void {
+  const values = {
+    id: q.id,
+    title: q.title,
+    titleSlug: q.titleSlug,
+    difficulty: q.difficulty,
+    paidOnly: q.paidOnly ? 1 : 0,
+    status: q.status,
+    acRate: q.acRate,
+  };
+
   getDb()
-    .query(
-      `INSERT INTO questions (id, title, title_slug, difficulty, paid_only, status, ac_rate)
-       VALUES (?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT(id) DO UPDATE SET
-         title = excluded.title,
-         title_slug = excluded.title_slug,
-         difficulty = excluded.difficulty,
-         paid_only = excluded.paid_only,
-         status = excluded.status,
-         ac_rate = excluded.ac_rate`
-    )
-    .run(
-      q.id,
-      q.title,
-      q.titleSlug,
-      q.difficulty,
-      q.paidOnly ? 1 : 0,
-      q.status,
-      q.acRate
-    );
+    .insert(questions)
+    .values(values)
+    .onConflictDoUpdate({
+      target: questions.id,
+      set: {
+        title: values.title,
+        titleSlug: values.titleSlug,
+        difficulty: values.difficulty,
+        paidOnly: values.paidOnly,
+        status: values.status,
+        acRate: values.acRate,
+      },
+    })
+    .run();
 }
 
 export function upsertQuestionTopics(
@@ -74,23 +102,21 @@ export function upsertQuestionTopics(
   topicSlugs: string[]
 ): void {
   const db = getDb();
-  const insertTopic = db.query(
-    "INSERT OR IGNORE INTO topics (slug) VALUES (?)"
-  );
-  const insertMapping = db.query(
-    "INSERT OR IGNORE INTO question_topics (question_id, topic_slug) VALUES (?, ?)"
-  );
-
   for (const slug of topicSlugs) {
-    insertTopic.run(slug);
-    insertMapping.run(questionId, slug);
+    db.insert(topics).values({ slug }).onConflictDoNothing().run();
+    db.insert(questionTopics)
+      .values({ questionId, topicSlug: slug })
+      .onConflictDoNothing()
+      .run();
   }
 }
 
 export function markAccepted(questionId: number): void {
   getDb()
-    .query("UPDATE questions SET status = 'ac' WHERE id = ?")
-    .run(questionId);
+    .update(questions)
+    .set({ status: "ac" })
+    .where(eq(questions.id, questionId))
+    .run();
 }
 
 // Records the runtime/memory of the latest accepted submission so the question
@@ -101,23 +127,26 @@ export function setSubmissionStats(
   memory: string | null
 ): void {
   getDb()
-    .query("UPDATE questions SET last_runtime = ?, last_memory = ? WHERE id = ?")
-    .run(runtime, memory, questionId);
+    .update(questions)
+    .set({ lastRuntime: runtime, lastMemory: memory })
+    .where(eq(questions.id, questionId))
+    .run();
 }
 
 export function markAttempted(questionId: number): void {
   getDb()
-    .query(
-      "UPDATE questions SET status = 'notac' WHERE id = ? AND status IS NULL"
-    )
-    .run(questionId);
+    .update(questions)
+    .set({ status: "notac" })
+    .where(and(eq(questions.id, questionId), isNull(questions.status)))
+    .run();
 }
 
 export function getQuestionCount(): number {
   const row = getDb()
-    .query("SELECT COUNT(*) as count FROM questions")
-    .get() as { count: number };
-  return row.count;
+    .select({ count: sql<number>`count(*)` })
+    .from(questions)
+    .get();
+  return row?.count ?? 0;
 }
 
 export interface StatusCounts {
@@ -128,17 +157,16 @@ export interface StatusCounts {
 
 export function getStatusCounts(): StatusCounts {
   const row = getDb()
-    .query(
-      `SELECT
-         SUM(CASE WHEN status = 'ac' THEN 1 ELSE 0 END) as solved,
-         SUM(CASE WHEN status = 'notac' THEN 1 ELSE 0 END) as attempted,
-         COUNT(*) as total
-       FROM questions`
-    )
-    .get() as { solved: number | null; attempted: number | null; total: number };
+    .select({
+      solved: sql<number>`SUM(CASE WHEN ${questions.status} = 'ac' THEN 1 ELSE 0 END)`,
+      attempted: sql<number>`SUM(CASE WHEN ${questions.status} = 'notac' THEN 1 ELSE 0 END)`,
+      total: sql<number>`COUNT(*)`,
+    })
+    .from(questions)
+    .get();
   return {
-    solved: row.solved ?? 0,
-    attempted: row.attempted ?? 0,
-    total: row.total,
+    solved: row?.solved ?? 0,
+    attempted: row?.attempted ?? 0,
+    total: row?.total ?? 0,
   };
 }

@@ -16,7 +16,7 @@ On first run, a config file is created at `~/.config/leettui/config.toml`. Add y
 
 - **Runtime**: Bun (required by OpenTUI)
 - **UI Framework**: OpenTUI with React bindings (`@opentui/core`, `@opentui/react`, `@opentui/keymap`)
-- **Storage**: SQLite via `bun:sqlite`
+- **Storage**: SQLite via Drizzle ORM on the `bun:sqlite` driver; versioned migrations in `drizzle/` (`bun run db:generate` to add one)
 - **Config**: TOML via `smol-toml` at `~/.config/leettui/config.toml`
 
 ### Directory layout

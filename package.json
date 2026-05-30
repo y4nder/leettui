@@ -3,9 +3,15 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
+  },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/react": "^19.2.15"
+    "@types/react": "^19.2.15",
+    "drizzle-kit": "^0.31.10"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -14,6 +20,7 @@
     "@opentui/core": "^0.2.16",
     "@opentui/keymap": "^0.2.16",
     "@opentui/react": "^0.2.16",
+    "drizzle-orm": "0.44.4",
     "node-html-markdown": "^2.0.0",
     "react": "^19.2.6",
     "smol-toml": "^1.6.1",
