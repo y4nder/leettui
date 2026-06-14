@@ -9,11 +9,14 @@ import { $ } from "bun";
 const version =
   (await $`git describe --tags --always --dirty`.nothrow().quiet().text()).trim() || "dev";
 
-const define = `process.env.LEETTUI_VERSION=${JSON.stringify(version)}`;
+// NODE_ENV is defined explicitly (not via the ambient env) so it is statically
+// inlined at compile time, letting --minify dead-code-eliminate the debug overlay.
+// This matches how the release workflow (.github/workflows/release.yml) builds.
+const defines = [
+  `process.env.LEETTUI_VERSION=${JSON.stringify(version)}`,
+  `process.env.NODE_ENV=${JSON.stringify("production")}`,
+].flatMap((d) => ["--define", d]);
 
-await $`bun build ./src/index.tsx --compile --minify --define ${define} --outfile leettui`.env({
-  ...process.env,
-  NODE_ENV: "production",
-});
+await $`bun build ./src/index.tsx --compile --minify ${defines} --outfile leettui`;
 
 console.log(`Built ./leettui (version ${version})`);
