@@ -21,6 +21,12 @@ const defines = [`process.env.LEETTUI_VERSION=${JSON.stringify(version)}`].flatM
 // `jsxDEV = void 0`) WITHOUT switching Bun's JSX transform off the dev
 // `jsxDEV(...)` form, so the binary crashes at the first render. This matches
 // how the release workflow (.github/workflows/release.yml) builds.
-await $`bun build ./src/index.tsx --compile --production ${defines} --outfile leettui`;
+//
+// The second entry point bundles OpenTUI's tree-sitter highlight worker (and
+// its web-tree-sitter dependency + engine wasm) into the binary so <markdown>
+// is actually syntax-highlighted; src/core/treeSitterWorker.ts points OpenTUI
+// at the embedded copy. Without it the worker can't load and descriptions
+// render flat. Keep this in sync with .github/workflows/release.yml.
+await $`bun build ./src/index.tsx ./node_modules/@opentui/core/parser.worker.js --compile --production ${defines} --outfile leettui`;
 
 console.log(`Built ./leettui (version ${version})`);
