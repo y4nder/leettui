@@ -1,9 +1,10 @@
-import { SyntaxStyle } from "@opentui/core";
+import { useMemo } from "react";
+import { TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/react";
 import { colors } from "../theme";
+import { buildMarkdownSyntaxStyle } from "../markdownStyle";
+import { useAppStore } from "../store";
 import { popupBindings } from "../keymap";
-
-const defaultSyntaxStyle = SyntaxStyle.create();
 
 interface QuestionPopupProps {
   title: string;
@@ -12,6 +13,8 @@ interface QuestionPopupProps {
 
 export function QuestionPopup({ title, content }: QuestionPopupProps) {
   useBindings(() => ({ bindings: popupBindings }), []);
+  const themeVersion = useAppStore((s) => s.themeVersion);
+  const syntaxStyle = useMemo(() => buildMarkdownSyntaxStyle(), [themeVersion]);
   return (
     <box
       position="absolute"
@@ -24,9 +27,9 @@ export function QuestionPopup({ title, content }: QuestionPopupProps) {
       backgroundColor={colors.bgPopup}
       flexDirection="column"
     >
-      <text fg={colors.fgAccent}> {title} </text>
-      <scrollbox flexGrow={1}>
-        <markdown content={content} syntaxStyle={defaultSyntaxStyle} />
+      <text fg={colors.fgAccent} attributes={TextAttributes.BOLD}> {title} </text>
+      <scrollbox flexGrow={1} paddingLeft={1} paddingRight={1}>
+        <markdown content={content} syntaxStyle={syntaxStyle} />
       </scrollbox>
       <text fg={colors.fgDim}> j/k:Scroll  Esc/Enter:Close </text>
     </box>
