@@ -52,3 +52,6 @@ Thumbs.db
 
 # Compiled binary (bun build --compile)
 /leettui
+
+# Claude Code skills (local-only, not shared via repo)
+.claude/skills/
