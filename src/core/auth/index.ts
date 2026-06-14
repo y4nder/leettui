@@ -59,7 +59,10 @@ function openInBrowser(url: string): void {
         ? ["cmd", "/c", "start", "", url]
         : ["xdg-open", url];
   try {
-    Bun.spawn(cmd, { stdin: "ignore", stdout: "ignore", stderr: "ignore" });
+    // unref() so this child (often the launched browser itself, which lives
+    // until the user closes its window) doesn't keep our event loop alive and
+    // block process exit on quit.
+    Bun.spawn(cmd, { stdin: "ignore", stdout: "ignore", stderr: "ignore" }).unref();
   } catch {
     // Non-fatal: the user can navigate manually.
   }

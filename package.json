@@ -4,6 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "build": "bun build ./src/index.tsx --compile --minify --outfile leettui",
+    "smoke": "bash scripts/smoke.sh",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"

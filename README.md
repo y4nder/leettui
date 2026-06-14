@@ -51,20 +51,28 @@ Current rough edges:
 
 ---
 
-## Requirements
+## Install
 
-- [Bun](https://bun.sh) (required by OpenTUI)
-- A LeetCode account with session cookies
-
----
-
-## Getting started
+### Prebuilt binary (Linux / macOS)
 
 ```sh
-git clone <repo>
+curl -fsSL https://raw.githubusercontent.com/y4nder/leettui/main/install.sh | sh
+```
+
+Downloads the latest release binary for your platform into `~/.local/bin` (override with `LEETTUI_INSTALL_DIR`). No Bun required — the binary is self-contained. Then run `leettui`.
+
+**Windows:** download `leettui-windows-x64.exe` from the [Releases page](https://github.com/y4nder/leettui/releases) and run it.
+
+### From source
+
+Requires [Bun](https://bun.sh) (the OpenTUI runtime) and a LeetCode account.
+
+```sh
+git clone https://github.com/y4nder/leettui
 cd leettui
 bun install
-bun src/index.tsx
+bun src/index.tsx        # run directly
+bun run build            # or compile a standalone ./leettui binary
 ```
 
 On first run, leettui launches a short authentication flow:

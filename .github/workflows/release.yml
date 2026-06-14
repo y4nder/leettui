@@ -1,0 +1,67 @@
+name: release
+
+# Build standalone binaries for each platform and publish them to a GitHub
+# Release whenever a version tag is pushed, e.g.:
+#   git tag v0.1.0 && git push origin v0.1.0
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      # OpenTUI pulls a native, per-platform package (@opentui/core-<plat>) as
+      # an optional dependency — only the host's is installed by `bun install`.
+      # So each binary must be built on its native runner; cross-compiling all
+      # targets from one Linux runner fails to resolve the native module.
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: bun-linux-x64
+            asset: leettui-linux-x64
+          - os: macos-14
+            target: bun-darwin-arm64
+            asset: leettui-macos-arm64
+          - os: macos-13
+            target: bun-darwin-x64
+            asset: leettui-macos-x64
+          - os: windows-latest
+            target: bun-windows-x64
+            asset: leettui-windows-x64.exe
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      # Embedded migrations (src/db/migrations.ts) ship inside each binary.
+      - name: Build ${{ matrix.asset }}
+        run: bun build ./src/index.tsx --compile --minify --target=${{ matrix.target }} --outfile ${{ matrix.asset }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
