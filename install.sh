@@ -33,10 +33,11 @@ case "$arch" in
   *) err "unsupported architecture '$arch'" ;;
 esac
 
-# Only the combinations the workflow actually builds.
+# Only the combinations the workflow actually builds. Intel Macs (x64) have no
+# prebuilt binary — Apple Silicon users are covered by the arm64 build.
 asset="leettui-${os}-${arch}"
 case "$asset" in
-  leettui-linux-x64 | leettui-macos-arm64 | leettui-macos-x64) ;;
+  leettui-linux-x64 | leettui-macos-arm64) ;;
   *) err "no prebuilt binary for ${os}/${arch}; build from source with 'bun run build'" ;;
 esac
 
