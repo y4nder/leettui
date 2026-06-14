@@ -12,14 +12,13 @@
 // block (see handleReauth), exactly like the $EDITOR integration.
 
 import { createClient, AuthError } from "../../api/client";
-import { persistTokens, hasTokens } from "../../config";
-import type { Config } from "../../config/types";
+import { persistTokens } from "../../config";
 import { readFirefoxCookies } from "./firefox";
 import { parseCookieInput } from "./paste";
 
 const VALIDATE_QUERY = "query globalData { userStatus { isSignedIn username } }";
-const LOGIN_URL = "https://leetcode.com/accounts/login/";
-const MAX_PASTE_ATTEMPTS = 3;
+export const LOGIN_URL = "https://leetcode.com/accounts/login/";
+export const MAX_PASTE_ATTEMPTS = 3;
 
 export interface AuthTokens {
   csrftoken: string;
@@ -51,7 +50,7 @@ export async function validateTokens(csrf: string, session: string): Promise<Val
   }
 }
 
-function openInBrowser(url: string): void {
+export function openInBrowser(url: string): void {
   const cmd =
     process.platform === "darwin"
       ? ["open", url]
@@ -81,29 +80,12 @@ function promptRequired(label: string): string {
 }
 
 /**
- * Ensure usable tokens exist before anything talks to LeetCode. Validates saved
- * tokens (unless `force`d) and only prompts when they are missing or definitively
- * invalid — an "unknown" (offline) result keeps the saved tokens so the app still
- * opens without a network connection. Returns the tokens, or `null` if auth fails.
- */
-export async function ensureAuthenticated(config: Config, opts: { force: boolean }): Promise<AuthTokens | null> {
-  if (!opts.force && hasTokens(config)) {
-    const v = await validateTokens(config.csrftoken, config.lc_session);
-    if (v.status !== "invalid") {
-      return {
-        csrftoken: config.csrftoken,
-        lc_session: config.lc_session,
-        username: v.status === "ok" ? v.username : "",
-      };
-    }
-    console.log("Your saved LeetCode session is no longer valid — re-authenticating.\n");
-  }
-  return runAuthFlow();
-}
-
-/**
- * Run the interactive auth flow. Returns the validated, persisted tokens, or
- * `null` if the user aborts / it cannot complete.
+ * Run the interactive auth flow on the plain terminal. Returns the validated,
+ * persisted tokens, or `null` if the user aborts / it cannot complete.
+ *
+ * Used by the mid-session "Re-authenticate" command (Ctrl+P), which runs it inside a
+ * `renderer.suspend()` block. First-run / boot authentication is handled in-renderer
+ * by the onboarding `AuthWizard`, which reuses the same pure helpers in this module.
  */
 export async function runAuthFlow(): Promise<AuthTokens | null> {
   console.log("\n🔐 leettui — LeetCode authentication\n");

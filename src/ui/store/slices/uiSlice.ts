@@ -16,7 +16,8 @@ export type AppMode =
   | "help"
   | "debug"
   | "palette"
-  | "problem";
+  | "problem"
+  | "easterEgg";
 
 export interface SolutionPickerState {
   snippets: CodeSnippet[];
@@ -59,6 +60,8 @@ export interface UiSlice {
   hideDebug: () => void;
   showPalette: () => void;
   hidePalette: () => void;
+  showEasterEgg: () => void;
+  hideEasterEgg: () => void;
 
   enterProblemView: (init: {
     question: DbQuestion;
@@ -106,6 +109,10 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
 
   showPalette: () => set({ mode: "palette" }),
   hidePalette: () => set({ mode: "browse" }),
+
+  // Easter egg: a full-screen ASCII art reveal that lingers until any key is pressed.
+  showEasterEgg: () => set({ mode: "easterEgg" }),
+  hideEasterEgg: () => set({ mode: "browse" }),
 
   enterProblemView: ({ question, description, solutions }) =>
     set({

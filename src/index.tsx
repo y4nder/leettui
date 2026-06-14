@@ -4,7 +4,7 @@ import { createOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider } from "@opentui/keymap/react";
 
 import { initDebug } from "./debug";
-import { loadConfig, getDbPath, getThemeName } from "./config";
+import { loadConfig, getThemeName } from "./config";
 import { setTheme } from "./ui/theme";
 import { attachPaletteListener } from "./ui/palette";
 
@@ -14,19 +14,14 @@ const isProduction = process.env.NODE_ENV === "production";
 const debugFlag =
   !isProduction && (process.env.LEETTUI_DEBUG === "1" || process.argv.includes("--debug"));
 initDebug(debugFlag);
-import { initClient } from "./api/client";
-import { ensureAuthenticated } from "./core/auth";
-import { openDatabase } from "./db";
-import { syncIfEmpty } from "./core/sync";
-import { App } from "./app";
+import { BootFlow } from "./ui/components/onboarding/BootFlow";
 import { installKeymap } from "./ui/keymap";
 
-const config = loadConfig();
-
+loadConfig();
 setTheme(getThemeName());
 
-// Subcommands that don't need auth or the TUI. Handle them before anything
-// talks to LeetCode.
+// Subcommands that don't need the TUI. Handle them on the plain terminal and exit
+// before the renderer starts.
 if (process.argv.includes("--version") || process.argv.includes("version")) {
   const { VERSION } = await import("./core/version");
   console.log(VERSION);
@@ -39,24 +34,10 @@ if (process.argv.includes("update")) {
   process.exit(0);
 }
 
-// Acquire valid tokens before anything talks to LeetCode — the flow runs when the
-// `auth` subcommand is passed, tokens are missing, or the saved session has expired.
-const tokens = await ensureAuthenticated(config, { force: process.argv.includes("auth") });
-if (!tokens) {
-  console.error("Authentication is required to use leettui. Exiting.");
-  process.exit(1);
-}
-
-initClient(tokens.csrftoken, tokens.lc_session);
-
-const dbPath = getDbPath();
-openDatabase(dbPath);
-
-console.log("Syncing questions...");
-await syncIfEmpty((current, total) => {
-  process.stdout.write(`\rFetching questions: ${current}/${total}`);
-});
-console.log("\nStarting TUI...");
+// The renderer now starts first: authentication and the initial sync run as animated
+// steps inside <BootFlow>, not on the plain terminal. The `auth` subcommand forces
+// re-authentication even when a valid saved session exists.
+const force = process.argv.includes("auth");
 
 const renderer = await createCliRenderer({
   exitOnCtrlC: true,
@@ -70,6 +51,6 @@ installKeymap(keymap, renderer);
 
 createRoot(renderer).render(
   <KeymapProvider keymap={keymap}>
-    <App renderer={renderer} />
+    <BootFlow renderer={renderer} force={force} />
   </KeymapProvider>,
 );

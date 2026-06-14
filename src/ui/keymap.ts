@@ -322,6 +322,12 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     run: () => useAppStore.getState().showPalette(),
   }),
   makeCommand({
+    name: "egg.splash",
+    title: "✦ Reveal the leettui logo",
+    category: "View",
+    run: () => useAppStore.getState().showEasterEgg(),
+  }),
+  makeCommand({
     name: "app.quit",
     title: "Quit",
     category: "System",
