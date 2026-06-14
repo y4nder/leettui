@@ -1,8 +1,20 @@
-# leettui
+<div align="center">
 
+# 🧩 leettui
+
+**Grind LeetCode without leaving your terminal.**
+
+A snappy terminal UI for LeetCode — browse, solve, run, and submit, all from a keyboard-driven TUI.
+
+[![Built with OpenTUI](https://img.shields.io/badge/built%20with-OpenTUI-7aa2f7?style=flat-square)](https://github.com/sst/opentui)
+[![Runtime: Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1?style=flat-square&logo=bun&logoColor=black)](https://bun.sh)
+[![React](https://img.shields.io/badge/UI-React%2019-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+[![Status: Experimental](https://img.shields.io/badge/status-experimental-orange?style=flat-square)](#status)
+
+</div>
+
+> [!WARNING]
 > **Experimental** — actively being refined. Expect rough edges.
-
-A terminal UI for LeetCode, built with [OpenTUI](https://github.com/max-kazak/opentui) (React bindings) and Bun.
 
 ---
 
@@ -26,32 +38,21 @@ This project exists for two reasons:
 
 ---
 
-## Status
+## ✨ Features
 
-Stage 1 (Core MVP) and Stage 2 (Architecture refactor) are complete. Stage 3 refinement items (themes, stats, daily challenge, help screen) are also done. Stage 4 differentiation features are planned.
-
-Current rough edges:
-- No offline mode; all problem content fetched live
-- Browser cookie auto-import currently covers Firefox only (Chromium is paste-only)
-- Some edge cases in run/submit output formatting
-
----
-
-## Features
-
-- Browse all LeetCode problems with topic filter navigation
-- Fuzzy search by problem title
-- Scrollable problem description popup (Markdown rendered)
-- Open solution in `$EDITOR` with a pre-populated template
-- Run solution against example test cases
-- Submit solution and see runtime/memory percentile
-- Daily challenge shortcut
-- Command palette (`Ctrl+P`) listing all available actions
-- Multiple themes (tokyo-night, catppuccin) via config
+- 📚 Browse all LeetCode problems with topic filter navigation
+- 🔍 Fuzzy search by problem title
+- 📖 Scrollable problem description popup (Markdown rendered)
+- ✏️ Open solutions in `$EDITOR` with a pre-populated template
+- ▶️ Run solutions against example test cases
+- 🚀 Submit solutions and see runtime/memory percentiles
+- 🔥 Daily challenge shortcut
+- ⌨️ Command palette (`Ctrl+P`) listing every available action
+- 🎨 Multiple themes (tokyo-night, catppuccin) via config
 
 ---
 
-## Install
+## 📦 Install
 
 ### Prebuilt binary (Linux / macOS)
 
@@ -84,7 +85,9 @@ bun src/index.tsx        # run directly
 bun run build            # or compile a standalone ./leettui binary
 ```
 
-### First run
+---
+
+## 🔑 First run
 
 Every launch opens with a brief animated splash. The **first** time (binary or from source), it flows into an in-app setup wizard rendered right in the TUI — no terminal prompts to wrestle with:
 
@@ -97,7 +100,7 @@ Re-authenticate any time: run `leettui auth` (or `bun src/index.tsx auth` from s
 
 ---
 
-## Keybindings
+## ⌨️ Keybindings
 
 | Key | Action |
 |-----|--------|
@@ -115,7 +118,7 @@ Re-authenticate any time: run `leettui auth` (or `bun src/index.tsx auth` from s
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
 `~/.config/leettui/config.toml`
 
@@ -130,14 +133,14 @@ name = "tokyo-night"   # or "catppuccin"
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 | Layer | Tech |
 |-------|------|
 | Runtime | Bun |
 | UI | OpenTUI + React (`@opentui/react`) |
 | State | Zustand slices + React `useReducer` |
-| Storage | SQLite via `bun:sqlite` |
+| Storage | SQLite via Drizzle ORM on the `bun:sqlite` driver |
 | Config | TOML via `smol-toml` |
 
 ```
@@ -145,25 +148,36 @@ src/
   api/        LeetCode GraphQL + REST client
   config/     Config loading, XDG paths
   core/       Business logic (sync, search, submission, solutions)
-  db/         SQLite schema + CRUD
+  db/         SQLite schema + CRUD (Drizzle)
   ui/         React components, hooks, keymap, theme
   views/      Screen-level orchestration (BrowseView, ...)
 ```
 
 ---
 
-## Tech stack
+## 🧰 Tech stack
 
-- [`@opentui/core`](https://github.com/max-kazak/opentui) — terminal rendering primitives
-- [`@opentui/react`](https://github.com/max-kazak/opentui) — React bindings for OpenTUI
-- [`@opentui/keymap`](https://github.com/max-kazak/opentui) — declarative keybinding layer
+- [`@opentui/core`](https://github.com/sst/opentui) — terminal rendering primitives
+- [`@opentui/react`](https://github.com/sst/opentui) — React bindings for OpenTUI
+- [`@opentui/keymap`](https://github.com/sst/opentui) — declarative keybinding layer
+- [`drizzle-orm`](https://orm.drizzle.team) — type-safe SQL over `bun:sqlite`
 - [`zustand`](https://github.com/pmndrs/zustand) — lightweight state management
-- [`smol-toml`](https://github.com/nicolo-ribaudo/smol-toml) — TOML config parsing
+- [`smol-toml`](https://github.com/squirrelchat/smol-toml) — TOML config parsing
 - [`node-html-markdown`](https://github.com/crosstype/node-html-markdown) — HTML → Markdown for problem descriptions
-- [`bun:sqlite`](https://bun.sh/docs/api/sqlite) — built-in SQLite
 
 ---
 
-## Disclaimer
+## 🚧 Status
+
+Stage 1 (Core MVP) and Stage 2 (Architecture refactor) are complete. Stage 3 refinement items (themes, stats, daily challenge, help screen) are also done. Stage 4 differentiation features are planned.
+
+**Current rough edges:**
+- No offline mode; all problem content fetched live
+- Browser cookie auto-import currently covers Firefox only (Chromium is paste-only)
+- Some edge cases in run/submit output formatting
+
+---
+
+## ⚠️ Disclaimer
 
 This project is not affiliated with LeetCode. It uses their APIs in the same way a logged-in browser session would. Use responsibly and in accordance with LeetCode's terms of service.
