@@ -1,10 +1,12 @@
-import { SyntaxStyle } from "@opentui/core";
+import { useMemo } from "react";
 import { useBindings } from "@opentui/keymap/react";
 import { useTerminalDimensions } from "@opentui/react";
+import { TextAttributes } from "@opentui/core";
 import type { createCliRenderer } from "@opentui/core";
 
 import { useAppStore } from "../../ui/store";
 import { colors, difficultyColor } from "../../ui/theme";
+import { buildMarkdownSyntaxStyle } from "../../ui/markdownStyle";
 import { ResultBody } from "../../ui/components/ResultBody";
 import { StatusBar } from "../../ui/components/StatusBar";
 import { ProgressBar } from "../../ui/components/ProgressBar";
@@ -16,8 +18,6 @@ type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
 interface ProblemViewProps {
   renderer: Renderer;
 }
-
-const defaultSyntaxStyle = SyntaxStyle.create();
 
 function ProblemBindings() {
   useBindings(() => ({ bindings: problemBindings }), []);
@@ -70,7 +70,8 @@ function HintsFooter() {
 
 export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
   const { height } = useTerminalDimensions();
-  useAppStore((s) => s.themeVersion);
+  const themeVersion = useAppStore((s) => s.themeVersion);
+  const syntaxStyle = useMemo(() => buildMarkdownSyntaxStyle(), [themeVersion]);
   const stats = useAppStore((s) => s.stats);
   const mode = useAppStore((s) => s.mode);
   const searchNeedle = useAppStore((s) => s.searchNeedle);
@@ -109,9 +110,9 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
             borderStyle="rounded"
             borderColor={colors.border}
           >
-            <text fg={colors.fgAccent}> Description </text>
-            <scrollbox flexGrow={1}>
-              <markdown content={description} syntaxStyle={defaultSyntaxStyle} />
+            <text fg={colors.fgAccent} attributes={TextAttributes.BOLD}> Description </text>
+            <scrollbox flexGrow={1} paddingLeft={1} paddingRight={1}>
+              <markdown content={description} syntaxStyle={syntaxStyle} />
             </scrollbox>
           </box>
 

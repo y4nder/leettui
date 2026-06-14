@@ -3,9 +3,9 @@
 // the modal popup.
 
 import type { createCliRenderer } from "@opentui/core";
-import { NodeHtmlMarkdown } from "node-html-markdown";
 
 import { useAppStore } from "../../ui/store";
+import { htmlToMarkdown } from "../../core/markdown";
 import { fetchQuestionContent } from "../../api/queries/question-content";
 import { fetchEditorData } from "../../api/queries/editor-data";
 import { getLangSlugFromFilename } from "../../api/types";
@@ -22,8 +22,6 @@ import { logError } from "../../debug";
 import { buildResultView, info, errorView } from "../browse/resultView";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
-
-const nhm = new NodeHtmlMarkdown();
 
 function currentTopic() {
   const s = useAppStore.getState();
@@ -44,7 +42,7 @@ export async function handleEnterProblemView(triggerKey: string) {
     const data = await fetchQuestionContent(q.title_slug);
     const html = data.question?.content;
     const description = html
-      ? nhm.translate(html)
+      ? htmlToMarkdown(html)
       : "_No description available (problem may be premium-only)._";
     const solutions = findExistingSolutions(q.id, q.title_slug);
     useAppStore.getState().enterProblemView({ question: q, description, solutions });

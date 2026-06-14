@@ -4,6 +4,7 @@ OpenTUI React components, state management, theme, and keymap.
 
 ## Files
 
+- `markdownStyle.ts` — `buildMarkdownSyntaxStyle()` maps OpenTUI markdown scopes (`markup.heading`, `markup.strong`, `markup.raw`, `markup.link`, …) onto the active theme tokens so `<markdown>` descriptions are theme-colored. Callers memoize it on `themeVersion` so it rebuilds on theme switch.
 - `theme.ts` — Theme controller. Owns the `colors` Proxy (live token reads), `setTheme(name, { persist })`, `cycleTheme(±1)`, `getCurrentThemeName()`, `listThemeNames()`, `rebuildSystemTheme()` (called by `palette.ts` on terminal-palette changes), and helpers `difficultyColor()`, `statusIcon()`, `statusColor()`. Switching a theme bumps `themeVersion` on the store; `BrowseView` and `ProblemView` subscribe to it so their subtrees rerender.
 - `themes/` — Preset palettes implementing the `Theme` interface (token values are `string | RGBA`, since OpenTUI's `fg`/`backgroundColor` props accept both). Three presets: `tokyo-night.ts`, `catppuccin.ts` (hex literals), and `system.ts` (RGBA-based — uses `RGBA.defaultForeground()`/`defaultBackground()`/`fromIndex(n)` so colors honor the user's terminal palette). The interface includes both legacy tokens (`bg`/`fg`/`fgAccent`/...) and semantic tokens (`surface`/`subtle`/`accent`/`success`/`warn`/`error`/`info`).
 - `palette.ts` — Boot-time `attachPaletteListener(renderer)`. Warms `renderer.getPalette()` to unlock OSC detection, then subscribes to `CliRenderEvents.PALETTE` so the system theme can re-derive when the user changes their terminal colorscheme.
@@ -20,7 +21,7 @@ All components use OpenTUI JSX intrinsics (`<box>`, `<text>`, `<scrollbox>`, `<m
 - `TopicList.tsx` — Left panel: scrollable topic list with `►` selection indicator
 - `QuestionList.tsx` — Right panel: per-row status icon, solution-exists marker (`◆`, accent color, from `solutionFileIds`), ID, title, acceptance-rate %, difficulty color, and last-accepted runtime. Uses `backgroundColor` for selected row highlight.
 - `StatusBar.tsx` — Bottom bar: shows keybinding hints in browse mode, search input in search mode, and the active difficulty filter (e.g. `[Easy]`) when one is set
-- `QuestionPopup.tsx` — Centered absolute-positioned modal with `<scrollbox>` + `<markdown>` for problem descriptions. Used by the daily-challenge flow. Requires `SyntaxStyle.create()` from `@opentui/core`.
+- `QuestionPopup.tsx` — Centered absolute-positioned modal with `<scrollbox>` + `<markdown>` for problem descriptions. Used by the daily-challenge flow. Builds its `syntaxStyle` from `markdownStyle.ts` (memoized on `themeVersion`).
 - `SelectPopup.tsx` — Language selection modal with j/k navigation. Uses `useKeyboard` hook internally.
 - `ResultPopup.tsx` — Modal frame around `<ResultBody>` for browse-mode run/submit results.
 - `ResultBody.tsx` — Pure rendering of a `ResultView` (metrics, diff, outputs, error). Reused by `ResultPopup` and by `ProblemView`'s inline Result panel.
@@ -52,4 +53,4 @@ Zustand store. **UI vs domain rule:** every slice file starts with a `// type: u
 ## Dependencies
 
 - Components depend on `db/`, `api/`, `core/`, `config/` for data fetching and business logic
-- `views/browse/handlers.ts` uses `node-html-markdown` to convert LeetCode HTML to markdown before passing to `QuestionPopup`
+- `views/browse/handlers.ts` and `views/problem/handlers.ts` call `core/markdown.ts`'s `htmlToMarkdown()` (a shared, configured `node-html-markdown` converter) before passing content to `QuestionPopup` / `ProblemView`

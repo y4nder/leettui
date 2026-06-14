@@ -3,9 +3,9 @@
 // no top-level singletons — so they remain easy to reason about and reuse.
 
 import type { createCliRenderer } from "@opentui/core";
-import { NodeHtmlMarkdown } from "node-html-markdown";
 
 import { useAppStore } from "../../ui/store";
+import { htmlToMarkdown } from "../../core/markdown";
 import { initClient } from "../../api/client";
 import { runAuthFlow } from "../../core/auth";
 import { fetchQuestionContent } from "../../api/queries/question-content";
@@ -44,8 +44,6 @@ function currentTopic() {
   return s.topics[s.selectedTopicIndex] ?? "all";
 }
 
-const nhm = new NodeHtmlMarkdown();
-
 export async function handleViewDailyChallenge(triggerKey: string) {
   const { showPopup, showResult } = useAppStore.getState();
   try {
@@ -57,7 +55,7 @@ export async function handleViewDailyChallenge(triggerKey: string) {
       showResult(info("No description available (problem may be premium-only)."));
       return;
     }
-    const md = nhm.translate(html);
+    const md = htmlToMarkdown(html);
     showPopup(`${q.frontendQuestionId}. ${q.title} [${q.difficulty}] — Daily`, md);
   } catch (e: any) {
     logError(triggerKey, "browse", "handleViewDailyChallenge", e);
