@@ -28,8 +28,10 @@ All components use OpenTUI JSX intrinsics (`<box>`, `<text>`, `<scrollbox>`, `<m
 - `SolutionPickerModal.tsx` — Telescope-style modal for `ProblemView` (opened with `f`). Two-column layout: a list of every available language for the problem (existing solution files marked with `●`), and a syntax-highlighted code preview of the focused entry — file contents for existing solutions, LeetCode starter snippet for languages not yet started. Owns its own `useBindings` layer (`pickerBindings`). Confirming opens the file in `$EDITOR`, creating it from the snippet first if needed.
 - `HelpPopup.tsx` — Auto-generated from `keymap.getCommandEntries()`. Groups commands by `category`, formats key sequences with `formatCommandBindings`. Debug entries only appear when `LEETTUI_DEBUG=1`.
 - `DebugPopup.tsx` — Live key/error log overlay (debug mode only). Owns `debugBindings` via `useBindings`.
-- `ProgressBar.tsx` — Sync progress indicator (shown during DB sync)
+- `ProgressBar.tsx` — One-line sync progress indicator (legacy helper)
+- `onboarding/` — First-run / boot experience, rendered by `BootFlow` before `<App>`. `Logo.tsx` (custom hand-crafted block-letter wordmark with a `reveal` wipe and a narrow single-line fallback), `Splash.tsx` (brief `useTimeline` logo reveal shown every launch, skippable with any key), `AuthWizard.tsx` (in-renderer Firefox-import → guided-paste auth, reusing `core/auth` helpers + `<input>`/`usePaste`), `SyncStep.tsx` (logo + progress bar driven by `syncSlice`), and `BootFlow.tsx` (the `splash → auth → loading → ready` state machine). See `src/CLAUDE.md`.
 - `CommandPalette.tsx` — Ctrl+P fuzzy-searchable list of commands sourced from `keymap.getCommandEntries()`. Owns its own `useBindings` layer for navigation and a `key:after` intercept for needle text input. Executes the selected command via `keymap.runCommand(name)`.
+- `EasterEgg.tsx` — Full-screen ASCII logo reveal reached from the command palette (`egg.splash` → "✦ Reveal the leettui logo"). Mounted only in `easterEgg` mode, so no keymap bindings are active; it dismisses on **any** key via `useKeyboard` → `hideEasterEgg()`. Reuses `onboarding/Logo` and the `useTimeline` reveal.
 
 ### store/
 

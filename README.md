@@ -84,14 +84,16 @@ bun src/index.tsx        # run directly
 bun run build            # or compile a standalone ./leettui binary
 ```
 
-On first run, leettui launches a short authentication flow:
+### First run
 
-1. If you're logged into leetcode.com **in Firefox**, it imports your session automatically — nothing to do.
-2. Otherwise it opens leetcode.com in your browser and asks you to paste your cookies. The easiest source is DevTools (F12) → Network → click any request to leetcode.com → Headers → Request Headers → copy the whole `Cookie:` value and paste it in. (You can also enter the two tokens individually when prompted.)
+Every launch opens with a brief animated splash. The **first** time (binary or from source), it flows into an in-app setup wizard rendered right in the TUI — no terminal prompts to wrestle with:
 
-Either way, leettui verifies the tokens with LeetCode before saving them to `~/.config/leettui/config.toml`, so you never get stuck with credentials that silently don't work. The problem list then syncs from LeetCode and is cached in SQLite.
+1. **Sign in.** If you're logged into leetcode.com **in Firefox**, leettui imports your session automatically — nothing to do. Otherwise it opens leetcode.com in your browser and shows a paste field: in DevTools (F12) → Network → click any request to leetcode.com → Headers → Request Headers, copy the whole `Cookie:` value and paste it in. (You can also paste the two tokens one at a time.)
+2. **Sync problems.** Tokens are verified against LeetCode before anything is saved — so you never get stuck with credentials that silently don't work — then the full problem list syncs with a progress bar and is cached in SQLite. You land in the problem browser.
 
-Run `bun src/index.tsx auth` any time to re-authenticate (e.g. after your session expires), or trigger it from inside the app via the command palette (`Ctrl+P` → "Re-authenticate"). An expired session is also detected at startup and re-prompts automatically instead of failing with a cryptic error.
+Your validated tokens are written to `~/.config/leettui/config.toml`. Returning launches skip the wizard (just the quick splash, then straight to browse); an expired session is detected at startup and re-runs the wizard automatically.
+
+Re-authenticate any time: run `leettui auth` (or `bun src/index.tsx auth` from source), or trigger it from inside the app via the command palette (`Ctrl+P` → "Re-authenticate").
 
 ---
 
