@@ -48,8 +48,15 @@ jobs:
       # `jsxDEV = void 0`) WITHOUT switching Bun's JSX transform off the dev
       # `jsxDEV(...)` form, so the binary calls undefined and crashes at the
       # first render ("X is not a function"). --production flips both together.
+      #
+      # The second entry point (node_modules/@opentui/core/parser.worker.js)
+      # bundles OpenTUI's tree-sitter highlight worker — and its web-tree-sitter
+      # dependency + engine wasm — into the binary so <markdown> descriptions are
+      # syntax-highlighted; src/core/treeSitterWorker.ts points OpenTUI at the
+      # embedded copy. Without it the worker can't resolve its deps at runtime
+      # and every description renders flat. Keep in sync with scripts/build.ts.
       - name: Build ${{ matrix.asset }}
-        run: bun build ./src/index.tsx --compile --production --target=${{ matrix.target }} --define 'process.env.LEETTUI_VERSION="${{ github.ref_name }}"' --define 'process.env.LEETTUI_IS_RELEASE="1"' --outfile ${{ matrix.asset }}
+        run: bun build ./src/index.tsx ./node_modules/@opentui/core/parser.worker.js --compile --production --target=${{ matrix.target }} --define 'process.env.LEETTUI_VERSION="${{ github.ref_name }}"' --define 'process.env.LEETTUI_IS_RELEASE="1"' --outfile ${{ matrix.asset }}
 
       - uses: actions/upload-artifact@v4
         with:
