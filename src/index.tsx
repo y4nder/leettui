@@ -8,7 +8,11 @@ import { loadConfig, getDbPath, getThemeName } from "./config";
 import { setTheme } from "./ui/theme";
 import { attachPaletteListener } from "./ui/palette";
 
-const debugFlag = process.env.LEETTUI_DEBUG === "1" || process.argv.includes("--debug");
+// Debug overlay is dev-only. Bun statically inlines NODE_ENV as "production" in the
+// compiled binary, so this branch is dead-code-eliminated from the production build.
+const isProduction = process.env.NODE_ENV === "production";
+const debugFlag =
+  !isProduction && (process.env.LEETTUI_DEBUG === "1" || process.argv.includes("--debug"));
 initDebug(debugFlag);
 import { initClient } from "./api/client";
 import { ensureAuthenticated } from "./core/auth";
