@@ -42,7 +42,7 @@ jobs:
       # marks this as an official build so `leettui update` will self-update it
       # (local `bun run build` binaries leave it unset and refuse to self-update).
       - name: Build ${{ matrix.asset }}
-        run: bun build ./src/index.tsx --compile --minify --target=${{ matrix.target }} --define 'process.env.LEETTUI_VERSION="${{ github.ref_name }}"' --define 'process.env.LEETTUI_IS_RELEASE="1"' --outfile ${{ matrix.asset }}
+        run: bun build ./src/index.tsx --compile --minify --target=${{ matrix.target }} --define 'process.env.LEETTUI_VERSION="${{ github.ref_name }}"' --define 'process.env.LEETTUI_IS_RELEASE="1"' --define 'process.env.NODE_ENV="production"' --outfile ${{ matrix.asset }}
 
       - uses: actions/upload-artifact@v4
         with:
