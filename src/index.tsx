@@ -25,6 +25,20 @@ const config = loadConfig();
 
 setTheme(getThemeName());
 
+// Subcommands that don't need auth or the TUI. Handle them before anything
+// talks to LeetCode.
+if (process.argv.includes("--version") || process.argv.includes("version")) {
+  const { VERSION } = await import("./core/version");
+  console.log(VERSION);
+  process.exit(0);
+}
+
+if (process.argv.includes("update")) {
+  const { runUpdate } = await import("./core/update");
+  await runUpdate({ force: process.argv.includes("--force") });
+  process.exit(0);
+}
+
 // Acquire valid tokens before anything talks to LeetCode — the flow runs when the
 // `auth` subcommand is passed, tokens are missing, or the saved session has expired.
 const tokens = await ensureAuthenticated(config, { force: process.argv.includes("auth") });

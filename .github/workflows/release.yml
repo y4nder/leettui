@@ -38,8 +38,11 @@ jobs:
       - run: bun install --frozen-lockfile
 
       # Embedded migrations (src/db/migrations.ts) ship inside each binary.
+      # The pushed tag (github.ref_name) is baked in as the version; IS_RELEASE
+      # marks this as an official build so `leettui update` will self-update it
+      # (local `bun run build` binaries leave it unset and refuse to self-update).
       - name: Build ${{ matrix.asset }}
-        run: bun build ./src/index.tsx --compile --minify --target=${{ matrix.target }} --outfile ${{ matrix.asset }}
+        run: bun build ./src/index.tsx --compile --minify --target=${{ matrix.target }} --define 'process.env.LEETTUI_VERSION="${{ github.ref_name }}"' --define 'process.env.LEETTUI_IS_RELEASE="1"' --outfile ${{ matrix.asset }}
 
       - uses: actions/upload-artifact@v4
         with:

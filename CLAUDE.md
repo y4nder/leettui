@@ -12,6 +12,18 @@ bun src/index.tsx
 
 On first run, leettui runs an auth flow that imports your LeetCode session from Firefox (if logged in) or guides you through a one-time cookie paste, validates it, and writes it to `~/.config/leettui/config.toml`. Re-run any time with `bun src/index.tsx auth`.
 
+### Subcommands
+
+These are matched as argv tokens in `src/index.tsx` before the TUI starts:
+
+- `auth` — force the authentication flow.
+- `update` — self-update: download the latest release binary for the platform and atomically replace the running executable (`src/core/update.ts`). Pass `--force` to reinstall even when already current. Refuses unless `IS_RELEASE` (only official release-workflow binaries self-update — a from-source build is never overwritten by an older published release).
+- `--version` / `version` — print the embedded version and exit.
+
+Version metadata lives in `src/core/version.ts`, inlined at build time via `--define`:
+- `VERSION` (`process.env.LEETTUI_VERSION`) — the pushed git tag from the release workflow; `git describe` for local `bun run build` (see `scripts/build.ts`); `dev` for `bun src/index.tsx`.
+- `IS_RELEASE` (`process.env.LEETTUI_IS_RELEASE === "1"`) — set only by the release workflow; gates `update`.
+
 ## Architecture
 
 - **Runtime**: Bun (required by OpenTUI)
