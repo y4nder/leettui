@@ -32,7 +32,7 @@ Stage 1 (Core MVP) and Stage 2 (Architecture refactor) are complete. Stage 3 ref
 
 Current rough edges:
 - No offline mode; all problem content fetched live
-- Auth requires manually copying browser cookies into config
+- Browser cookie auto-import currently covers Firefox only (Chromium is paste-only)
 - Some edge cases in run/submit output formatting
 
 ---
@@ -67,17 +67,14 @@ bun install
 bun src/index.tsx
 ```
 
-On first run, a config file is created at `~/.config/leettui/config.toml`. Open it and fill in your LeetCode session tokens:
+On first run, leettui launches a short authentication flow:
 
-```toml
-[auth]
-csrftoken = "..."
-lc_session = "..."
-```
+1. If you're logged into leetcode.com **in Firefox**, it imports your session automatically — nothing to do.
+2. Otherwise it opens leetcode.com in your browser and asks you to paste your cookies. The easiest source is DevTools (F12) → Network → click any request to leetcode.com → Headers → Request Headers → copy the whole `Cookie:` value and paste it in. (You can also enter the two tokens individually when prompted.)
 
-Get these from your browser's DevTools after logging in to leetcode.com (Application → Cookies → leetcode.com).
+Either way, leettui verifies the tokens with LeetCode before saving them to `~/.config/leettui/config.toml`, so you never get stuck with credentials that silently don't work. The problem list then syncs from LeetCode and is cached in SQLite.
 
-Restart after saving the config. The problem list syncs from LeetCode on the first authenticated run and is cached in SQLite.
+Run `bun src/index.tsx auth` any time to re-authenticate (e.g. after your session expires), or trigger it from inside the app via the command palette (`Ctrl+P` → "Re-authenticate"). An expired session is also detected at startup and re-prompts automatically instead of failing with a cryptic error.
 
 ---
 
@@ -104,7 +101,7 @@ Restart after saving the config. The problem list syncs from LeetCode on the fir
 `~/.config/leettui/config.toml`
 
 ```toml
-[auth]
+# Auth tokens — normally written by the auth flow, not by hand.
 csrftoken = "..."
 lc_session = "..."
 

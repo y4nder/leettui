@@ -4,7 +4,7 @@ Entry point and root application component.
 
 ## Files
 
-- `index.tsx` — Boot sequence: load config → init API client → open SQLite DB → sync if empty → create OpenTUI renderer → render `<App>`. Sync progress is printed to stdout before the TUI starts.
+- `index.tsx` — Boot sequence: load config → **ensure auth** (run the auth flow if the `auth` subcommand was passed, tokens are missing, or the saved session validates as invalid; an offline/unknown validation is tolerated) → init API client → open SQLite DB → sync if empty → create OpenTUI renderer → render `<App>`. Auth prompts and sync progress print to stdout before the TUI starts.
 - `app.tsx` — Thin router. Calls `useAppStore.getState().init()` on mount; renders `<ProblemView>` when `mode === "problem"`, otherwise `<BrowseView>`.
 
 ## Module dependency graph

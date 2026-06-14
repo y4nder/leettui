@@ -6,6 +6,8 @@ import type { createCliRenderer } from "@opentui/core";
 import { NodeHtmlMarkdown } from "node-html-markdown";
 
 import { useAppStore } from "../../ui/store";
+import { initClient } from "../../api/client";
+import { runAuthFlow } from "../../core/auth";
 import { fetchQuestionContent } from "../../api/queries/question-content";
 import { fetchEditorData } from "../../api/queries/editor-data";
 import { fetchDailyChallenge } from "../../api/queries/daily-challenge";
@@ -20,6 +22,17 @@ import { logError } from "../../debug";
 import { buildResultView, info, errorView } from "./resultView";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
+
+// Run `fn` on the bare terminal (editor, auth prompts, …) with the TUI paused,
+// always resuming afterwards — the shared scaffold behind editor + re-auth.
+async function withSuspendedRenderer<T>(renderer: Renderer, fn: () => Promise<T>): Promise<T> {
+  renderer.suspend();
+  try {
+    return await fn();
+  } finally {
+    renderer.resume();
+  }
+}
 
 function currentQuestion() {
   const s = useAppStore.getState();
@@ -73,17 +86,14 @@ export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
       const path = createSolutionFile(q.id, q.title_slug, snippet.langSlug, snippet.code);
 
       const editor = getEditorCommand();
-      renderer.suspend();
-      try {
+      await withSuspendedRenderer(renderer, async () => {
         const proc = Bun.spawn([editor, path], {
           stdin: "inherit",
           stdout: "inherit",
           stderr: "inherit",
         });
         await proc.exited;
-      } finally {
-        renderer.resume();
-      }
+      });
       // A newly created file should immediately show the "solution exists" mark.
       useAppStore.getState().refreshSolutionFiles();
     });
@@ -206,6 +216,27 @@ export function handleYankUrl(triggerKey: string) {
   } catch (e: any) {
     logError(triggerKey, "browse", "handleYankUrl", e);
     showResult(errorView("Could not copy URL", e.message));
+  }
+}
+
+// Re-authenticate without leaving the app. Suspends the renderer (so the auth
+// flow can use the terminal for prompts/stdin), runs the flow, then re-inits the
+// API client with fresh tokens — mirroring the $EDITOR suspend/resume in
+// handleOpenEditor. Recovers from a mid-session session expiry.
+export async function handleReauth(renderer: Renderer) {
+  const { showResult } = useAppStore.getState();
+  let result: Awaited<ReturnType<typeof runAuthFlow>> = null;
+  try {
+    result = await withSuspendedRenderer(renderer, runAuthFlow);
+  } catch (e: any) {
+    logError("reauth", "browse", "handleReauth", e);
+  }
+
+  if (result) {
+    initClient(result.csrftoken, result.lc_session);
+    showResult(info(`Re-authenticated as ${result.username || "(unknown user)"}.`));
+  } else {
+    showResult(info("Re-authentication cancelled."));
   }
 }
 

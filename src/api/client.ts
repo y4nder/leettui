@@ -7,6 +7,23 @@ export interface LeetCodeClient {
   get<T>(path: string): Promise<T>;
 }
 
+// Thrown on a 401/403 so callers can distinguish an expired/invalid session from a
+// generic failure and prompt the user to re-authenticate.
+export class AuthError extends Error {
+  constructor(
+    public readonly status: number,
+    message = `LeetCode session rejected (${status}). It may have expired — re-authenticate from the command palette (Ctrl+P → "Re-authenticate").`,
+  ) {
+    super(message);
+    this.name = "AuthError";
+  }
+}
+
+function throwForStatus(res: Response, label: string): void {
+  if (res.status === 401 || res.status === 403) throw new AuthError(res.status);
+  throw new Error(`${label} failed: ${res.status} ${res.statusText}`);
+}
+
 export function createClient(csrf: string, session: string): LeetCodeClient {
   const headers: Record<string, string> = {
     Cookie: `LEETCODE_SESSION=${session}; csrftoken=${csrf}`,
@@ -24,9 +41,7 @@ export function createClient(csrf: string, session: string): LeetCodeClient {
         headers,
         body: JSON.stringify(body),
       });
-      if (!res.ok) {
-        throw new Error(`GraphQL request failed: ${res.status} ${res.statusText}`);
-      }
+      if (!res.ok) throwForStatus(res, "GraphQL request");
       return res.json() as Promise<T>;
     },
 
@@ -36,9 +51,7 @@ export function createClient(csrf: string, session: string): LeetCodeClient {
         headers,
         body: JSON.stringify(body),
       });
-      if (!res.ok) {
-        throw new Error(`POST ${path} failed: ${res.status} ${res.statusText}`);
-      }
+      if (!res.ok) throwForStatus(res, `POST ${path}`);
       return res.json() as Promise<T>;
     },
 
@@ -47,9 +60,7 @@ export function createClient(csrf: string, session: string): LeetCodeClient {
         method: "GET",
         headers,
       });
-      if (!res.ok) {
-        throw new Error(`GET ${path} failed: ${res.status} ${res.statusText}`);
-      }
+      if (!res.ok) throwForStatus(res, `GET ${path}`);
       return res.json() as Promise<T>;
     },
   };

@@ -4,9 +4,9 @@ import { CONFIG_DIR, CONFIG_FILE, DB_PATH, SOLUTIONS_DIR } from "./paths";
 import type { Config } from "./types";
 
 const DEFAULT_TOML = `# LeetCode authentication tokens
-# Get these from your browser cookies after logging into leetcode.com:
-#   1. Open DevTools -> Application -> Cookies -> leetcode.com
-#   2. Copy the values for LEETCODE_SESSION and csrftoken
+# These are filled in automatically by the auth flow (Firefox auto-import or a
+# guided paste). It runs on first launch, or any time via:  bun src/index.tsx auth
+# You can also paste them here by hand if you prefer.
 csrftoken = ""
 lc_session = ""
 
@@ -33,21 +33,20 @@ export function loadConfig(): Config {
     mkdirSync(CONFIG_DIR, { recursive: true });
     writeFileSync(CONFIG_FILE, DEFAULT_TOML);
     console.log(`Created config file at: ${CONFIG_FILE}`);
-    console.log("Please add your LeetCode session tokens and restart.");
-    process.exit(0);
+    // Tokens are empty for now; boot launches the auth flow (no longer exits here).
   }
 
-  const content = readFileSync(CONFIG_FILE, "utf-8");
+  const content = existsSync(CONFIG_FILE) ? readFileSync(CONFIG_FILE, "utf-8") : DEFAULT_TOML;
   const parsed = parse(content) as unknown as Config;
 
-  if (!parsed.csrftoken || !parsed.lc_session) {
-    console.error(`Missing authentication tokens in ${CONFIG_FILE}`);
-    console.error("Please add csrftoken and lc_session values.");
-    process.exit(1);
-  }
-
+  // Missing/empty tokens are no longer fatal — boot detects this via hasTokens()
+  // and runs the auth flow instead of crashing.
   _config = parsed;
   return _config;
+}
+
+export function hasTokens(config: Config = loadConfig()): boolean {
+  return Boolean(config.csrftoken && config.lc_session);
 }
 
 export function getDbPath(): string {
@@ -81,7 +80,7 @@ export function getThemeName(): string | undefined {
 // add `name` to an existing [theme] section, or append a new section.
 export function persistThemeName(name: string): void {
   if (!existsSync(CONFIG_FILE)) return;
-  const escaped = name.replace(/"/g, '\\"');
+  const escaped = escapeTomlString(name);
   const content = readFileSync(CONFIG_FILE, "utf-8");
 
   const hasSection = /^\s*\[theme\]/m.test(content);
@@ -103,4 +102,34 @@ export function persistThemeName(name: string): void {
   // Refresh the in-process config so getThemeName() reflects the persisted value
   // on the next call (e.g., for diagnostics).
   _config = null;
+}
+
+// Surgically rewrite the top-level `csrftoken`/`lc_session` values, preserving all
+// comments and formatting (same rationale as persistThemeName — smol-toml has no
+// comment-preserving stringifier). Written by the auth flow once tokens validate.
+export function persistTokens(csrftoken: string, lc_session: string): void {
+  let content = existsSync(CONFIG_FILE) ? readFileSync(CONFIG_FILE, "utf-8") : DEFAULT_TOML;
+  content = upsertTopLevelString(content, "csrftoken", csrftoken);
+  content = upsertTopLevelString(content, "lc_session", lc_session);
+  mkdirSync(CONFIG_DIR, { recursive: true });
+  writeFileSync(CONFIG_FILE, content);
+  _config = null;
+}
+
+// Escape a value for embedding inside a TOML double-quoted string.
+function escapeTomlString(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
+// Replace `key = "..."`'s value if the line exists (keeping any trailing comment),
+// otherwise insert the key before the first TOML section header (or append).
+function upsertTopLevelString(content: string, key: string, value: string): string {
+  const escaped = escapeTomlString(value);
+  const re = new RegExp(`^(\\s*${key}\\s*=\\s*)"[^"]*"`, "m");
+  if (re.test(content)) return content.replace(re, `$1"${escaped}"`);
+
+  const line = `${key} = "${escaped}"\n`;
+  const sectionIdx = content.search(/^\s*\[/m);
+  if (sectionIdx === -1) return content.trimEnd() + "\n" + line;
+  return content.slice(0, sectionIdx) + line + content.slice(sectionIdx);
 }

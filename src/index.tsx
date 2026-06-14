@@ -11,6 +11,7 @@ import { attachPaletteListener } from "./ui/palette";
 const debugFlag = process.env.LEETTUI_DEBUG === "1" || process.argv.includes("--debug");
 initDebug(debugFlag);
 import { initClient } from "./api/client";
+import { ensureAuthenticated } from "./core/auth";
 import { openDatabase } from "./db";
 import { syncIfEmpty } from "./core/sync";
 import { App } from "./app";
@@ -20,7 +21,15 @@ const config = loadConfig();
 
 setTheme(getThemeName());
 
-initClient(config.csrftoken, config.lc_session);
+// Acquire valid tokens before anything talks to LeetCode — the flow runs when the
+// `auth` subcommand is passed, tokens are missing, or the saved session has expired.
+const tokens = await ensureAuthenticated(config, { force: process.argv.includes("auth") });
+if (!tokens) {
+  console.error("Authentication is required to use leettui. Exiting.");
+  process.exit(1);
+}
+
+initClient(tokens.csrftoken, tokens.lc_session);
 
 const dbPath = getDbPath();
 openDatabase(dbPath);

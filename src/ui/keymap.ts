@@ -25,6 +25,7 @@ import {
   handleSyncDb,
   handleRandomQuestion,
   handleYankUrl,
+  handleReauth,
 } from "../views/browse/handlers";
 import {
   handleEnterProblemView,
@@ -305,6 +306,14 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     title: "Sync problem database",
     category: "System",
     run: () => handleSyncDb("*"),
+  }),
+  makeCommand({
+    name: "auth.reauth",
+    title: "Re-authenticate (refresh LeetCode session)",
+    category: "System",
+    run: () => {
+      if (_renderer) handleReauth(_renderer);
+    },
   }),
   makeCommand({
     name: "palette.open",
