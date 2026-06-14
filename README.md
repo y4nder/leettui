@@ -63,6 +63,15 @@ Downloads the latest release binary for your platform into `~/.local/bin` (overr
 
 **Windows:** download `leettui-windows-x64.exe` from the [Releases page](https://github.com/y4nder/leettui/releases) and run it.
 
+### Updating
+
+```sh
+leettui update          # download the latest release and replace the binary in place
+leettui --version       # check the installed version
+```
+
+`leettui update` checks the latest GitHub release, skips the download if you're already current (pass `--force` to reinstall anyway), and atomically swaps in the new binary — restart to use it. Re-running the `install.sh` curl command above also works, and is the way to update on Windows.
+
 ### From source
 
 Requires [Bun](https://bun.sh) (the OpenTUI runtime) and a LeetCode account.
