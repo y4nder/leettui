@@ -9,14 +9,18 @@ import { $ } from "bun";
 const version =
   (await $`git describe --tags --always --dirty`.nothrow().quiet().text()).trim() || "dev";
 
-// NODE_ENV is defined explicitly (not via the ambient env) so it is statically
-// inlined at compile time, letting --minify dead-code-eliminate the debug overlay.
-// This matches how the release workflow (.github/workflows/release.yml) builds.
-const defines = [
-  `process.env.LEETTUI_VERSION=${JSON.stringify(version)}`,
-  `process.env.NODE_ENV=${JSON.stringify("production")}`,
-].flatMap((d) => ["--define", d]);
+const defines = [`process.env.LEETTUI_VERSION=${JSON.stringify(version)}`].flatMap((d) => [
+  "--define",
+  d,
+]);
 
-await $`bun build ./src/index.tsx --compile --minify ${defines} --outfile leettui`;
+// --production sets NODE_ENV=production AND enables minification, which lets the
+// debug overlay (gated on NODE_ENV in src/index.tsx) be dead-code-eliminated.
+// Do NOT use `--define process.env.NODE_ENV="production"` instead: a raw define
+// makes React resolve to its production jsx-dev-runtime (which stubs
+// `jsxDEV = void 0`) WITHOUT switching Bun's JSX transform off the dev
+// `jsxDEV(...)` form, so the binary crashes at the first render. This matches
+// how the release workflow (.github/workflows/release.yml) builds.
+await $`bun build ./src/index.tsx --compile --production ${defines} --outfile leettui`;
 
 console.log(`Built ./leettui (version ${version})`);
