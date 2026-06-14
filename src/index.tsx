@@ -1,3 +1,7 @@
+// Must run before anything touches @opentui/core's tree-sitter client, so it is
+// the very first import: embeds the highlight worker into the compiled binary.
+import "./core/treeSitterWorker";
+
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
 import { createOpenTuiKeymap } from "@opentui/keymap/opentui";
