@@ -6,6 +6,9 @@
 
 A snappy terminal UI for LeetCode — browse, solve, run, and submit, all from a keyboard-driven TUI.
 
+<img width="1920" height="1080" alt="leettui_splash" src="https://github.com/user-attachments/assets/d996bb2b-3260-43cf-83ef-5eb99997a6a7" />
+
+
 [![Built with OpenTUI](https://img.shields.io/badge/built%20with-OpenTUI-7aa2f7?style=flat-square)](https://github.com/sst/opentui)
 [![Runtime: Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1?style=flat-square&logo=bun&logoColor=black)](https://bun.sh)
 [![React](https://img.shields.io/badge/UI-React%2019-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev)
@@ -23,7 +26,8 @@ A snappy terminal UI for LeetCode — browse, solve, run, and submit, all from a
 <!-- TODO: add demo video once recorded -->
 <!-- [![leettui demo](docs/demo-thumbnail.png)](docs/demo.mp4) -->
 
-*Demo video coming soon.*
+
+https://github.com/user-attachments/assets/414c0e9d-7504-401c-9c5f-ade426ae5614
 
 ---
 
