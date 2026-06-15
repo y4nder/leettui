@@ -39,6 +39,9 @@ import {
   handlePickerCancel,
   handlePickerConfirm,
   handlePickerOpenEditor,
+  handleOpenNotes,
+  handleEditNotes,
+  handleCloseNotes,
 } from "../views/problem/handlers";
 
 export type AppKeymap = Keymap<Renderable, KeyEvent>;
@@ -209,13 +212,37 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     run: () => handleProblemTestLocal("t"),
   }),
   makeCommand({
+    name: "problem.notes",
+    title: "Open notes",
+    category: "View",
+    group: "modal",
+    run: () => handleOpenNotes(),
+  }),
+  makeCommand({
+    name: "notes.edit",
+    title: "Notes: edit in $EDITOR",
+    category: "View",
+    group: "modal",
+    run: () => {
+      if (_renderer) handleEditNotes("e", _renderer);
+    },
+  }),
+  makeCommand({
+    name: "notes.close",
+    title: "Notes: close",
+    category: "View",
+    group: "modal",
+    run: () => handleCloseNotes(),
+  }),
+  makeCommand({
     name: "problem.escape",
     title: "Close problem view",
     category: "View",
     group: "modal",
     run: () => {
-      // Defer to the picker's own cancel binding when it's open.
-      if (useAppStore.getState().problem?.solutionPicker) return;
+      // Defer to an open sub-modal's own cancel binding (picker / notes).
+      const p = useAppStore.getState().problem;
+      if (p?.solutionPicker || p?.notes) return;
       handleExitProblemView();
     },
   }),
@@ -511,7 +538,17 @@ export const problemBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "problem.runFocused":    "shift+r",
   "problem.testLocal":     "t",
   "problem.submitFocused": "s",
+  "problem.notes":         "n",
   "problem.escape":        ["escape", "q"],
+});
+
+// Mounted by NotesPopup while open. `e` shadows problem.editorOpen and
+// escape/q shadow problem.escape — both resolve to this (newer) layer.
+export const notesBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "notes.edit":       "e",
+  "popup.scrollDown": ["j", "down"],
+  "popup.scrollUp":   ["k", "up"],
+  "notes.close":      ["escape", "q"],
 });
 
 export const pickerBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({

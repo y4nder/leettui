@@ -34,6 +34,9 @@ export interface ProblemViewState {
   focusedSolutionIndex: number;
   result: ResultView | null;
   solutionPicker: SolutionPickerState | null;
+  // Shared, language-agnostic notes popup. Non-null while open; `content` is
+  // the rendered markdown (empty string when notes.md doesn't exist yet).
+  notes: { content: string } | null;
 }
 
 export interface UiSlice {
@@ -75,6 +78,9 @@ export interface UiSlice {
   openSolutionPicker: (snippets: CodeSnippet[], existing: Set<string>, initialLangSlug?: string) => void;
   movePicker: (delta: number) => void;
   closeSolutionPicker: () => void;
+  openNotes: (content: string) => void;
+  setNotesContent: (content: string) => void;
+  closeNotes: () => void;
 }
 
 export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => ({
@@ -125,6 +131,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
         focusedSolutionIndex: 0,
         result: null,
         solutionPicker: null,
+        notes: null,
       },
     }),
 
@@ -178,5 +185,23 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
     set((state) => {
       if (!state.problem) return {};
       return { problem: { ...state.problem, solutionPicker: null } };
+    }),
+
+  openNotes: (content) =>
+    set((state) => {
+      if (!state.problem) return {};
+      return { problem: { ...state.problem, notes: { content } } };
+    }),
+
+  setNotesContent: (content) =>
+    set((state) => {
+      if (!state.problem?.notes) return {};
+      return { problem: { ...state.problem, notes: { content } } };
+    }),
+
+  closeNotes: () =>
+    set((state) => {
+      if (!state.problem) return {};
+      return { problem: { ...state.problem, notes: null } };
     }),
 });
