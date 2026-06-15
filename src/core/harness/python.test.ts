@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { parseMetaData, generatePythonHarness } from "./python";
+import { parseMetaData } from "./meta";
+import { generatePythonHarness } from "./python";
 import { generateHarness } from "./index";
 
 const TWO_SUM = JSON.stringify({
@@ -85,7 +86,7 @@ describe("generateHarness dispatcher", () => {
 
   test("returns null for unsupported languages", () => {
     expect(generateHarness("cpp", TWO_SUM)).toBeNull();
-    expect(generateHarness("javascript", TWO_SUM)).toBeNull();
+    expect(generateHarness("rust", TWO_SUM)).toBeNull();
   });
 
   test("returns null (never throws) on missing or bad metaData", () => {
