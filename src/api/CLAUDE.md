@@ -15,7 +15,7 @@ GraphQL queries ported from the Rust reference (`leetcode-core/src/graphql/query
 - `problemset-question-list.ts` — `fetchQuestionList(limit, skip)` — paginated problem list (1000/page)
 - `question-content.ts` — `fetchQuestionContent(titleSlug)` — HTML problem description (cached)
 - `editor-data.ts` — `fetchEditorData(titleSlug)` — code snippets per language (cached)
-- `console-panel-config.ts` — `fetchConsolePanelConfig(titleSlug)` — example test cases (cached)
+- `console-panel-config.ts` — `fetchConsolePanelConfig(titleSlug)` — example test cases + `metaData` (solution signature: function name, param/return types). `metaData` drives local harness generation in `core/harness` (cached)
 
 ### rest/
 

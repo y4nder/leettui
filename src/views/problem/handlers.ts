@@ -8,9 +8,10 @@ import { useAppStore } from "../../ui/store";
 import { htmlToMarkdown } from "../../core/markdown";
 import { fetchQuestionContent } from "../../api/queries/question-content";
 import { fetchEditorData } from "../../api/queries/editor-data";
+import { fetchConsolePanelConfig } from "../../api/queries/console-panel-config";
 import { getQuestionsByTopic } from "../../db/questions";
 import {
-  createSolutionFile,
+  createSolutionWithHarness,
   findExistingSolutions,
   getSolutionPath,
 } from "../../core/solutions";
@@ -149,14 +150,21 @@ export async function handlePickerOpenEditor(_triggerKey: string, renderer: Rend
   const snippet = picker.snippets[picker.index];
   if (!snippet) return;
 
-  const path = picker.existing.has(snippet.langSlug)
-    ? getSolutionPath(p.question.id, p.question.title_slug, snippet.langSlug)
-    : createSolutionFile(
-        p.question.id,
-        p.question.title_slug,
-        snippet.langSlug,
-        snippet.code
-      );
+  let path: string;
+  if (picker.existing.has(snippet.langSlug)) {
+    path = getSolutionPath(p.question.id, p.question.title_slug, snippet.langSlug);
+  } else {
+    // metaData + example cases drive harness generation / tests seeding (cached fetch).
+    const cfg = await fetchConsolePanelConfig(p.question.title_slug).catch(() => null);
+    path = createSolutionWithHarness(
+      p.question.id,
+      p.question.title_slug,
+      snippet.langSlug,
+      snippet.code,
+      cfg?.question.metaData,
+      cfg?.question.exampleTestcaseList
+    );
+  }
 
   useAppStore.getState().closeSolutionPicker();
   await openInEditorPath(renderer, path);

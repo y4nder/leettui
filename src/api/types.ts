@@ -79,6 +79,9 @@ export interface ConsolePanelConfigData {
     questionFrontendId: string;
     questionTitle: string;
     exampleTestcaseList: string[];
+    // Raw JSON string describing the solution signature (function name, param
+    // types, return type). Drives local harness generation (core/harness).
+    metaData: string;
   };
 }
 
