@@ -53,6 +53,7 @@ This project exists for two reasons:
 - 🔥 Daily challenge shortcut
 - ⌨️ Command palette (`Ctrl+P`) listing every available action
 - 🎨 Multiple themes (tokyo-night, catppuccin) via config
+- 🧩 [Per-language template overrides](docs/template-overrides.md) — custom solution stubs, harnesses, and manifests
 
 ---
 
@@ -134,6 +135,10 @@ lc_session = "..."
 [theme]
 name = "tokyo-night"   # or "catppuccin"
 ```
+
+### Per-language template overrides
+
+Customize what gets written when you create a solution — your own starter stub, a custom test harness, or extra files like a `Cargo.toml` or build script — per language, by dropping files in `~/.config/leettui/templates/{langSlug}/`. See the [**template overrides guide**](docs/template-overrides.md).
 
 ---
 

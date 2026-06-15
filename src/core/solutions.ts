@@ -1,8 +1,9 @@
 import { mkdirSync, existsSync, readdirSync, readFileSync, statSync } from "fs";
 import { dirname, join } from "path";
-import { getSolutionsDir } from "../config";
+import { getSolutionsDir, getLanguageTemplateDir } from "../config";
 import { getExtension } from "../api/types";
 import { generateHarness } from "./harness";
+import { parseMetaData } from "./harness/meta";
 
 const ID_PADDING = 4;
 
@@ -150,10 +151,11 @@ export function createSolutionFile(
   return path;
 }
 
-// Path to a harness file (e.g. `main.py`) inside the language subfolder. Mkdirs
-// the lang folder like `getSolutionPath`, so a harness can be written even
-// before its sibling `solution.*` exists.
-export function getHarnessPath(
+// Path to an arbitrary file inside the language subfolder. Mkdirs the lang
+// folder like `getSolutionPath`, so a file can be written even before its
+// sibling `solution.*` exists. Backs both the harness writer and the template
+// overlay (which writes manifests/harnesses/solution stubs by name).
+export function getLangFilePath(
   id: number,
   titleSlug: string,
   langSlug: string,
@@ -162,6 +164,16 @@ export function getHarnessPath(
   const path = join(getProblemDir(id, titleSlug), langSlug, filename);
   mkdirSync(dirname(path), { recursive: true });
   return path;
+}
+
+// Path to a harness file (e.g. `main.py`) inside the language subfolder.
+export function getHarnessPath(
+  id: number,
+  titleSlug: string,
+  langSlug: string,
+  filename: string
+): string {
+  return getLangFilePath(id, titleSlug, langSlug, filename);
 }
 
 // Writes a generated harness only if it doesn't already exist, so a user's
@@ -201,10 +213,75 @@ export function seedTests(
   });
 }
 
-// Create-flow orchestrator: writes the solution file, then — for languages with
-// a harness generator (currently python3) — a sibling harness, then seeds the
-// shared `tests/` dir from the example cases. `metaDataRaw`/`exampleTestcases`
-// are optional so callers that lack them still create a plain solution file.
+// Variables substituted into per-language template files. `functionName` comes
+// from the problem's metaData (absent when metaData is missing/unparseable).
+export interface TemplateVars {
+  functionName?: string;
+  titleSlug: string;
+}
+
+// Substitutes `{{functionName}}`/`{{titleSlug}}` (optional inner whitespace) in
+// a template file's text. A missing `functionName` degrades to an empty string,
+// mirroring `generateHarness` returning null without metaData.
+export function renderTemplate(text: string, vars: TemplateVars): string {
+  return text
+    .replace(/\{\{\s*functionName\s*\}\}/g, vars.functionName ?? "")
+    .replace(/\{\{\s*titleSlug\s*\}\}/g, vars.titleSlug ?? "");
+}
+
+// Copies every file from a per-language template dir into the destination
+// language folder, rendering `{{...}}` vars. Create-if-absent (a user's prior
+// edits are never clobbered). Returns the set of template filenames seen, so
+// the caller can suppress the bundled default for any filename the template
+// already provides (e.g. `solution.py` overrides the snippet, `main.py`
+// overrides the generated harness). A missing template dir → empty set.
+export function overlayTemplates(
+  srcDir: string,
+  destDir: string,
+  vars: TemplateVars
+): Set<string> {
+  const applied = new Set<string>();
+  if (!existsSync(srcDir)) return applied;
+
+  let entries: string[];
+  try {
+    entries = readdirSync(srcDir);
+  } catch {
+    return applied;
+  }
+
+  for (const name of entries) {
+    const srcPath = join(srcDir, name);
+    let raw: string;
+    try {
+      // Top-level files only — subdirectories are intentionally not recursed.
+      if (!statSync(srcPath).isFile()) continue;
+      raw = readFileSync(srcPath, "utf-8");
+    } catch {
+      // Unreadable entry — skip it, never fail solution creation.
+      continue;
+    }
+    applied.add(name);
+    const destPath = join(destDir, name);
+    if (!existsSync(destPath)) {
+      mkdirSync(destDir, { recursive: true });
+      Bun.write(destPath, renderTemplate(raw, vars));
+    }
+  }
+  return applied;
+}
+
+// Create-flow orchestrator. Order matters: per-language template overrides are
+// overlaid FIRST (the real safety net, since the default writers below are all
+// create-if-absent), then the bundled defaults fill any gap the templates left:
+//   - solution file: the LeetCode snippet, unless a `solution.{ext}` template
+//     already supplied one;
+//   - harness: the generated `main.{ext}` (python3/javascript/typescript),
+//     unless a same-named template already supplied one;
+//   - manifests / extra files (e.g. `Cargo.toml`, helper modules): land purely
+//     additively via the overlay, with no default to suppress.
+// Finally seeds the shared `tests/` dir. `metaDataRaw`/`exampleTestcases` are
+// optional so callers that lack them still create a plain solution file.
 // Returns the solution file path (what the editor opens).
 export function createSolutionWithHarness(
   id: number,
@@ -214,10 +291,24 @@ export function createSolutionWithHarness(
   metaDataRaw?: string,
   exampleTestcases?: string[]
 ): string {
-  const solutionPath = createSolutionFile(id, titleSlug, langSlug, code);
+  const solutionPath = getSolutionPath(id, titleSlug, langSlug);
+
+  const vars: TemplateVars = {
+    functionName: functionNameFromMeta(metaDataRaw),
+    titleSlug,
+  };
+  const applied = overlayTemplates(
+    getLanguageTemplateDir(langSlug),
+    dirname(solutionPath),
+    vars
+  );
+
+  if (!applied.has(getSolutionFilename(langSlug))) {
+    createSolutionFile(id, titleSlug, langSlug, code);
+  }
 
   const harness = generateHarness(langSlug, metaDataRaw);
-  if (harness) {
+  if (harness && !applied.has(harness.filename)) {
     createHarnessFile(id, titleSlug, langSlug, harness.filename, harness.content);
   }
 
@@ -226,6 +317,17 @@ export function createSolutionWithHarness(
   }
 
   return solutionPath;
+}
+
+// Best-effort function name for template substitution. Never throws — a missing
+// or malformed metaData just leaves `{{functionName}}` rendering to empty.
+function functionNameFromMeta(metaDataRaw?: string | null): string | undefined {
+  if (!metaDataRaw) return undefined;
+  try {
+    return parseMetaData(metaDataRaw).name;
+  } catch {
+    return undefined;
+  }
 }
 
 // Returns null on a missing file or any read error, so callers (including the

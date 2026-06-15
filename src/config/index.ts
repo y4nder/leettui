@@ -1,6 +1,7 @@
 import { parse } from "smol-toml";
 import { mkdirSync, existsSync, readFileSync, writeFileSync } from "fs";
-import { CONFIG_DIR, CONFIG_FILE, DB_PATH, SOLUTIONS_DIR } from "./paths";
+import { join } from "path";
+import { CONFIG_DIR, CONFIG_FILE, DB_PATH, SOLUTIONS_DIR, TEMPLATES_DIR } from "./paths";
 import type { Config } from "./types";
 
 const DEFAULT_TOML = `# LeetCode authentication tokens
@@ -72,6 +73,19 @@ export function getDefaultLanguage(): string {
 export function getThemeName(): string | undefined {
   const config = loadConfig();
   return config.theme?.name;
+}
+
+// Root of the per-language template-override tree. Users drop files under
+// `templates/{langSlug}/` to override the bundled solution/harness defaults or
+// add manifest files (Cargo.toml, etc.); the create flow overlays them.
+export function getTemplatesDir(): string {
+  return TEMPLATES_DIR;
+}
+
+// The template-override folder for a single language. May not exist — callers
+// treat a missing dir as "no overrides".
+export function getLanguageTemplateDir(langSlug: string): string {
+  return join(getTemplatesDir(), langSlug);
 }
 
 // Surgical rewrite of `~/.config/leettui/config.toml` to update the active
