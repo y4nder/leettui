@@ -38,7 +38,7 @@ function Header({ id, title, difficulty }: { id: number; title: string; difficul
   );
 }
 
-function ActiveSolutionStrip({ filename }: { filename: string | null }) {
+function ActiveSolutionStrip({ langSlug }: { langSlug: string | null }) {
   return (
     <box
       flexDirection="row"
@@ -46,8 +46,8 @@ function ActiveSolutionStrip({ filename }: { filename: string | null }) {
       height={1}
       backgroundColor={colors.statusBar}
     >
-      {filename ? (
-        <text fg={colors.fgAccent}> ● {filename} </text>
+      {langSlug ? (
+        <text fg={colors.fgAccent}> ● {langSlug} </text>
       ) : (
         <text fg={colors.fgDim}> No solution selected — press f </text>
       )}
@@ -90,7 +90,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
   }
 
   const { question, description, solutions, focusedSolutionIndex, result, solutionPicker } = problem;
-  const focusedFilename = solutions[focusedSolutionIndex] ?? null;
+  const focusedLangSlug = solutions[focusedSolutionIndex] ?? null;
 
   return (
     <box flexDirection="column" width="100%" height="100%">
@@ -117,7 +117,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
           </box>
 
           <box flexDirection="column" width="40%">
-            <ActiveSolutionStrip filename={focusedFilename} />
+            <ActiveSolutionStrip langSlug={focusedLangSlug} />
 
             <box
               flexDirection="column"

@@ -21,14 +21,15 @@ export type AppMode =
 
 export interface SolutionPickerState {
   snippets: CodeSnippet[];
-  // langSlug -> filename for solutions that already exist on disk
-  existingByLangSlug: Record<string, string>;
+  // langSlugs that already have a solution file on disk
+  existing: Set<string>;
   index: number;
 }
 
 export interface ProblemViewState {
   question: DbQuestion;
   description: string;
+  // langSlugs of solutions that exist on disk (the solution's identity)
   solutions: string[];
   focusedSolutionIndex: number;
   result: ResultView | null;
@@ -69,9 +70,9 @@ export interface UiSlice {
     solutions: string[];
   }) => void;
   exitProblemView: () => void;
-  setProblemSolutions: (solutions: string[], focusFilename?: string) => void;
+  setProblemSolutions: (solutions: string[], focusLangSlug?: string) => void;
   setProblemResult: (view: ResultView | null) => void;
-  openSolutionPicker: (snippets: CodeSnippet[], existingByLangSlug: Record<string, string>, initialLangSlug?: string) => void;
+  openSolutionPicker: (snippets: CodeSnippet[], existing: Set<string>, initialLangSlug?: string) => void;
   movePicker: (delta: number) => void;
   closeSolutionPicker: () => void;
 }
@@ -129,12 +130,12 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
 
   exitProblemView: () => set({ mode: "browse", problem: null }),
 
-  setProblemSolutions: (solutions, focusFilename) =>
+  setProblemSolutions: (solutions, focusLangSlug) =>
     set((state) => {
       if (!state.problem) return {};
       let focusedSolutionIndex = state.problem.focusedSolutionIndex;
-      if (focusFilename) {
-        const idx = solutions.indexOf(focusFilename);
+      if (focusLangSlug) {
+        const idx = solutions.indexOf(focusLangSlug);
         if (idx >= 0) focusedSolutionIndex = idx;
       }
       if (focusedSolutionIndex >= solutions.length) {
@@ -149,7 +150,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
       return { problem: { ...state.problem, result: view } };
     }),
 
-  openSolutionPicker: (snippets, existingByLangSlug, initialLangSlug) =>
+  openSolutionPicker: (snippets, existing, initialLangSlug) =>
     set((state) => {
       if (!state.problem) return {};
       let index = 0;
@@ -160,7 +161,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
       return {
         problem: {
           ...state.problem,
-          solutionPicker: { snippets, existingByLangSlug, index },
+          solutionPicker: { snippets, existing, index },
         },
       };
     }),

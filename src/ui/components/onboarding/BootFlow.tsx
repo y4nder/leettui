@@ -13,6 +13,7 @@ import { validateTokens, type AuthTokens } from "../../../core/auth";
 import { initClient } from "../../../api/client";
 import { openDatabase } from "../../../db";
 import { syncIfEmpty } from "../../../core/sync";
+import { migrateSolutionsLayout } from "../../../core/migration";
 import { useAppStore } from "../../store";
 
 type Phase = "splash" | "auth" | "loading" | "ready" | "error";
@@ -72,6 +73,10 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
       try {
         initClient(tokens.csrftoken, tokens.lc_session);
         openDatabase(getDbPath());
+        // One-time, idempotent migration of any legacy flat solution files into
+        // the per-problem / per-language folder layout. Filesystem-only; the
+        // no-op path on already-migrated installs is a single readdir.
+        migrateSolutionsLayout();
         await syncIfEmpty((c, t) => useAppStore.getState().setSyncProgress(c, t));
         useAppStore.getState().clearSyncProgress();
         if (!cancelled) setPhase("ready");

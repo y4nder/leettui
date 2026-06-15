@@ -11,13 +11,12 @@ import { runAuthFlow } from "../../core/auth";
 import { fetchQuestionContent } from "../../api/queries/question-content";
 import { fetchEditorData } from "../../api/queries/editor-data";
 import { fetchDailyChallenge } from "../../api/queries/daily-challenge";
-import { getLangSlugFromFilename } from "../../api/types";
 import { getQuestionsByTopic } from "../../db/questions";
 import { createSolutionFile, findExistingSolutions } from "../../core/solutions";
 import { runSolution, submitSolution, SolutionError } from "../../core/submission";
 import { copyToClipboard, problemUrl } from "../../core/clipboard";
 import { syncQuestions } from "../../core/sync";
-import { getEditorCommand, getDefaultLanguage } from "../../config";
+import { getEditorCommand } from "../../config";
 import { logError } from "../../debug";
 import { buildResultView, info, errorView } from "./resultView";
 
@@ -104,12 +103,13 @@ export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
 async function withChosenSolution(
   triggerKey: string,
   action: "run" | "submit",
-  fn: (filename: string) => Promise<void>
+  fn: (langSlug: string) => Promise<void>
 ) {
   const q = currentQuestion();
   if (!q) return;
   const { showSelect, hideSelect, showResult } = useAppStore.getState();
 
+  // langSlugs of every solution that exists on disk for this problem.
   const existing = findExistingSolutions(q.id, q.title_slug);
   if (existing.length === 0) {
     showResult(info("No solution file found. Press 'e' to create one."));
@@ -145,9 +145,8 @@ export async function handleRunSolution(triggerKey: string) {
   const q = currentQuestion();
   if (!q) return;
 
-  await withChosenSolution(triggerKey, "run", async (filename) => {
+  await withChosenSolution(triggerKey, "run", async (langSlug) => {
     const { showResult, refreshQuestions } = useAppStore.getState();
-    const langSlug = getLangSlugFromFilename(filename) ?? getDefaultLanguage();
     showResult(info("Running solution..."));
     try {
       const result = await runSolution(q, langSlug);
@@ -167,9 +166,8 @@ export async function handleSubmitSolution(triggerKey: string) {
   const q = currentQuestion();
   if (!q) return;
 
-  await withChosenSolution(triggerKey, "submit", async (filename) => {
+  await withChosenSolution(triggerKey, "submit", async (langSlug) => {
     const { showResult, refreshQuestions } = useAppStore.getState();
-    const langSlug = getLangSlugFromFilename(filename) ?? getDefaultLanguage();
     showResult(info("Submitting solution..."));
     try {
       const result = await submitSolution(q, langSlug);

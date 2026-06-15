@@ -6,12 +6,15 @@ Business logic that bridges the API, database, and UI layers.
 
 - `sync.ts` — `syncQuestions(onProgress?)` fetches all LeetCode problems in 1000-item pages, upserts into SQLite within a transaction. `syncIfEmpty()` only syncs if DB has zero questions (first run).
 - `search.ts` — `filterQuestions(questions, needle)` performs fuzzy matching against question title and ID. Returns scored and sorted results. Substring matches score highest.
-- `solutions.ts` — Solution file manager for the `~/.local/share/leettui/solutions/` directory:
-  - `getSolutionPath(id, slug, langSlug)` — returns path like `0001_two-sum.py`
-  - `createSolutionFile(id, slug, langSlug, code)` — writes file only if it doesn't exist
-  - `readSolutionFile(id, slug, langSlug)` — reads solution code
-  - `findExistingSolutions(id, slug)` — lists all solution files for a problem
-  - `listSolutionQuestionIds()` — one `readdir` returning the set of question IDs with any solution file (backs the question-list "solution exists" marker)
+- `solutions.ts` — Solution file manager for the `~/.local/share/leettui/solutions/` directory. **Layout (Stage 7):** `{paddedId}_{slug}/{langSlug}/solution.{ext}`, with shared `notes.md` + `tests/` reserved at the problem-folder level. The **langSlug is a solution's identity** (the directory name) — the filename is always `solution.{ext}`, so callers pass langSlugs, never filenames.
+  - `getProblemDir(id, slug)` — `solutions/{paddedId}_{slug}` (no mkdir)
+  - `getSolutionPath(id, slug, langSlug)` — `…/{langSlug}/solution.{ext}`; mkdirs the lang subfolder
+  - `getNotesPath(id, slug)` / `getTestsDir(id, slug)` — shared problem-level locations (defined now; wired up by later Stage 7 items)
+  - `createSolutionFile(id, slug, langSlug, code)` — writes the file only if it doesn't exist
+  - `readSolutionFile(id, slug, langSlug)` — reads solution code (no side effects)
+  - `findExistingSolutions(id, slug)` — returns the **langSlugs** that have a `solution.*` file (skips the shared `tests/`/`notes.md`); both this and `listSolutionQuestionIds` share one private `langSlugsWithSolution(dir)` predicate so the marker can never disagree with the problem view
+  - `listSolutionQuestionIds()` — returns the set of question IDs whose problem folder contains at least one `solution.*` file (backs the question-list "solution exists" marker); a folder holding only `notes.md`/`tests/` is not counted
+- `migration.ts` — `migrateSolutionsLayout(dir?)`: one-time, **idempotent**, **collision-safe** migration of legacy flat files (`0001_two-sum.py`) into the folder layout. Skips unknown-extension/non-matching files (loss-free), never overwrites an existing target, and continues past per-file errors. Run once at boot in `BootFlow` after `openDatabase`. Takes an optional dir for testing (`migration.test.ts`).
 - `submission.ts` — `runSolution`/`submitSolution` services. On `submit_accepted` also records `last_runtime`/`last_memory` via `setSubmissionStats`.
 - `session.ts` — Persists the last-viewed browse position (`{ topicSlug, questionId }`) to `~/.local/share/leettui/session.json`. `loadSession()` on boot; `saveSession()` is debounced (~400ms) because navigation fires per keypress.
 - `markdown.ts` — `htmlToMarkdown(html)`: a single shared, configured `node-html-markdown` converter for LeetCode descriptions. Maps `<sup>`/`<sub>` to `^`/`_` (so exponents like `10^5` survive), drops `<img>`, fences code blocks, normalizes `&nbsp;`. Used by both browse and problem handlers.
@@ -27,4 +30,5 @@ Business logic that bridges the API, database, and UI layers.
 - `sync.ts` depends on `api/queries/` and `db/questions`
 - `search.ts` depends on `db/questions` (types only)
 - `solutions.ts` depends on `config/` (for solutions dir path) and `api/types` (for language extensions)
+- `migration.ts` depends on `config/` (solutions dir) and `api/types` (`EXTENSION_TO_LANGSLUG`)
 - `auth/` depends on `config/` (`persistTokens`) and `api/client` (`createClient`, `AuthError`); `firefox.ts` uses `bun:sqlite`
