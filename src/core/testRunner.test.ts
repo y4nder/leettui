@@ -30,11 +30,20 @@ describe("compareOutput", () => {
     expect(compareOutput("a\r\nb", "a\nb")).toBe(true);
   });
 
-  test("is not JSON-normalized — spacing differences fail", () => {
-    expect(compareOutput("[1,2]", "[1, 2]")).toBe(false);
+  test("is JSON-normalized — spacing differences match", () => {
+    // The harness emits compact `[0,1]`; a copied `.out` uses display spacing.
+    expect(compareOutput("[0,1]", "[0, 1]")).toBe(true);
+    expect(compareOutput('{"a":1,"b":2}', '{ "b": 2, "a": 1 }')).toBe(true);
+    expect(compareOutput("1.0", "1")).toBe(true);
   });
 
-  test("distinct values differ", () => {
+  test("JSON-normalized values that actually differ still fail", () => {
+    expect(compareOutput("[0,1]", "[1,0]")).toBe(false);
     expect(compareOutput("3", "4")).toBe(false);
+  });
+
+  test("falls back to string equality for non-JSON output", () => {
+    expect(compareOutput("hello", "hello")).toBe(true);
+    expect(compareOutput("hello", "world")).toBe(false);
   });
 });

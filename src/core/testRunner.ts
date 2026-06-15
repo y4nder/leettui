@@ -66,15 +66,48 @@ export function pairCases(filenames: string[]): { name: string; hasExpected: boo
     .map((name) => ({ name, hasExpected: expected.has(name) }));
 }
 
-// Pure: trailing-whitespace-insensitive (and CRLF-insensitive) string equality.
-// Note: not JSON-normalized — `[1, 2]` from `json.dumps` won't equal a `[1,2]`
-// hand-written `.out`. JSON-aware comparison is a deliberate follow-up.
+// Trailing-whitespace-insensitive (and CRLF-insensitive) string normalization.
 function normalize(s: string): string {
   return s.replace(/\r\n/g, "\n").trimEnd();
 }
 
+// Recursively sort object keys so two JSON values that differ only in key order
+// (or array/scalar spacing) serialize identically. Arrays keep their order.
+function canonicalize(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (value && typeof value === "object") {
+    const sorted: Record<string, unknown> = {};
+    for (const k of Object.keys(value as Record<string, unknown>).sort()) {
+      sorted[k] = canonicalize((value as Record<string, unknown>)[k]);
+    }
+    return sorted;
+  }
+  return value;
+}
+
+// Canonical JSON serialization, or null if the string isn't a single JSON value.
+function tryCanonicalJson(s: string): string | null {
+  try {
+    return JSON.stringify(canonicalize(JSON.parse(s)));
+  } catch {
+    return null;
+  }
+}
+
+// Pure equality used to grade a case against its `.out`. JSON-aware: the harness
+// emits compact `JSON.stringify(result)` (`[0,1]`), but a hand-written or
+// LeetCode-copied `.out` uses the display spacing (`[0, 1]`) — same value, so
+// both are canonicalized and compared. Floats normalize too (`1.0` == `1`). When
+// either side isn't valid JSON (a non-JSON or multi-line `.out`), it falls back
+// to trailing-whitespace/CRLF-insensitive string equality.
 export function compareOutput(actual: string, expected: string): boolean {
-  return normalize(actual) === normalize(expected);
+  const a = normalize(actual);
+  const b = normalize(expected);
+  if (a === b) return true;
+  const aj = tryCanonicalJson(a);
+  const bj = tryCanonicalJson(b);
+  if (aj !== null && bj !== null) return aj === bj;
+  return false;
 }
 
 export function discoverCases(testsDir: string): DiscoveredCase[] {

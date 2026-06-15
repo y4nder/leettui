@@ -9,36 +9,7 @@
 // (`python3 main.py < tests/case-01.txt`) with cwd set to the language folder
 // so `from solution import Solution` resolves.
 
-// Parsed shape of LeetCode's `metaData` JSON.
-export interface MetaData {
-  name: string;
-  params: { name: string; type: string }[];
-  return: { type: string };
-}
-
-// LeetCode types that need real deserialization we don't do yet. Anything else
-// (integer, integer[], integer[][], string, string[], double, boolean,
-// character, ...) round-trips correctly through `json.loads`.
-const DEFERRED_TYPES = new Set(["ListNode", "TreeNode"]);
-
-function baseType(type: string): string {
-  // Strip trailing array markers: "integer[][]" -> "integer".
-  return type.replace(/(\[\])+$/, "");
-}
-
-export function parseMetaData(raw: string): MetaData {
-  const data = JSON.parse(raw);
-  if (
-    !data ||
-    typeof data.name !== "string" ||
-    !Array.isArray(data.params) ||
-    !data.return ||
-    typeof data.return.type !== "string"
-  ) {
-    throw new Error("metaData missing name/params/return");
-  }
-  return data as MetaData;
-}
+import { type MetaData, DEFERRED_TYPES, baseType } from "./meta";
 
 export function generatePythonHarness(meta: MetaData): string {
   const argReads = meta.params.map((p, i) => {
