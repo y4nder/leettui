@@ -1,6 +1,15 @@
-// Persists the last-viewed browse position (topic + question) between runs so
-// the app reopens where the user left off. Stored as a small JSON file in the
-// data dir. Writes are debounced because navigation can fire on every keypress.
+// Persists small cross-run state to a JSON file in the data dir:
+//   - the last-viewed browse position (topic + question) so the app reopens
+//     where the user left off (Stage 5);
+//   - the last resolved solutions dir ("last known") so a later change can be
+//     detected even when the user hand-edits config.toml (Stage 10).
+//
+// All writers merge into a single in-memory mirror (`_state`) that is lazily
+// loaded from disk on first touch, so a partial update from one feature never
+// clobbers a field owned by another (position-save fires on every keypress;
+// the solutions-dir write is rare). Position writes are debounced; the
+// debounced callback serializes the *live* `_state` at fire time, so a
+// synchronous write landing between schedule and fire is preserved.
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
@@ -11,33 +20,62 @@ const SESSION_FILE = join(DATA_DIR, "session.json");
 export interface SessionState {
   topicSlug?: string;
   questionId?: number;
+  solutionsDir?: string;
 }
 
-export function loadSession(): SessionState {
+// In-memory mirror of the session file. Lazily initialized from disk so the
+// first writer to touch it merges into existing persisted state rather than
+// overwriting it.
+let _state: SessionState | null = null;
+
+function state(): SessionState {
+  if (_state) return _state;
   try {
-    if (!existsSync(SESSION_FILE)) return {};
-    return JSON.parse(readFileSync(SESSION_FILE, "utf-8")) as SessionState;
+    _state = existsSync(SESSION_FILE)
+      ? (JSON.parse(readFileSync(SESSION_FILE, "utf-8")) as SessionState)
+      : {};
   } catch {
-    return {};
+    _state = {};
+  }
+  return _state;
+}
+
+function writeNow(): void {
+  try {
+    mkdirSync(DATA_DIR, { recursive: true });
+    writeFileSync(SESSION_FILE, JSON.stringify(state()));
+  } catch {
+    // Best-effort: a failed session save must never crash the UI.
   }
 }
 
-let _timer: ReturnType<typeof setTimeout> | null = null;
-let _pending: SessionState | null = null;
+export function loadSession(): SessionState {
+  return state();
+}
 
-export function saveSession(state: SessionState): void {
-  _pending = state;
+let _timer: ReturnType<typeof setTimeout> | null = null;
+
+// Merge a partial position update and debounce the write (navigation fires on
+// every keypress). The timeout serializes the live mirror, so any synchronous
+// write that lands first is included.
+export function saveSession(partial: SessionState): void {
+  Object.assign(state(), partial);
   if (_timer) return;
   _timer = setTimeout(() => {
     _timer = null;
-    const s = _pending;
-    _pending = null;
-    if (!s) return;
-    try {
-      mkdirSync(DATA_DIR, { recursive: true });
-      writeFileSync(SESSION_FILE, JSON.stringify(s));
-    } catch {
-      // Best-effort: a failed position save must never crash the UI.
-    }
+    writeNow();
   }, 400);
+}
+
+// The last resolved solutions dir, or undefined if never recorded (lets the
+// caller distinguish "first boot, initialize" from "the path changed").
+export function getLastKnownSolutionsDir(): string | undefined {
+  return state().solutionsDir;
+}
+
+// Record the resolved solutions dir. Synchronous (it's rare) and merges, so it
+// coexists with a debounced position save in flight.
+export function setLastKnownSolutionsDir(dir: string): void {
+  state().solutionsDir = dir;
+  writeNow();
 }
