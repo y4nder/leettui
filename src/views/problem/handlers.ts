@@ -14,6 +14,8 @@ import {
   createSolutionWithHarness,
   findExistingSolutions,
   getSolutionPath,
+  ensureNotesFile,
+  readNotes,
 } from "../../core/solutions";
 import { runSolution, submitSolution, SolutionError } from "../../core/submission";
 import { runLocalTests } from "../../core/testRunner";
@@ -260,4 +262,30 @@ export async function handleProblemSubmit(triggerKey: string) {
     logError(triggerKey, "problem", "handleProblemSubmit", e);
     useAppStore.getState().setProblemResult(errorView("Submit error", e.message));
   }
+}
+
+// Notes are shared + language-agnostic, so — unlike e/R/s/t — these never gate
+// on a focused solution: a problem with zero solutions can still have notes.
+
+export function handleOpenNotes() {
+  const p = useAppStore.getState().problem;
+  if (!p) return;
+  const content = readNotes(p.question.id, p.question.title_slug) ?? "";
+  useAppStore.getState().openNotes(content);
+}
+
+export async function handleEditNotes(triggerKey: string, renderer: Renderer) {
+  const p = useAppStore.getState().problem;
+  if (!p) return;
+  const path = ensureNotesFile(p.question.id, p.question.title_slug, p.question.title);
+  await openInEditorPath(renderer, path);
+  // Re-read so an open notes popup reflects the edit.
+  if (useAppStore.getState().problem?.notes) {
+    const content = readNotes(p.question.id, p.question.title_slug) ?? "";
+    useAppStore.getState().setNotesContent(content);
+  }
+}
+
+export function handleCloseNotes() {
+  useAppStore.getState().closeNotes();
 }

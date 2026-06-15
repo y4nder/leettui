@@ -11,6 +11,7 @@ import { ResultBody } from "../../ui/components/ResultBody";
 import { StatusBar } from "../../ui/components/StatusBar";
 import { ProgressBar } from "../../ui/components/ProgressBar";
 import { SolutionPickerModal } from "../../ui/components/SolutionPickerModal";
+import { NotesPopup } from "../../ui/components/NotesPopup";
 import { problemBindings } from "../../ui/keymap";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
@@ -63,7 +64,7 @@ function HintsFooter() {
       borderColor={colors.border}
       width="100%"
     >
-      <text fg={colors.fgDim}> f:Solutions  e:Edit  R:Run  t:Test  s:Submit  Esc/q:Back </text>
+      <text fg={colors.fgDim}> f:Solutions  e:Edit  R:Run  t:Test  s:Submit  n:Notes  Esc/q:Back </text>
     </box>
   );
 }
@@ -89,7 +90,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
     );
   }
 
-  const { question, description, solutions, focusedSolutionIndex, result, solutionPicker } = problem;
+  const { question, description, solutions, focusedSolutionIndex, result, solutionPicker, notes } = problem;
   const focusedLangSlug = solutions[focusedSolutionIndex] ?? null;
 
   return (
@@ -149,6 +150,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
       />
 
       {solutionPicker && <SolutionPickerModal />}
+      {notes && <NotesPopup content={notes.content} />}
     </box>
   );
 }

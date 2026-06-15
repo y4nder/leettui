@@ -47,6 +47,33 @@ export function getTestsDir(id: number, titleSlug: string): string {
   return join(getProblemDir(id, titleSlug), "tests");
 }
 
+// Returns the shared `notes.md` content, or null if it doesn't exist yet (so
+// the view can show a placeholder). No side effects.
+export function readNotes(id: number, titleSlug: string): string | null {
+  try {
+    return readFileSync(getNotesPath(id, titleSlug), "utf-8");
+  } catch {
+    return null;
+  }
+}
+
+// Ensures the shared `notes.md` exists (creating the problem dir + a minimal
+// title header if absent) and returns its path, ready to open in $EDITOR. The
+// header is only written on first creation; existing notes are never touched.
+export function ensureNotesFile(
+  id: number,
+  titleSlug: string,
+  title?: string
+): string {
+  const path = getNotesPath(id, titleSlug);
+  if (!existsSync(path)) {
+    mkdirSync(dirname(path), { recursive: true });
+    const heading = title ? `# ${id}. ${title}` : `# ${id}`;
+    Bun.write(path, `${heading}\n\n`);
+  }
+  return path;
+}
+
 export function solutionExists(
   id: number,
   titleSlug: string,
