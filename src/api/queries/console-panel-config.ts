@@ -7,6 +7,7 @@ query consolePanelConfig($titleSlug: String!) {
     questionFrontendId
     questionTitle
     exampleTestcaseList
+    metaData
   }
 }`;
 

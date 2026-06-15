@@ -10,9 +10,10 @@ import { initClient } from "../../api/client";
 import { runAuthFlow } from "../../core/auth";
 import { fetchQuestionContent } from "../../api/queries/question-content";
 import { fetchEditorData } from "../../api/queries/editor-data";
+import { fetchConsolePanelConfig } from "../../api/queries/console-panel-config";
 import { fetchDailyChallenge } from "../../api/queries/daily-challenge";
 import { getQuestionsByTopic } from "../../db/questions";
-import { createSolutionFile, findExistingSolutions } from "../../core/solutions";
+import { createSolutionWithHarness, findExistingSolutions } from "../../core/solutions";
 import { runSolution, submitSolution, SolutionError } from "../../core/submission";
 import { copyToClipboard, problemUrl } from "../../core/clipboard";
 import { syncQuestions } from "../../core/sync";
@@ -80,7 +81,16 @@ export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
       if (index === null) return;
 
       const snippet = snippets[index]!;
-      const path = createSolutionFile(q.id, q.title_slug, snippet.langSlug, snippet.code);
+      // metaData + example cases drive harness generation / tests seeding (cached fetch).
+      const cfg = await fetchConsolePanelConfig(q.title_slug).catch(() => null);
+      const path = createSolutionWithHarness(
+        q.id,
+        q.title_slug,
+        snippet.langSlug,
+        snippet.code,
+        cfg?.question.metaData,
+        cfg?.question.exampleTestcaseList
+      );
 
       const editor = getEditorCommand();
       await withSuspendedRenderer(renderer, async () => {
