@@ -33,6 +33,7 @@ import {
   handleProblemOpenEditor,
   handleProblemRun,
   handleProblemSubmit,
+  handleProblemTestLocal,
   handleOpenSolutionPicker,
   handlePickerMove,
   handlePickerCancel,
@@ -199,6 +200,13 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     category: "Solve",
     group: "modal",
     run: () => handleProblemSubmit("s"),
+  }),
+  makeCommand({
+    name: "problem.testLocal",
+    title: "Run focused solution against local tests",
+    category: "Solve",
+    group: "modal",
+    run: () => handleProblemTestLocal("t"),
   }),
   makeCommand({
     name: "problem.escape",
@@ -501,6 +509,7 @@ export const problemBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "problem.openPicker":    "f",
   "problem.editorOpen":    "e",
   "problem.runFocused":    "shift+r",
+  "problem.testLocal":     "t",
   "problem.submitFocused": "s",
   "problem.escape":        ["escape", "q"],
 });

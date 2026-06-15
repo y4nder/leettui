@@ -16,9 +16,10 @@ import {
   getSolutionPath,
 } from "../../core/solutions";
 import { runSolution, submitSolution, SolutionError } from "../../core/submission";
+import { runLocalTests } from "../../core/testRunner";
 import { getEditorCommand } from "../../config";
 import { logError } from "../../debug";
-import { buildResultView, info, errorView } from "../browse/resultView";
+import { buildResultView, buildLocalRunView, info, errorView } from "../browse/resultView";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
 
@@ -214,6 +215,26 @@ export async function handleProblemRun(triggerKey: string) {
     }
     logError(triggerKey, "problem", "handleProblemRun", e);
     useAppStore.getState().setProblemResult(errorView("Run error", e.message));
+  }
+}
+
+export async function handleProblemTestLocal(triggerKey: string) {
+  const p = useAppStore.getState().problem;
+  if (!p) return;
+  const langSlug = focusedLangSlug();
+  if (!langSlug) {
+    useAppStore
+      .getState()
+      .setProblemResult(info("No solution selected. Press 'f' to pick a language."));
+    return;
+  }
+  useAppStore.getState().setProblemResult(info("Running local tests..."));
+  try {
+    const report = await runLocalTests(p.question, langSlug);
+    useAppStore.getState().setProblemResult(buildLocalRunView(report));
+  } catch (e: any) {
+    logError(triggerKey, "problem", "handleProblemTestLocal", e);
+    useAppStore.getState().setProblemResult(errorView("Local run error", e.message));
   }
 }
 

@@ -63,7 +63,7 @@ function HintsFooter() {
       borderColor={colors.border}
       width="100%"
     >
-      <text fg={colors.fgDim}> f:Solutions  e:Edit  R:Run  s:Submit  Esc/q:Back </text>
+      <text fg={colors.fgDim}> f:Solutions  e:Edit  R:Run  t:Test  s:Submit  Esc/q:Back </text>
     </box>
   );
 }
