@@ -2,6 +2,8 @@
 // handlers but routes results to the in-view inline result panel instead of
 // the modal popup.
 
+import { dirname } from "path";
+
 import type { createCliRenderer } from "@opentui/core";
 
 import { useAppStore } from "../../ui/store";
@@ -186,6 +188,10 @@ async function openInEditorPath(renderer: Renderer, path: string) {
   renderer.suspend();
   try {
     const proc = Bun.spawn([editor, path], {
+      // cwd = the file's folder (lang folder for solutions, problem folder for
+      // notes), so the headless CLI's cwd-inference and per-language LSP work
+      // from inside the editor.
+      cwd: dirname(path),
       stdin: "inherit",
       stdout: "inherit",
       stderr: "inherit",

@@ -2,6 +2,8 @@
 // receives the store and renderer it needs as arguments — no React imports,
 // no top-level singletons — so they remain easy to reason about and reuse.
 
+import { dirname } from "path";
+
 import type { createCliRenderer } from "@opentui/core";
 
 import { useAppStore } from "../../ui/store";
@@ -95,6 +97,9 @@ export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
       const editor = getEditorCommand();
       await withSuspendedRenderer(renderer, async () => {
         const proc = Bun.spawn([editor, path], {
+          // cwd = the language folder, so the headless CLI's cwd-inference
+          // (`leettui test`) and per-language LSP work from inside the editor.
+          cwd: dirname(path),
           stdin: "inherit",
           stdout: "inherit",
           stderr: "inherit",
