@@ -11,7 +11,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } fr
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import { overlayTemplates, renderTemplate } from "./solutions";
+import { overlayTemplates, renderTemplate, resolveProblemPath } from "./solutions";
 
 const TWO_SUM_META = JSON.stringify({
   name: "twoSum",
@@ -209,5 +209,49 @@ describe("createSolutionWithHarness with template overrides", () => {
     expect(readFileSync(join(dir, "build.rs"), "utf-8")).toBe("// build");
     // rust has no harness generator → no main.rs default appears.
     expect(existsSync(join(dir, "main.rs"))).toBe(false);
+  });
+});
+
+describe("resolveProblemPath (Stage 8 cwd-inference)", () => {
+  const root = join(tmpdir(), "leettui-solutions-root");
+
+  test("resolves id + slug + lang from a lang folder", () => {
+    expect(resolveProblemPath(join(root, "0001_two-sum", "python3"), root)).toEqual({
+      questionId: 1,
+      titleSlug: "two-sum",
+      langSlug: "python3",
+    });
+  });
+
+  test("resolves the lang from a nested subfolder (e.g. rust src/)", () => {
+    expect(resolveProblemPath(join(root, "0004_median", "rust", "src"), root)).toEqual({
+      questionId: 4,
+      titleSlug: "median",
+      langSlug: "rust",
+    });
+  });
+
+  test("langSlug is null at the problem-folder level", () => {
+    expect(resolveProblemPath(join(root, "0011_container"), root)).toEqual({
+      questionId: 11,
+      titleSlug: "container",
+      langSlug: null,
+    });
+  });
+
+  test("strips the id padding to a real number", () => {
+    expect(resolveProblemPath(join(root, "0042_trapping-rain-water", "javascript"), root)?.questionId).toBe(42);
+  });
+
+  test("null when path is the solutions root itself", () => {
+    expect(resolveProblemPath(root, root)).toBeNull();
+  });
+
+  test("null when path is outside the solutions root", () => {
+    expect(resolveProblemPath(join(tmpdir(), "elsewhere", "0001_two-sum"), root)).toBeNull();
+  });
+
+  test("null when the first segment isn't a {paddedId}_{slug} dir", () => {
+    expect(resolveProblemPath(join(root, "scratch", "python3"), root)).toBeNull();
   });
 });
