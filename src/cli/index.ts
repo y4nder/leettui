@@ -10,7 +10,7 @@ import type { Config } from "../config/types";
 import { openDatabase } from "../db";
 import { initClient, AuthError } from "../api/client";
 import { runLocalTests } from "../core/testRunner";
-import { runSolution } from "../core/submission";
+import { runSolution, submitSolution } from "../core/submission";
 import type { ParsedResponse } from "../api/types";
 import { buildLocalRunView, buildResultView } from "../views/browse/resultView";
 import {
@@ -71,10 +71,12 @@ export async function runCli(
         runSolution(question, langSlug)
       );
     case "submit":
-      // Item 4 fills this in, reusing `runApiVerb` (the bootstrap + auth pattern
-      // established here). `submitSolution` already persists status/stats itself.
-      console.error(formatTargetError(`'${verb}' is not implemented yet.`));
-      return 2;
+      // Reuses `runApiVerb` verbatim — `submitSolution` already persists status
+      // and runtime/memory stats to the DB (markAccepted/setSubmissionStats),
+      // exactly as the TUI submit path does.
+      return runApiVerb(header, "Submitting to LeetCode…", () =>
+        submitSolution(question, langSlug)
+      );
   }
 }
 

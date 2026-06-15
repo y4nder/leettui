@@ -17,11 +17,12 @@ verbs so the `index.tsx` seam is wired once — items 3/4 only edit `src/cli/`.
 - `index.ts` — `matchCliVerb(argv)` (exact-element argv match, like the other
   subcommands) + `runCli(verb, cwd?)`. Bootstraps headless (`loadConfig` →
   `openDatabase`, no TUI), resolves the target, runs the verb, prints, returns
-  an exit code. Verbs: `test` (local, offline) and `run` (API) — implemented;
-  `submit` (API — stubbed → exit 2, filled in by Stage 8 item 4).
-  - **API verbs** share `bootstrapApiClient(config?)` + `runApiVerb(header, action)`
-    (the "API-from-CLI + auth-expiry pattern" — item 4's `submit` reuses them
-    verbatim; `submitSolution` already persists status/stats itself).
+  an exit code. Verbs: `test` (local, offline), `run` and `submit` (API) — all
+  implemented.
+  - **API verbs** share `bootstrapApiClient(config?)` + `runApiVerb(header, status, action)`
+    (the "API-from-CLI + auth-expiry pattern"; `submit` reuses them verbatim,
+    differing only in the action (`submitSolution`, which already persists
+    status/stats to the DB itself) and the status message).
     `bootstrapApiClient` initializes the singleton client from saved tokens or
     returns `AUTH_HINT` (config injectable, so the missing-session branch is
     unit-tested without the real config/network). `runApiVerb` runs the action,
