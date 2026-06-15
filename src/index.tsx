@@ -38,6 +38,16 @@ if (process.argv.includes("update")) {
   process.exit(0);
 }
 
+// Headless CLI verbs (Stage 8): `test`/`run`/`submit` run the engine UI-free and
+// exit before the renderer starts, so they work from inside an editor's `:!`.
+{
+  const { matchCliVerb, runCli } = await import("./cli");
+  const verb = matchCliVerb(process.argv);
+  if (verb) {
+    process.exit(await runCli(verb));
+  }
+}
+
 // The renderer now starts first: authentication and the initial sync run as animated
 // steps inside <BootFlow>, not on the plain terminal. The `auth` subcommand forces
 // re-authentication even when a valid saved session exists.
