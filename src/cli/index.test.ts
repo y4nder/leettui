@@ -1,13 +1,16 @@
 import { describe, expect, test } from "bun:test";
-import { matchCliVerb } from "./index";
+import { matchCliVerb, bootstrapApiClient, AUTH_HINT } from "./index";
 import {
   presentResultView,
   exitCodeForLocalRun,
+  exitCodeForResultView,
   brandHeader,
   formatTargetError,
 } from "./present";
 import type { LocalRunReport, LocalCaseResult } from "../core/testRunner";
 import type { DbQuestion } from "../db/questions";
+import type { Config } from "../config/types";
+import type { ResultKind } from "../views/browse/resultView";
 import { buildLocalRunView } from "../views/browse/resultView";
 
 describe("matchCliVerb", () => {
@@ -74,6 +77,34 @@ describe("exitCodeForLocalRun", () => {
     expect(
       exitCodeForLocalRun({ kind: "no-harness", langSlug: "python3", harnessFilename: "main.py" })
     ).toBe(1);
+  });
+});
+
+describe("exitCodeForResultView (API verbs)", () => {
+  const code = (kind: ResultKind) => exitCodeForResultView({ kind, title: "" });
+
+  test("accepted → 0", () => expect(code("accepted")).toBe(0));
+  test("info → 0", () => expect(code("info")).toBe(0));
+  test("wrong → 1", () => expect(code("wrong")).toBe(1));
+  test("error → 1", () => expect(code("error")).toBe(1));
+  test("pending → 1", () => expect(code("pending")).toBe(1));
+});
+
+describe("bootstrapApiClient", () => {
+  // Config is injected so the missing-session branch is testable without the
+  // real config or any network.
+  test("blank tokens → error telling the user to run `leettui auth`", () => {
+    const result = bootstrapApiClient({ csrftoken: "", lc_session: "" } as Config);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe(AUTH_HINT);
+      expect(result.error).toContain("leettui auth");
+    }
+  });
+
+  test("present tokens → ok (client initialized)", () => {
+    const result = bootstrapApiClient({ csrftoken: "csrf", lc_session: "sess" } as Config);
+    expect(result.ok).toBe(true);
   });
 });
 

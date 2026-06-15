@@ -107,6 +107,37 @@ export function formatTargetError(message: string): string {
   return `${e.bold(e.blue("leettui"))} ${e.red("error")} ${message}`;
 }
 
+// ── progress ────────────────────────────────────────────────────────────────
+
+const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+
+// Transient progress feedback for the API verbs while they wait on the network +
+// result polling (otherwise the user stares at a silent terminal for a few
+// seconds). Goes to **stderr** so piped stdout (the result body) stays clean and
+// parseable. On a TTY it animates a spinner and erases itself when stopped;
+// otherwise it prints one plain line. Returns a `stop()` to call once the result
+// is in hand (idempotent).
+export function startStatus(message: string): () => void {
+  if (!process.stderr.isTTY) {
+    process.stderr.write(`${message}\n`);
+    return () => {};
+  }
+  let i = 0;
+  const render = () => {
+    const frame = SPINNER_FRAMES[i++ % SPINNER_FRAMES.length];
+    process.stderr.write(`\r${e.dim(`${frame} ${message}`)}`);
+  };
+  render();
+  const timer = setInterval(render, 80);
+  let stopped = false;
+  return () => {
+    if (stopped) return;
+    stopped = true;
+    clearInterval(timer);
+    process.stderr.write("\r\x1b[K"); // carriage return + clear-to-end-of-line
+  };
+}
+
 // ── body ──────────────────────────────────────────────────────────────────────
 
 // Renders a `ResultView` to a plain-text block (no trailing newline), indented
@@ -184,5 +215,24 @@ export function exitCodeForLocalRun(report: LocalRunReport): number {
     case "unsupported":
     case "no-cases":
       return 0;
+  }
+}
+
+// Exit code for the API verbs (`run`/`submit`), derived from `ResultView.kind`.
+// Unlike `buildLocalRunView`, `buildResultView` is NOT lossy about failures —
+// nothing maps a real failure to `accepted` (only `run_accepted`/`submit_accepted`
+// do) — so `kind` is an exact verdict here. `accepted` (and the can't-happen-for-API
+// `info`) → 0; `wrong`/`error`/`pending` → 1, matching the `test` verb's
+// "any non-pass is 1". A couldn't-run condition (auth) is exit 2, handled by the
+// caller before this is reached — never folded in here.
+export function exitCodeForResultView(view: ResultView): number {
+  switch (view.kind) {
+    case "accepted":
+    case "info":
+      return 0;
+    case "wrong":
+    case "error":
+    case "pending":
+      return 1;
   }
 }
