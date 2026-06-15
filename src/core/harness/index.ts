@@ -33,3 +33,23 @@ export function generateHarness(
     return null;
   }
 }
+
+// How the local test runner (Stage 7 item 4) executes a language's harness:
+// the harness file to invoke and the interpreter argv prefix. The runner spawns
+// `[...command, harnessFilename]` with cwd = the language folder so the harness
+// can `import` the sibling `solution.*`. Keeping this beside `generateHarness`
+// means a new language is one entry here + one `case` above — item 5 (JS) adds
+// `javascript: { harnessFilename: "main.js", command: ["node"] }` and the runner
+// itself stays unchanged.
+export interface RunnerSpec {
+  harnessFilename: string;
+  command: string[];
+}
+
+const RUNNERS: Record<string, RunnerSpec> = {
+  python3: { harnessFilename: "main.py", command: ["python3"] },
+};
+
+export function getRunnerSpec(langSlug: string): RunnerSpec | null {
+  return RUNNERS[langSlug] ?? null;
+}

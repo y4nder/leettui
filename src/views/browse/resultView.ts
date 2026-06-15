@@ -1,4 +1,5 @@
 import type { ParsedResponse } from "../../api/types";
+import type { LocalRunReport, CaseStatus } from "../../core/testRunner";
 
 export type ResultKind = "accepted" | "wrong" | "error" | "info" | "pending";
 
@@ -14,6 +15,13 @@ export interface ResultDiff {
   actual: string;
 }
 
+export interface ResultCase {
+  name: string;
+  status: CaseStatus;
+  expected?: string;
+  actual?: string;
+}
+
 export interface ResultView {
   kind: ResultKind;
   title: string;
@@ -21,6 +29,7 @@ export interface ResultView {
   diff?: ResultDiff;
   error?: string;
   outputs?: { label: string; value: string }[];
+  cases?: ResultCase[];
 }
 
 export function info(title: string): ResultView {
@@ -164,5 +173,43 @@ export function buildResultView(result: ParsedResponse): ResultView {
         kind: "error",
         title: `✗ Unknown status (code: ${result.statusCode})`,
       };
+  }
+}
+
+// Turns a local-runner report into a ResultView. The verdict hinges on whether
+// any case had a `.out` to compare against: with no expected outputs, the run
+// is informational (kind "info"), never a green pass.
+export function buildLocalRunView(report: LocalRunReport): ResultView {
+  switch (report.kind) {
+    case "unsupported":
+      return info(`Local run not supported for ${report.langSlug} (no harness generator).`);
+    case "no-harness":
+      return errorView(
+        `No ${report.harnessFilename} found in the ${report.langSlug} folder — cannot run locally.`
+      );
+    case "no-cases":
+      return info("No test cases. Add tests/case-NN.txt (e.g. by recreating the solution).");
+    case "ran": {
+      const { cases } = report;
+      const verdicts = cases.filter((c) => c.status === "pass" || c.status === "fail");
+      const passed = cases.filter((c) => c.status === "pass").length;
+      const hasVerdict = verdicts.length > 0;
+
+      const kind: ResultKind = hasVerdict
+        ? passed === verdicts.length
+          ? "accepted"
+          : "wrong"
+        : "info";
+
+      const title = hasVerdict
+        ? `${passed === verdicts.length ? "✓" : "✗"} Local: ${passed}/${verdicts.length} passed`
+        : `Ran ${cases.length} case${cases.length === 1 ? "" : "s"} (no expected outputs)`;
+
+      const metrics: ResultMetric[] = hasVerdict
+        ? [{ label: "Passed", value: `${passed}/${verdicts.length}` }]
+        : [];
+
+      return { kind, title, metrics, cases };
+    }
   }
 }
