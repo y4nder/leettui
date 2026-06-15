@@ -1,25 +1,16 @@
 import { SyntaxStyle, extToFiletype } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/react";
-import { readFileSync } from "fs";
 
 import { useAppStore } from "../store";
 import { colors } from "../theme";
 import { pickerBindings } from "../keymap";
 import { getExtension } from "../../api/types";
-import { getSolutionPath } from "../../core/solutions";
+import { readSolutionFile } from "../../core/solutions";
 
 const defaultSyntaxStyle = SyntaxStyle.create();
 
 function filetypeFor(langSlug: string): string | undefined {
   return extToFiletype(getExtension(langSlug));
-}
-
-function safeReadFile(path: string): string {
-  try {
-    return readFileSync(path, "utf-8");
-  } catch {
-    return "";
-  }
 }
 
 export function SolutionPickerModal() {
@@ -28,15 +19,17 @@ export function SolutionPickerModal() {
   const problem = useAppStore((s) => s.problem);
   if (!problem || !problem.solutionPicker) return null;
 
-  const { snippets, existingByLangSlug, index } = problem.solutionPicker;
+  const { snippets, existing, index } = problem.solutionPicker;
   const focused = snippets[index];
 
-  const isExisting = focused ? Boolean(existingByLangSlug[focused.langSlug]) : false;
+  const isExisting = focused ? existing.has(focused.langSlug) : false;
   const previewContent = focused
     ? isExisting
-      ? safeReadFile(
-          getSolutionPath(problem.question.id, problem.question.title_slug, focused.langSlug)
-        )
+      ? readSolutionFile(
+          problem.question.id,
+          problem.question.title_slug,
+          focused.langSlug
+        ) ?? ""
       : focused.code
     : "";
   const previewFiletype = focused ? filetypeFor(focused.langSlug) : undefined;
@@ -67,18 +60,17 @@ export function SolutionPickerModal() {
           <scrollbox flexGrow={1}>
             {snippets.map((s, i) => {
               const isSelected = i === index;
-              const existingFile = existingByLangSlug[s.langSlug];
-              const marker = existingFile ? "●" : " ";
+              const hasSolution = existing.has(s.langSlug);
+              const marker = hasSolution ? "●" : " ";
               const cursor = isSelected ? "►" : " ";
               const langCol = s.lang.padEnd(14, " ");
-              const suffix = existingFile ? `  ${existingFile}` : "";
               return (
                 <text
                   key={s.langSlug}
-                  fg={isSelected ? colors.fgAccent : existingFile ? colors.fg : colors.fgDim}
+                  fg={isSelected ? colors.fgAccent : hasSolution ? colors.fg : colors.fgDim}
                   bg={isSelected ? colors.bgHighlight : undefined}
                 >
-                  {" "}{cursor} {marker} {langCol}{suffix}
+                  {" "}{cursor} {marker} {langCol}
                 </text>
               );
             })}
