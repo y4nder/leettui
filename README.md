@@ -178,6 +178,12 @@ Stage 1 (Core MVP) and Stage 2 (Architecture refactor) are complete. Stage 3 ref
 
 ---
 
+## 🙏 Acknowledgements
+
+Heavily inspired by [leetcode-tui](https://github.com/akarsh1995/leetcode-tui) by [@akarsh1995](https://github.com/akarsh1995) — a Rust-based LeetCode TUI that sparked the idea for this project.
+
+---
+
 ## ⚠️ Disclaimer
 
 This project is not affiliated with LeetCode. It uses their APIs in the same way a logged-in browser session would. Use responsibly and in accordance with LeetCode's terms of service.
