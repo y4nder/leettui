@@ -128,7 +128,9 @@ describe("createSolutionWithHarness with template overrides", () => {
 
   function runCreate(spec: CreateSpec) {
     const res = Bun.spawnSync(["bun", childScript, JSON.stringify(spec)], {
-      env: { ...process.env, HOME: home },
+      // Clear XDG overrides so the child's DATA_DIR derives from the temp $HOME
+      // regardless of the dev/CI environment (paths.ts honors $XDG_DATA_HOME).
+      env: { ...process.env, HOME: home, XDG_DATA_HOME: undefined, XDG_CONFIG_HOME: undefined },
     });
     if (res.exitCode !== 0) {
       throw new Error(`child failed: ${res.stderr.toString()}`);

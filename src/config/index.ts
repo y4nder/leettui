@@ -2,6 +2,7 @@ import { parse } from "smol-toml";
 import { mkdirSync, existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { CONFIG_DIR, CONFIG_FILE, DB_PATH, SOLUTIONS_DIR, TEMPLATES_DIR } from "./paths";
+import { resolveConfigPath } from "./resolvePath";
 import type { Config } from "./types";
 
 const DEFAULT_TOML = `# LeetCode authentication tokens
@@ -17,6 +18,7 @@ lc_session = ""
 # [paths]
 # db = ""        # Default: ~/.local/share/leettui/questions.db
 # solutions = "" # Default: ~/.local/share/leettui/solutions/
+# A leading ~ and $VARS are expanded; a relative path is resolved against your home dir.
 
 # [language]
 # default = "python3"
@@ -52,12 +54,12 @@ export function hasTokens(config: Config = loadConfig()): boolean {
 
 export function getDbPath(): string {
   const config = loadConfig();
-  return config.paths?.db || DB_PATH;
+  return config.paths?.db ? resolveConfigPath(config.paths.db) : DB_PATH;
 }
 
 export function getSolutionsDir(): string {
   const config = loadConfig();
-  return config.paths?.solutions || SOLUTIONS_DIR;
+  return config.paths?.solutions ? resolveConfigPath(config.paths.solutions) : SOLUTIONS_DIR;
 }
 
 export function getEditorCommand(): string {
