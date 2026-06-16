@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { describeScope, footerSegments, formatKeyToken, questionPanelBindings } from "./keymap";
+import {
+  describeScope,
+  fitFooter,
+  footerSegments,
+  formatKeyToken,
+  questionPanelBindings,
+} from "./keymap";
 
 describe("formatKeyToken", () => {
   test("maps special tokens", () => {
@@ -65,5 +71,30 @@ describe("footerSegments", () => {
     expect(labels).not.toContain("View");
     // global still present
     expect(labels).toContain("Help");
+  });
+});
+
+describe("fitFooter", () => {
+  const segs = [
+    { keys: "j/k", label: "Navigate" },
+    { keys: "Enter", label: "View" },
+    { keys: "e", label: "Edit" },
+  ];
+
+  test("returns everything when it fits", () => {
+    expect(fitFooter(segs, 100)).toBe("j/k:Navigate  Enter:View  e:Edit");
+  });
+
+  test("drops overflow at a segment boundary with an ellipsis", () => {
+    // "j/k:Navigate" = 12, + "  Enter:View" = 24. Budget 20 keeps only the first.
+    expect(fitFooter(segs, 20)).toBe("j/k:Navigate …");
+  });
+
+  test("never clips mid-segment except when the first alone overflows", () => {
+    expect(fitFooter(segs, 5)).toBe("j/k:N");
+  });
+
+  test("empty segments → empty string", () => {
+    expect(fitFooter([], 40)).toBe("");
   });
 });

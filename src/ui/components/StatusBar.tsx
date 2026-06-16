@@ -1,8 +1,13 @@
+import { useTerminalDimensions } from "@opentui/react";
 import { colors, difficultyColor } from "../theme";
 import type { AppMode, BrowsePanel } from "../store";
 import type { DifficultyFilter } from "../store/slices/filtersSlice";
 import type { StatusCounts } from "../../db/questions";
-import { footerSegments } from "../keymap";
+import { footerSegments, fitFooter } from "../keymap";
+
+// Columns reserved on the right for the stats / difficulty / debug block, so the
+// hint line truncates before colliding with it.
+const RIGHT_RESERVE = 26;
 
 interface StatusBarProps {
   mode: AppMode;
@@ -23,6 +28,9 @@ export function StatusBar({
   difficultyFilter,
   debugEnabled,
 }: StatusBarProps) {
+  // Hook must run unconditionally, before the search-mode early return.
+  const { width } = useTerminalDimensions();
+
   if (mode === "search") {
     return (
       <box flexDirection="row" width="100%" height={1} backgroundColor={colors.statusBar}>
@@ -34,12 +42,11 @@ export function StatusBar({
   }
 
   // Focus-aware hint line: focused panel's keys first, then global. Built from the
-  // keymap so it never drifts from the actual bindings. Omitted when no panel is
-  // focused (ProblemView, which carries its own HintsFooter).
+  // keymap so it never drifts from the actual bindings, and truncated to the
+  // available width so it never collides with the stats block. Omitted when no
+  // panel is focused (ProblemView, which carries its own HintsFooter).
   const hints = focusedPanel
-    ? footerSegments(focusedPanel, !!debugEnabled)
-        .map((s) => `${s.keys}:${s.label}`)
-        .join("  ")
+    ? fitFooter(footerSegments(focusedPanel, !!debugEnabled), Math.max(8, width - RIGHT_RESERVE))
     : "";
 
   return (

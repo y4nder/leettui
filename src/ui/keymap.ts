@@ -747,6 +747,27 @@ export function footerSegments(
   return segs;
 }
 
+// Join footer segments into a single line that fits `maxWidth`, dropping overflow
+// at a segment boundary with a trailing "…" (never clips mid-segment). Local keys
+// come first in `segments`, so a narrow terminal keeps them and sheds globals.
+export function fitFooter(segments: { keys: string; label: string }[], maxWidth: number): string {
+  const SEP = "  ";
+  const ELLIPSIS = " …";
+  const parts: string[] = [];
+  let len = 0;
+  for (const seg of segments) {
+    const text = `${seg.keys}:${seg.label}`;
+    const add = (parts.length > 0 ? SEP.length : 0) + text.length;
+    if (len + add > maxWidth) {
+      if (parts.length === 0) return text.slice(0, Math.max(0, maxWidth));
+      return parts.join(SEP) + ELLIPSIS;
+    }
+    parts.push(text);
+    len += add;
+  }
+  return parts.join(SEP);
+}
+
 export function installKeymap(keymap: AppKeymap, renderer: CliRenderer): void {
   _keymap = keymap;
   _renderer = renderer;
