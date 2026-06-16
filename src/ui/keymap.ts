@@ -553,8 +553,10 @@ function bindingsFor(spec: Record<string, KeyLike | KeyLike[]>): Binding<Rendera
 // and dismiss targets the banner chrome, not a panel. Question-targeted actions
 // (e/R/s/y) moved to questionPanelBindings.
 export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
-  "focus.cycle": "tab",
-  "focus.cyclePrev": "shift+tab",
+  // Tab/Shift+Tab cycle; h/l traverse left/right (same commands — PANEL_ORDER is
+  // the spatial left→right order, so l = next, h = prev).
+  "focus.cycle": ["tab", "l"],
+  "focus.cyclePrev": ["shift+tab", "h"],
   "focus.topics": "1",
   "focus.questions": "2",
   "question.random": "r",
