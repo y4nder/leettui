@@ -7,6 +7,7 @@ import { Splash } from "./Splash";
 import { AuthWizard } from "./AuthWizard";
 import { SyncStep } from "./SyncStep";
 import { RelocatePrompt } from "./RelocatePrompt";
+import { SolutionsOnboarding } from "./SolutionsOnboarding";
 import { Logo } from "./Logo";
 import { colors } from "../../theme";
 import { loadConfig, hasTokens, getDbPath, getSolutionsDir } from "../../../config";
@@ -19,7 +20,7 @@ import { detectSolutionsRelocation, type RelocationPlan } from "../../../core/re
 import { getLastKnownSolutionsDir, setLastKnownSolutionsDir } from "../../../core/session";
 import { useAppStore } from "../../store";
 
-type Phase = "splash" | "auth" | "loading" | "relocate" | "ready" | "error";
+type Phase = "splash" | "auth" | "solutions" | "loading" | "relocate" | "ready" | "error";
 
 interface BootFlowProps {
   renderer: Awaited<ReturnType<typeof createCliRenderer>>;
@@ -35,9 +36,14 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
   const [error, setError] = useState<string | null>(null);
   const tokensRef = useRef<AuthTokens | null>(null);
   const planRef = useRef<RelocationPlan | null>(null);
+  // A brand-new install has empty tokens in config; existing users always carry
+  // token *values* (even when expired), and `auth`-subcommand re-auth keeps this
+  // false — so it gates the first-run solutions prompt to genuine first installs.
+  const firstRunRef = useRef(false);
 
   const handleSplashDone = useCallback(async () => {
     const config = loadConfig();
+    firstRunRef.current = !hasTokens(config);
     if (!force && hasTokens(config)) {
       const v = await validateTokens(config.csrftoken, config.lc_session);
       // An offline/"unknown" result keeps the saved session so the app still opens.
@@ -56,6 +62,11 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
 
   const handleAuthComplete = useCallback((t: AuthTokens) => {
     tokensRef.current = t;
+    // Only brand-new installs get the "where should solutions live?" step.
+    setPhase(firstRunRef.current ? "solutions" : "loading");
+  }, []);
+
+  const handleSolutionsChosen = useCallback(() => {
     setPhase("loading");
   }, []);
 
@@ -116,6 +127,8 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
 
   if (phase === "splash") return <Splash onDone={handleSplashDone} />;
   if (phase === "auth") return <AuthWizard onComplete={handleAuthComplete} onAbort={handleAuthAbort} />;
+  if (phase === "solutions")
+    return <SolutionsOnboarding defaultDir={getSolutionsDir()} onDone={handleSolutionsChosen} />;
   if (phase === "loading") return <SyncStep />;
   if (phase === "relocate" && planRef.current)
     return <RelocatePrompt plan={planRef.current} onResolved={handleRelocationResolved} />;
