@@ -1,8 +1,7 @@
 import { useTerminalDimensions } from "@opentui/react";
-// SPIKE (opentui-spinner): side-effect import registers the `<spinner>` intrinsic
-// via @opentui/react's `extend`. Evaluating the library here before adopting it
-// project-wide. Note: it peer-targets @opentui/core ^0.3.4 (we're on 0.2.16) but
-// every internal it uses exists in 0.2.16 — verified rendering + animating.
+// Side-effect import: registers the `<spinner>` intrinsic via @opentui/react's
+// `extend`. It peer-targets @opentui/core ^0.3.4 (we're on 0.2.16) but every
+// internal it uses exists in 0.2.16 — verified rendering + animating.
 import "opentui-spinner/react";
 
 import { Logo } from "./Logo";

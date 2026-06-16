@@ -1,5 +1,5 @@
-// SPIKE (opentui-spinner): registers the `<spinner>` intrinsic (idempotent with
-// SyncStep's import). Same star preset as the full-screen sync screen.
+// Registers the `<spinner>` intrinsic (idempotent with SyncStep's import). Same
+// star preset as the full-screen sync screen so both sync surfaces read alike.
 import "opentui-spinner/react";
 
 import { colors } from "../theme";
