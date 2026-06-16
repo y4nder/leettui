@@ -7,6 +7,7 @@
 import type { StateCreator } from "zustand";
 import type { AppStore } from "../index";
 import { loadSession, saveSession } from "../../../core/session";
+import { scheduleTopicLoad } from "../topicLoad";
 
 export interface SelectionSlice {
   selectedTopicIndex: number;
@@ -50,24 +51,28 @@ export const createSelectionSlice: StateCreator<AppStore, [], [], SelectionSlice
     persistPosition(get);
   },
 
+  // The cursor moves instantly; the topic's questions load on a debounce (see
+  // topicLoad.ts) so holding j/k doesn't fire a blocking query per keypress. The
+  // topic slug is persisted now, but the question id only after the deferred load
+  // settles — during the gap filteredQuestions still holds the old topic's list.
   moveTopic: (delta) => {
-    const { selectedTopicIndex, topics, loadTopic } = get();
+    const { selectedTopicIndex, topics } = get();
     const newIndex = clamp(selectedTopicIndex + delta, topics.length);
     const topic = topics[newIndex];
     if (!topic) return;
-    loadTopic(topic);
     set({ selectedTopicIndex: newIndex, selectedQuestionIndex: 0 });
-    persistPosition(get);
+    saveSession({ topicSlug: topic });
+    scheduleTopicLoad(get, true);
   },
 
   setTopicIndex: (index) => {
-    const { topics, loadTopic } = get();
+    const { topics } = get();
     const newIndex = clamp(index, topics.length);
     const topic = topics[newIndex];
     if (!topic) return;
-    loadTopic(topic);
     set({ selectedTopicIndex: newIndex, selectedQuestionIndex: 0 });
-    persistPosition(get);
+    saveSession({ topicSlug: topic });
+    scheduleTopicLoad(get, true);
   },
 
   // Restores the last-viewed topic + question after init() has loaded data.

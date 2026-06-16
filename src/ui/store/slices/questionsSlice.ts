@@ -9,6 +9,7 @@ import { getQuestionsByTopic, getStatusCounts } from "../../../db/questions";
 import { getAllTopicsWithAll } from "../../../db/topics";
 import { filterQuestions, filterTopics } from "../../../core/search";
 import { listSolutionQuestionIds } from "../../../core/solutions";
+import { scheduleTopicLoad, cancelTopicLoad } from "../topicLoad";
 import type { DifficultyFilter } from "./filtersSlice";
 import type { AppStore } from "../index";
 
@@ -90,21 +91,23 @@ export const createQuestionsSlice: StateCreator<AppStore, [], [], QuestionsSlice
 
   // Topics-panel search. Empty needle restores the full list and leaves the
   // current topic's questions untouched (no reload). A real needle filters the
-  // displayed list and live-loads the top match's questions for feedback.
+  // displayed list (synchronously, so the list tracks each keystroke) and
+  // debounce-loads the top match's questions for feedback (see topicLoad.ts) so
+  // typing fast doesn't re-query per keystroke. The synchronous branches cancel
+  // any pending load — their question list is already resolved.
   // (Cursor resets are owned by searchSlice, per the ui/domain split.)
-  // NOTE: live-load re-queries per keystroke — see the "rapid topic navigation"
-  // perf item in docs/scratchpad/ideas.md; a debounce there covers this path too.
   applyTopicSearch: (needle) => {
     if (!needle.trim()) {
+      cancelTopicLoad();
       set({ topics: get().allTopics });
       return;
     }
     const topics = filterTopics(get().allTopics, needle);
     set({ topics });
-    const top = topics[0];
-    if (top) {
-      get().loadTopic(top);
+    if (topics[0]) {
+      scheduleTopicLoad(get);
     } else {
+      cancelTopicLoad();
       set({ allQuestions: [], filteredQuestions: [] });
     }
   },
