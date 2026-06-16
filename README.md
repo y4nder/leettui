@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🧩 leettui
+# leettui
 
 **Grind LeetCode without leaving your terminal.**
 
@@ -12,20 +12,13 @@ A snappy terminal UI for LeetCode — browse, solve, run, and submit, all from a
 [![Built with OpenTUI](https://img.shields.io/badge/built%20with-OpenTUI-7aa2f7?style=flat-square)](https://github.com/sst/opentui)
 [![Runtime: Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1?style=flat-square&logo=bun&logoColor=black)](https://bun.sh)
 [![React](https://img.shields.io/badge/UI-React%2019-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev)
-[![Status: Experimental](https://img.shields.io/badge/status-experimental-orange?style=flat-square)](#status)
+[![Status: Stable](https://img.shields.io/badge/status-stable-brightgreen?style=flat-square)](#)
 
 </div>
-
-> [!WARNING]
-> **Experimental** — actively being refined. Expect rough edges.
 
 ---
 
 ## Demo
-
-<!-- TODO: add demo video once recorded -->
-<!-- [![leettui demo](docs/demo-thumbnail.png)](docs/demo.mp4) -->
-
 
 https://github.com/user-attachments/assets/414c0e9d-7504-401c-9c5f-ade426ae5614
 
@@ -42,22 +35,22 @@ This project exists for two reasons:
 
 ---
 
-## ✨ Features
+## Features
 
-- 📚 Browse all LeetCode problems with topic filter navigation
-- 🔍 Fuzzy search by problem title
-- 📖 Scrollable problem description popup (Markdown rendered)
-- ✏️ Open solutions in `$EDITOR` with a pre-populated template
-- ▶️ Run solutions against example test cases
-- 🚀 Submit solutions and see runtime/memory percentiles
-- 🔥 Daily challenge shortcut
-- ⌨️ Command palette (`Ctrl+P`) listing every available action
-- 🎨 Multiple themes (tokyo-night, catppuccin) via config
-- 🧩 [Per-language template overrides](docs/template-overrides.md) — custom solution stubs, harnesses, and manifests
+- Browse all LeetCode problems with topic filter navigation
+- Fuzzy search by problem title
+- Scrollable problem description (Markdown rendered)
+- Open solutions in `$EDITOR` with a pre-populated template
+- Run solutions against example test cases
+- Submit solutions and see runtime/memory percentiles
+- Daily challenge shortcut
+- Command palette (`Ctrl+P`) listing every available action
+- Multiple themes (tokyo-night, catppuccin) via config
+- [Per-language template overrides](docs/template-overrides.md) — custom solution stubs, harnesses, and manifests
 
 ---
 
-## 📦 Install
+## Install
 
 ### Prebuilt binary (Linux / macOS)
 
@@ -92,7 +85,7 @@ bun run build            # or compile a standalone ./leettui binary
 
 ---
 
-## 🔑 First run
+## First run
 
 Every launch opens with a brief animated splash. The **first** time (binary or from source), it flows into an in-app setup wizard rendered right in the TUI — no terminal prompts to wrestle with:
 
@@ -105,7 +98,7 @@ Re-authenticate any time: run `leettui auth` (or `bun src/index.tsx auth` from s
 
 ---
 
-## ⌨️ Keybindings
+## Keybindings
 
 | Key | Action |
 |-----|--------|
@@ -123,7 +116,7 @@ Re-authenticate any time: run `leettui auth` (or `bun src/index.tsx auth` from s
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 `~/.config/leettui/config.toml`
 
@@ -138,11 +131,11 @@ name = "tokyo-night"   # or "catppuccin"
 
 ### Per-language template overrides
 
-Customize what gets written when you create a solution — your own starter stub, a custom test harness, or extra files like a `Cargo.toml` or build script — per language, by dropping files in `~/.config/leettui/templates/{langSlug}/`. See the [**template overrides guide**](docs/template-overrides.md).
+Customize what gets written when you create a solution — your own starter stub, a custom test harness, or extra files like a `Cargo.toml` or build script — per language, by dropping files in `~/.config/leettui/templates/{langSlug}/`. See the [template overrides guide](docs/template-overrides.md).
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 | Layer | Tech |
 |-------|------|
@@ -164,7 +157,7 @@ src/
 
 ---
 
-## 🧰 Tech stack
+## Tech stack
 
 - [`@opentui/core`](https://github.com/sst/opentui) — terminal rendering primitives
 - [`@opentui/react`](https://github.com/sst/opentui) — React bindings for OpenTUI
@@ -176,23 +169,12 @@ src/
 
 ---
 
-## 🚧 Status
-
-Stage 1 (Core MVP) and Stage 2 (Architecture refactor) are complete. Stage 3 refinement items (themes, stats, daily challenge, help screen) are also done. Stage 4 differentiation features are planned.
-
-**Current rough edges:**
-- No offline mode; all problem content fetched live
-- Browser cookie auto-import currently covers Firefox only (Chromium is paste-only)
-- Some edge cases in run/submit output formatting
-
----
-
-## 🙏 Acknowledgements
+## Acknowledgements
 
 Heavily inspired by [leetcode-tui](https://github.com/akarsh1995/leetcode-tui) by [@akarsh1995](https://github.com/akarsh1995) — a Rust-based LeetCode TUI that sparked the idea for this project.
 
 ---
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 This project is not affiliated with LeetCode. It uses their APIs in the same way a logged-in browser session would. Use responsibly and in accordance with LeetCode's terms of service.
