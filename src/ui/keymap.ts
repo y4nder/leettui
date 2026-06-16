@@ -157,9 +157,15 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
 
   makeCommand({
     name: "focus.cycle",
-    title: "Cycle focused panel",
+    title: "Focus next panel",
     category: "Navigation",
-    run: () => useAppStore.getState().cycleFocusedPanel(),
+    run: () => useAppStore.getState().cycleFocusedPanel(1),
+  }),
+  makeCommand({
+    name: "focus.cyclePrev",
+    title: "Focus previous panel",
+    category: "Navigation",
+    run: () => useAppStore.getState().cycleFocusedPanel(-1),
   }),
   makeCommand({
     name: "focus.topics",
@@ -526,6 +532,7 @@ function bindingsFor(spec: Record<string, KeyLike | KeyLike[]>): Binding<Rendera
 // (e/R/s/y) moved to questionPanelBindings.
 export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "focus.cycle": "tab",
+  "focus.cyclePrev": "shift+tab",
   "focus.topics": "1",
   "focus.questions": "2",
   "question.random": "r",
