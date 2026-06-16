@@ -48,7 +48,7 @@ export function SyncStep() {
 
         <box flexDirection="row" width={barWidth} justifyContent="space-between">
           <box flexDirection="row" alignItems="center">
-            <spinner name="dots" color={colors.accent} />
+            <spinner name="star" color={colors.accent} />
             <text fg={colors.subtle} marginLeft={1}>
               {progress ? "Syncing problems" : "Setting things up"}
             </text>
