@@ -1,0 +1,4 @@
+# Pre-commit: the fast half of the gate — Biome lint+format check and
+# tsc --noEmit. Kept quick so committing isn't slowed by the test suite;
+# tests run in the pre-push hook. Bypass in a pinch with `git commit --no-verify`.
+bun run lint && bun run typecheck

@@ -7,9 +7,9 @@
 // exercise the cross-boot ordering that item 2 depends on.
 
 import { afterEach, beforeAll, afterAll, beforeEach, describe, expect, test } from "bun:test";
-import { mkdirSync, rmSync, writeFileSync } from "fs";
-import { join } from "path";
-import { tmpdir } from "os";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 
 const SESSION_MODULE = join(import.meta.dir, "session.ts");
 let childScript: string;
@@ -27,7 +27,7 @@ beforeAll(() => {
       `  else if (op.op === "setDir") session.setLastKnownSolutionsDir(op.dir);\n` +
       `  else if (op.op === "flush") await new Promise((r) => setTimeout(r, 500));\n` +
       `}\n` +
-      `process.stdout.write(JSON.stringify(session.loadSession()));\n`
+      `process.stdout.write(JSON.stringify(session.loadSession()));\n`,
   );
 });
 
@@ -39,7 +39,10 @@ describe("session merge", () => {
   let home: string;
 
   beforeEach(() => {
-    home = join(tmpdir(), `leettui-session-home-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    home = join(
+      tmpdir(),
+      `leettui-session-home-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    );
     mkdirSync(home, { recursive: true });
   });
 

@@ -2,7 +2,7 @@
 // handlers but routes results to the in-view inline result panel instead of
 // the modal popup.
 
-import { dirname } from "path";
+import { dirname } from "node:path";
 
 import type { createCliRenderer } from "@opentui/core";
 
@@ -22,7 +22,7 @@ import {
 import { runSolution, submitSolution, SolutionError } from "../../core/submission";
 import { runLocalTests } from "../../core/testRunner";
 import { getEditorCommand } from "../../config";
-import { logError } from "../../debug";
+import { errMessage, logError } from "../../debug";
 import { buildResultView, buildLocalRunView, info, errorView } from "../browse/resultView";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
@@ -51,9 +51,9 @@ export async function handleEnterProblemView(triggerKey: string) {
       : "_No description available (problem may be premium-only)._";
     const solutions = findExistingSolutions(q.id, q.title_slug);
     useAppStore.getState().enterProblemView({ question: q, description, solutions });
-  } catch (e: any) {
+  } catch (e) {
     logError(triggerKey, "browse", "handleEnterProblemView", e);
-    useAppStore.getState().showResult(errorView("Error fetching question", e.message));
+    useAppStore.getState().showResult(errorView("Error fetching question", errMessage(e)));
   }
 }
 
@@ -70,7 +70,7 @@ function refreshProblemSolutions(focusLangSlug?: string) {
   useAppStore.getState().setProblemSolutions(solutions, focusLangSlug);
 }
 
-export async function handleProblemOpenEditor(triggerKey: string, renderer: Renderer) {
+export async function handleProblemOpenEditor(_triggerKey: string, renderer: Renderer) {
   const p = useAppStore.getState().problem;
   if (!p) return;
 
@@ -92,9 +92,7 @@ export async function handleOpenSolutionPicker(triggerKey: string) {
     const editorData = await fetchEditorData(p.question.title_slug);
     const snippets = editorData.question.codeSnippets;
     if (!snippets || snippets.length === 0) {
-      useAppStore
-        .getState()
-        .setProblemResult(info("No code snippets available for this problem."));
+      useAppStore.getState().setProblemResult(info("No code snippets available for this problem."));
       return;
     }
     const existing = new Set(findExistingSolutions(p.question.id, p.question.title_slug));
@@ -107,14 +105,10 @@ export async function handleOpenSolutionPicker(triggerKey: string) {
 
     const initialLangSlug = focusedLangSlug();
 
-    useAppStore
-      .getState()
-      .openSolutionPicker(sorted, existing, initialLangSlug ?? undefined);
-  } catch (e: any) {
+    useAppStore.getState().openSolutionPicker(sorted, existing, initialLangSlug ?? undefined);
+  } catch (e) {
     logError(triggerKey, "problem", "handleOpenSolutionPicker", e);
-    useAppStore
-      .getState()
-      .setProblemResult(errorView("Error fetching editor data", e.message));
+    useAppStore.getState().setProblemResult(errorView("Error fetching editor data", errMessage(e)));
   }
 }
 
@@ -167,7 +161,7 @@ export async function handlePickerOpenEditor(_triggerKey: string, renderer: Rend
       snippet.langSlug,
       snippet.code,
       cfg?.question.metaData,
-      cfg?.question.exampleTestcaseList
+      cfg?.question.exampleTestcaseList,
     );
   }
 
@@ -216,13 +210,13 @@ export async function handleProblemRun(triggerKey: string) {
   try {
     const result = await runSolution(p.question, langSlug);
     useAppStore.getState().setProblemResult(buildResultView(result));
-  } catch (e: any) {
+  } catch (e) {
     if (e instanceof SolutionError) {
-      useAppStore.getState().setProblemResult(errorView(e.message));
+      useAppStore.getState().setProblemResult(errorView(errMessage(e)));
       return;
     }
     logError(triggerKey, "problem", "handleProblemRun", e);
-    useAppStore.getState().setProblemResult(errorView("Run error", e.message));
+    useAppStore.getState().setProblemResult(errorView("Run error", errMessage(e)));
   }
 }
 
@@ -240,9 +234,9 @@ export async function handleProblemTestLocal(triggerKey: string) {
   try {
     const report = await runLocalTests(p.question, langSlug);
     useAppStore.getState().setProblemResult(buildLocalRunView(report));
-  } catch (e: any) {
+  } catch (e) {
     logError(triggerKey, "problem", "handleProblemTestLocal", e);
-    useAppStore.getState().setProblemResult(errorView("Local run error", e.message));
+    useAppStore.getState().setProblemResult(errorView("Local run error", errMessage(e)));
   }
 }
 
@@ -260,13 +254,13 @@ export async function handleProblemSubmit(triggerKey: string) {
   try {
     const result = await submitSolution(p.question, langSlug);
     useAppStore.getState().setProblemResult(buildResultView(result));
-  } catch (e: any) {
+  } catch (e) {
     if (e instanceof SolutionError) {
-      useAppStore.getState().setProblemResult(errorView(e.message));
+      useAppStore.getState().setProblemResult(errorView(errMessage(e)));
       return;
     }
     logError(triggerKey, "problem", "handleProblemSubmit", e);
-    useAppStore.getState().setProblemResult(errorView("Submit error", e.message));
+    useAppStore.getState().setProblemResult(errorView("Submit error", errMessage(e)));
   }
 }
 
@@ -280,7 +274,7 @@ export function handleOpenNotes() {
   useAppStore.getState().openNotes(content);
 }
 
-export async function handleEditNotes(triggerKey: string, renderer: Renderer) {
+export async function handleEditNotes(_triggerKey: string, renderer: Renderer) {
   const p = useAppStore.getState().problem;
   if (!p) return;
   const path = ensureNotesFile(p.question.id, p.question.title_slug, p.question.title);

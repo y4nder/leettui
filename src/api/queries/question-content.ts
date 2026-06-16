@@ -9,8 +9,6 @@ query questionContent($titleSlug: String!) {
   }
 }`;
 
-export async function fetchQuestionContent(
-  titleSlug: string
-): Promise<QuestionContentData> {
+export async function fetchQuestionContent(titleSlug: string): Promise<QuestionContentData> {
   return gqlQuery<QuestionContentData>(QUERY, { titleSlug }, true);
 }

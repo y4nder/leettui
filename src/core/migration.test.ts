@@ -1,13 +1,16 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "fs";
-import { join } from "path";
-import { tmpdir } from "os";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { migrateSolutionsLayout } from "./migration";
 
 let dir: string;
 
 beforeEach(() => {
-  dir = join(tmpdir(), `leettui-migration-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  dir = join(
+    tmpdir(),
+    `leettui-migration-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  );
   mkdirSync(dir, { recursive: true });
 });
 
@@ -57,7 +60,9 @@ describe("migrateSolutionsLayout", () => {
 
     expect(res.moved).toBe(0);
     expect(res.skipped).toBe(1);
-    expect(readFileSync(join(dir, "0001_two-sum/python3/solution.py"), "utf-8")).toBe("already-here");
+    expect(readFileSync(join(dir, "0001_two-sum/python3/solution.py"), "utf-8")).toBe(
+      "already-here",
+    );
     expect(existsSync(join(dir, "0001_two-sum.py"))).toBe(true);
   });
 

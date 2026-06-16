@@ -130,7 +130,9 @@ export async function runAuthFlow(): Promise<AuthTokens | null> {
     const v = await validateTokens(csrftoken, lc_session);
     if (v.status === "ok") return persistAndReturn(csrftoken, lc_session, v.username);
     if (v.status === "invalid") {
-      console.log("✗ not a valid logged-in session — make sure you're logged in, then try again.\n");
+      console.log(
+        "✗ not a valid logged-in session — make sure you're logged in, then try again.\n",
+      );
     } else {
       console.log("✗ couldn't reach LeetCode to verify (network?). Try again.\n");
     }

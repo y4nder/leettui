@@ -15,6 +15,7 @@ export function EasterEgg() {
   const dismissed = useRef(false);
 
   const timeline = useTimeline({ duration: 600, loop: false });
+  // biome-ignore lint/correctness/useExhaustiveDependencies: timeline identity is stable for the component's lifetime; run once on mount
   useEffect(() => {
     timeline.add(
       { r: 0 },
@@ -22,12 +23,9 @@ export function EasterEgg() {
         r: 1,
         duration: 550,
         ease: "linear",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onUpdate: (a: any) => setReveal(a.targets[0].r),
+        onUpdate: (a) => setReveal(a.targets[0].r),
       },
     );
-    // timeline identity is stable for the component's lifetime
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useKeyboard(() => {

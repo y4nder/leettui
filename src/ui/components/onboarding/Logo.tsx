@@ -28,7 +28,9 @@ export function Logo({ reveal = 1, subtitle = "LeetCode in your terminal", compa
   if (useCompact) {
     return (
       <box flexDirection="column" alignItems="center">
-        <text fg={colors.accent}>{"‹ leettui ›".slice(0, Math.max(0, Math.round(reveal * 11)))}</text>
+        <text fg={colors.accent}>
+          {"‹ leettui ›".slice(0, Math.max(0, Math.round(reveal * 11)))}
+        </text>
         {showSubtitle ? <text fg={colors.subtle}>{subtitle}</text> : null}
       </box>
     );
@@ -40,6 +42,7 @@ export function Logo({ reveal = 1, subtitle = "LeetCode in your terminal", compa
     <box flexDirection="column" alignItems="center">
       <box width={LOGO_WIDTH} flexDirection="column" alignItems="flex-start">
         {LOGO_LINES.map((line, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: fixed ASCII-art lines, never reordered and may repeat
           <text key={i} fg={colors.accent}>
             {line.slice(0, cols)}
           </text>

@@ -1,6 +1,6 @@
 import { describe, expect, test, afterEach } from "bun:test";
-import { homedir } from "os";
-import { join } from "path";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { expandPath, resolveBase, resolveConfigPath } from "./resolvePath";
 
 // homedir() is fixed by Bun at process launch, so the helpers and these tests
@@ -26,9 +26,11 @@ describe("expandPath", () => {
     expect(expandPath("~someone/x")).toBe("~someone/x");
   });
 
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: the literal ${VAR} in the test name is intentional
   test("substitutes $VAR and ${VAR}", () => {
     process.env.LEETTUI_TEST_VAR = "/data";
     expect(expandPath("$LEETTUI_TEST_VAR/sub")).toBe("/data/sub");
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: ${VAR} is the literal syntax under test
     expect(expandPath("${LEETTUI_TEST_VAR}/sub")).toBe("/data/sub");
   });
 

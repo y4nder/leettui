@@ -15,7 +15,7 @@
 // (`node main.js < tests/case-01.txt`) with cwd set to the language folder, but
 // the harness resolves `solution.js` via `__dirname` so it works regardless.
 
-import { type MetaData } from "./meta";
+import type { MetaData } from "./meta";
 import { generateEcmaHarness } from "./ecma";
 
 export function generateJavascriptHarness(meta: MetaData): string {

@@ -15,7 +15,7 @@
 // caveat as `node` (JS) / `python3` (Python). A missing interpreter degrades to
 // a per-case `error` in the runner, not a crash.
 
-import { type MetaData } from "./meta";
+import type { MetaData } from "./meta";
 import { generateEcmaHarness } from "./ecma";
 
 export function generateTypescriptHarness(meta: MetaData): string {

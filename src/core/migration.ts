@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, readdirSync, renameSync, statSync } from "fs";
-import { dirname, join } from "path";
+import { existsSync, mkdirSync, readdirSync, renameSync, statSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { getSolutionsDir } from "../config";
 import { EXTENSION_TO_LANGSLUG } from "../api/types";
 

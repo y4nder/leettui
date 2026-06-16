@@ -18,10 +18,7 @@ export function fuzzyMatch(needle: string, haystack: string): number {
   return qi === query.length ? score : 0;
 }
 
-export function filterQuestions(
-  questions: DbQuestion[],
-  needle: string
-): DbQuestion[] {
+export function filterQuestions(questions: DbQuestion[], needle: string): DbQuestion[] {
   if (!needle.trim()) return questions;
 
   const scored = questions

@@ -29,12 +29,13 @@ export function DebugPopup({ entries }: DebugPopupProps) {
           const modPart = e.mods ? `+${e.mods}` : "";
           const header = `[${e.ts}] key=${e.key}${modPart} mode=${e.mode} → ${e.action}`;
           return (
+            // biome-ignore lint/suspicious/noArrayIndexKey: append-only debug log render, entries are not reordered
             <box key={i} flexDirection="column">
               <text fg={e.error ? colors.error : colors.fg}>{` ${header}`}</text>
-              {e.error &&
-                e.error.split("\n").map((line, j) => (
-                  <text key={j} fg={colors.error}>{`   ${line}`}</text>
-                ))}
+              {e.error?.split("\n").map((line, j) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: static, never-reordered error lines that may repeat
+                <text key={j} fg={colors.error}>{`   ${line}`}</text>
+              ))}
             </box>
           );
         })}
@@ -42,7 +43,7 @@ export function DebugPopup({ entries }: DebugPopupProps) {
           <text fg={colors.fgDim}> No entries yet. Press keys to populate the log.</text>
         )}
       </scrollbox>
-      <text fg={colors.fgDim}> y:Yank to file  Esc/Enter:Close </text>
+      <text fg={colors.fgDim}> y:Yank to file Esc/Enter:Close </text>
     </box>
   );
 }

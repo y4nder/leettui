@@ -2,7 +2,7 @@
 // receives the store and renderer it needs as arguments — no React imports,
 // no top-level singletons — so they remain easy to reason about and reuse.
 
-import { dirname, resolve } from "path";
+import { dirname, resolve } from "node:path";
 
 import type { createCliRenderer } from "@opentui/core";
 
@@ -23,7 +23,7 @@ import { relocateSolutions, type RelocateResult } from "../../core/relocate";
 import { setLastKnownSolutionsDir } from "../../core/session";
 import { getEditorCommand, getSolutionsDir, persistSolutionsDir } from "../../config";
 import { resolveConfigPath } from "../../config/resolvePath";
-import { logError } from "../../debug";
+import { errMessage, logError } from "../../debug";
 import { buildResultView, info, errorView } from "./resultView";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
@@ -62,9 +62,9 @@ export async function handleViewDailyChallenge(triggerKey: string) {
     }
     const md = htmlToMarkdown(html);
     showPopup(`${q.frontendQuestionId}. ${q.title} [${q.difficulty}] — Daily`, md);
-  } catch (e: any) {
+  } catch (e) {
     logError(triggerKey, "browse", "handleViewDailyChallenge", e);
-    showResult(errorView("Error fetching daily challenge", e.message));
+    showResult(errorView("Error fetching daily challenge", errMessage(e)));
   }
 }
 
@@ -81,47 +81,51 @@ export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
       return;
     }
 
-    showSelect("Select Language", snippets.map((s) => s.lang), async (index) => {
-      hideSelect();
-      if (index === null) return;
+    showSelect(
+      "Select Language",
+      snippets.map((s) => s.lang),
+      async (index) => {
+        hideSelect();
+        if (index === null) return;
 
-      const snippet = snippets[index]!;
-      // metaData + example cases drive harness generation / tests seeding (cached fetch).
-      const cfg = await fetchConsolePanelConfig(q.title_slug).catch(() => null);
-      const path = createSolutionWithHarness(
-        q.id,
-        q.title_slug,
-        snippet.langSlug,
-        snippet.code,
-        cfg?.question.metaData,
-        cfg?.question.exampleTestcaseList
-      );
+        const snippet = snippets[index]!;
+        // metaData + example cases drive harness generation / tests seeding (cached fetch).
+        const cfg = await fetchConsolePanelConfig(q.title_slug).catch(() => null);
+        const path = createSolutionWithHarness(
+          q.id,
+          q.title_slug,
+          snippet.langSlug,
+          snippet.code,
+          cfg?.question.metaData,
+          cfg?.question.exampleTestcaseList,
+        );
 
-      const editor = getEditorCommand();
-      await withSuspendedRenderer(renderer, async () => {
-        const proc = Bun.spawn([editor, path], {
-          // cwd = the language folder, so the headless CLI's cwd-inference
-          // (`leettui test`) and per-language LSP work from inside the editor.
-          cwd: dirname(path),
-          stdin: "inherit",
-          stdout: "inherit",
-          stderr: "inherit",
+        const editor = getEditorCommand();
+        await withSuspendedRenderer(renderer, async () => {
+          const proc = Bun.spawn([editor, path], {
+            // cwd = the language folder, so the headless CLI's cwd-inference
+            // (`leettui test`) and per-language LSP work from inside the editor.
+            cwd: dirname(path),
+            stdin: "inherit",
+            stdout: "inherit",
+            stderr: "inherit",
+          });
+          await proc.exited;
         });
-        await proc.exited;
-      });
-      // A newly created file should immediately show the "solution exists" mark.
-      useAppStore.getState().refreshSolutionFiles();
-    });
-  } catch (e: any) {
+        // A newly created file should immediately show the "solution exists" mark.
+        useAppStore.getState().refreshSolutionFiles();
+      },
+    );
+  } catch (e) {
     logError(triggerKey, "browse", "handleOpenEditor", e);
-    showResult(errorView("Error fetching editor data", e.message));
+    showResult(errorView("Error fetching editor data", errMessage(e)));
   }
 }
 
 async function withChosenSolution(
   triggerKey: string,
   action: "run" | "submit",
-  fn: (langSlug: string) => Promise<void>
+  fn: (langSlug: string) => Promise<void>,
 ) {
   const q = currentQuestion();
   if (!q) return;
@@ -143,9 +147,9 @@ async function withChosenSolution(
       if (index === null) return;
       try {
         await fn(existing[index]!);
-      } catch (e: any) {
+      } catch (e) {
         logError(triggerKey, "browse", `handle${action}Solution`, e);
-        showResult(errorView(errTitle, e.message));
+        showResult(errorView(errTitle, errMessage(e)));
       }
     });
     return;
@@ -153,9 +157,9 @@ async function withChosenSolution(
 
   try {
     await fn(existing[0]!);
-  } catch (e: any) {
+  } catch (e) {
     logError(triggerKey, "browse", `handle${action}Solution`, e);
-    showResult(errorView(errTitle, e.message));
+    showResult(errorView(errTitle, errMessage(e)));
   }
 }
 
@@ -171,7 +175,7 @@ export async function handleRunSolution(triggerKey: string) {
       showResult(buildResultView(result));
     } catch (e) {
       if (e instanceof SolutionError) {
-        showResult(errorView(e.message));
+        showResult(errorView(errMessage(e)));
         return;
       }
       throw e;
@@ -192,7 +196,7 @@ export async function handleSubmitSolution(triggerKey: string) {
       showResult(buildResultView(result));
     } catch (e) {
       if (e instanceof SolutionError) {
-        showResult(errorView(e.message));
+        showResult(errorView(errMessage(e)));
         return;
       }
       throw e;
@@ -212,10 +216,10 @@ export async function handleSyncDb(triggerKey: string) {
     clearSyncProgress();
     refreshQuestions(getQuestionsByTopic(currentTopic()));
     init();
-  } catch (e: any) {
+  } catch (e) {
     logError(triggerKey, "browse", "handleSyncDb", e);
     clearSyncProgress();
-    showResult(errorView("Sync error", e.message));
+    showResult(errorView("Sync error", errMessage(e)));
   }
 }
 
@@ -227,9 +231,9 @@ export function handleYankUrl(triggerKey: string) {
     const url = problemUrl(q.title_slug);
     copyToClipboard(url);
     showResult(info(`Copied URL: ${url}`));
-  } catch (e: any) {
+  } catch (e) {
     logError(triggerKey, "browse", "handleYankUrl", e);
-    showResult(errorView("Could not copy URL", e.message));
+    showResult(errorView("Could not copy URL", errMessage(e)));
   }
 }
 
@@ -242,7 +246,7 @@ export async function handleReauth(renderer: Renderer) {
   let result: Awaited<ReturnType<typeof runAuthFlow>> = null;
   try {
     result = await withSuspendedRenderer(renderer, runAuthFlow);
-  } catch (e: any) {
+  } catch (e) {
     logError("reauth", "browse", "handleReauth", e);
   }
 
@@ -289,7 +293,7 @@ const defaultChangeLocationDeps: ChangeLocationDeps = {
 // this invariant is locked by a unit test without touching the real config/fs.
 export function changeSolutionsDir(
   rawInput: string,
-  deps: ChangeLocationDeps = defaultChangeLocationDeps
+  deps: ChangeLocationDeps = defaultChangeLocationDeps,
 ): ChangeLocationOutcome {
   const fromDir = deps.getSolutionsDir(); // BEFORE persist — the invariant
   const toDir = resolve(resolveConfigPath(rawInput));

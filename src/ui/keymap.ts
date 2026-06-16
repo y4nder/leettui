@@ -500,33 +500,33 @@ function bindingsFor(spec: Record<string, KeyLike | KeyLike[]>): Binding<Rendera
 }
 
 export const browseBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
-  "question.next":      ["j", "down"],
-  "question.prev":      ["k", "up"],
-  "question.first":     "gg",
-  "question.last":      "shift+g",
-  "topic.next":         "t",
-  "topic.prev":         "shift+t",
-  "question.random":    "r",
-  "question.yankUrl":   "y",
+  "question.next": ["j", "down"],
+  "question.prev": ["k", "up"],
+  "question.first": "gg",
+  "question.last": "shift+g",
+  "topic.next": "t",
+  "topic.prev": "shift+t",
+  "question.random": "r",
+  "question.yankUrl": "y",
   "filter.cycleDifficulty": "shift+d",
-  "problem.enter":      "return",
-  "problem.daily":      "d",
+  "problem.enter": "return",
+  "problem.daily": "d",
   "problem.openEditor": "e",
-  "problem.run":        "shift+r",
-  "problem.submit":     "s",
-  "search.start":       "/",
-  "help.open":          "h",
-  "debug.open":         "`",
-  "db.sync":            "*",
-  "palette.open":       "ctrl+p",
-  "update.dismiss":     "x",
-  "app.quit":           "q",
+  "problem.run": "shift+r",
+  "problem.submit": "s",
+  "search.start": "/",
+  "help.open": "h",
+  "debug.open": "`",
+  "db.sync": "*",
+  "palette.open": "ctrl+p",
+  "update.dismiss": "x",
+  "app.quit": "q",
 });
 
 export const popupBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
-  "popup.close":      ["escape", "return"],
+  "popup.close": ["escape", "return"],
   "popup.scrollDown": ["j", "down"],
-  "popup.scrollUp":   ["k", "up"],
+  "popup.scrollUp": ["k", "up"],
 });
 
 export const resultBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
@@ -539,40 +539,40 @@ export const helpBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
 
 export const debugBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "debug.close": ["escape", "return"],
-  "debug.yank":  "y",
+  "debug.yank": "y",
 });
 
 export const searchBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
-  "search.end":       ["escape", "return"],
+  "search.end": ["escape", "return"],
   "search.backspace": "backspace",
 });
 
 export const problemBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
-  "problem.openPicker":    "f",
-  "problem.editorOpen":    "e",
-  "problem.runFocused":    "shift+r",
-  "problem.testLocal":     "t",
+  "problem.openPicker": "f",
+  "problem.editorOpen": "e",
+  "problem.runFocused": "shift+r",
+  "problem.testLocal": "t",
   "problem.submitFocused": "s",
-  "problem.notes":         "n",
-  "update.dismiss":        "x",
-  "problem.escape":        ["escape", "q"],
+  "problem.notes": "n",
+  "update.dismiss": "x",
+  "problem.escape": ["escape", "q"],
 });
 
 // Mounted by NotesPopup while open. `e` shadows problem.editorOpen and
 // escape/q shadow problem.escape — both resolve to this (newer) layer.
 export const notesBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
-  "notes.edit":       "e",
+  "notes.edit": "e",
   "popup.scrollDown": ["j", "down"],
-  "popup.scrollUp":   ["k", "up"],
-  "notes.close":      ["escape", "q"],
+  "popup.scrollUp": ["k", "up"],
+  "notes.close": ["escape", "q"],
 });
 
 export const pickerBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
-  "picker.next":       ["j", "down"],
-  "picker.prev":       ["k", "up"],
-  "picker.confirm":    "return",
+  "picker.next": ["j", "down"],
+  "picker.prev": ["k", "up"],
+  "picker.confirm": "return",
   "picker.openEditor": "o",
-  "picker.cancel":     ["escape", "q"],
+  "picker.cancel": ["escape", "q"],
 });
 
 export function installKeymap(keymap: AppKeymap, renderer: CliRenderer): void {

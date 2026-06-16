@@ -154,8 +154,7 @@ export function parseCheckResponse(raw: CheckResponse): ParsedResponse {
     case 10: {
       const isRun = raw.task_name?.includes("RunCode") ?? false;
       if (isRun) {
-        const allCorrect =
-          raw.compare_result?.split("").every((c) => c === "1") ?? false;
+        const allCorrect = raw.compare_result?.split("").every((c) => c === "1") ?? false;
         return allCorrect
           ? { type: "run_accepted", data: raw }
           : { type: "run_wrong_answer", data: raw };

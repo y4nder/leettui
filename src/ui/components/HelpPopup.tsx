@@ -10,7 +10,6 @@ type Entry = CommandEntry<Renderable, KeyEvent>;
 
 const KEY_WIDTH = 16;
 const CATEGORY_ORDER = ["Navigation", "View", "Solve", "Search", "System"] as const;
-type Category = typeof CATEGORY_ORDER[number];
 
 interface Row {
   key: string;
@@ -86,12 +85,12 @@ export function HelpPopup({ debugEnabled }: HelpPopupProps) {
     >
       <text fg={colors.fgAccent}> Keybindings </text>
       <scrollbox flexGrow={1}>
-        {sections.flatMap((section, sIdx) => [
-          <text key={`h-${sIdx}`} fg={colors.fgAccent}>
+        {sections.flatMap((section) => [
+          <text key={`h-${section.header}`} fg={colors.fgAccent}>
             {`  ${section.header}`}
           </text>,
-          ...section.rows.map((row, rIdx) => (
-            <text key={`r-${sIdx}-${rIdx}`} fg={colors.fg}>
+          ...section.rows.map((row) => (
+            <text key={`r-${section.header}-${row.key}-${row.desc}`} fg={colors.fg}>
               {`    ${pad(row.key, KEY_WIDTH)}${row.desc}`}
             </text>
           )),

@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync } from "fs";
-import { tmpdir } from "os";
-import { join } from "path";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 import { parseMetaData } from "./meta";
 import { generateJavascriptHarness } from "./javascript";
@@ -100,7 +100,7 @@ describe("end-to-end execution", () => {
     if (c in seen) return [seen[c], i];
     seen[nums[i]] = i;
   }
-};`
+};`,
     );
     writeFileSync(join(dir, "case-01.txt"), "[2,7,11,15]\n9\n");
 

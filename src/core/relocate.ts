@@ -1,5 +1,5 @@
-import { cpSync, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from "fs";
-import { join, resolve, sep } from "path";
+import { cpSync, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from "node:fs";
+import { join, resolve, sep } from "node:path";
 
 export interface RelocateResult {
   moved: number;
@@ -106,7 +106,7 @@ export function countProblemFolders(dir: string): number {
 // in-app change.
 export function detectSolutionsRelocation(
   currentDir: string,
-  lastKnownDir: string | undefined
+  lastKnownDir: string | undefined,
 ): RelocationPlan | null {
   if (!lastKnownDir) return null; // first boot — nothing was tracked yet
   const from = resolve(lastKnownDir);

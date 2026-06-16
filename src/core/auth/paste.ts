@@ -23,7 +23,11 @@ export function parseCookieInput(raw: string): ParsedCookies {
     if (eq === -1) continue;
     const key = part.slice(0, eq).trim();
     // Keep everything after the first `=` (session/csrf values may contain `=` padding).
-    let val = part.slice(eq + 1).trim().replace(/^["']|["']$/g, "").trim();
+    const val = part
+      .slice(eq + 1)
+      .trim()
+      .replace(/^["']|["']$/g, "")
+      .trim();
     if (!val) continue;
     if (key === "LEETCODE_SESSION") out.lc_session = val;
     else if (key === "csrftoken") out.csrftoken = val;

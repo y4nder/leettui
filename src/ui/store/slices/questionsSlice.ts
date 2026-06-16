@@ -29,11 +29,7 @@ export interface QuestionsSlice {
 
 // Projects the topic's questions down to what the UI shows: difficulty filter
 // first (cheap predicate), then the fuzzy search needle.
-function project(
-  all: DbQuestion[],
-  needle: string,
-  difficulty: DifficultyFilter
-): DbQuestion[] {
+function project(all: DbQuestion[], needle: string, difficulty: DifficultyFilter): DbQuestion[] {
   let qs = all;
   if (difficulty !== "all") qs = qs.filter((q) => q.difficulty === difficulty);
   if (needle) qs = filterQuestions(qs, needle);

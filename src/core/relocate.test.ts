@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "fs";
-import { join } from "path";
-import { tmpdir } from "os";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { countProblemFolders, detectSolutionsRelocation, relocateSolutions } from "./relocate";
 
 let base: string;
@@ -68,7 +68,9 @@ describe("relocateSolutions", () => {
     const res = relocateSolutions(from, to);
 
     expect(res).toEqual({ moved: 0, skipped: 1 });
-    expect(readFileSync(join(to, "0001_two-sum/python3/solution.py"), "utf-8")).toBe("already-here");
+    expect(readFileSync(join(to, "0001_two-sum/python3/solution.py"), "utf-8")).toBe(
+      "already-here",
+    );
     expect(existsSync(join(from, "0001_two-sum/python3/solution.py"))).toBe(true);
   });
 

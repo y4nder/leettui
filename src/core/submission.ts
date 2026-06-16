@@ -23,10 +23,7 @@ function loadCode(question: DbQuestion, langSlug: string): string {
   return code;
 }
 
-export async function runSolution(
-  question: DbQuestion,
-  langSlug: string
-): Promise<ParsedResponse> {
+export async function runSolution(question: DbQuestion, langSlug: string): Promise<ParsedResponse> {
   const code = loadCode(question, langSlug);
   const [config, editorData] = await Promise.all([
     fetchConsolePanelConfig(question.title_slug),
@@ -39,7 +36,7 @@ export async function runSolution(
     langSlug,
     editorData.question.questionId,
     code,
-    testCases
+    testCases,
   );
 
   const result = await pollResult(runResponse.interpret_id);
@@ -49,7 +46,7 @@ export async function runSolution(
 
 export async function submitSolution(
   question: DbQuestion,
-  langSlug: string
+  langSlug: string,
 ): Promise<ParsedResponse> {
   const code = loadCode(question, langSlug);
   const editorData = await fetchEditorData(question.title_slug);
@@ -58,7 +55,7 @@ export async function submitSolution(
     question.title_slug,
     langSlug,
     editorData.question.questionId,
-    code
+    code,
   );
 
   const result = await pollResult(submitResponse.submission_id);
@@ -67,7 +64,7 @@ export async function submitSolution(
     setSubmissionStats(
       question.id,
       result.data.status_runtime ?? null,
-      result.data.status_memory ?? null
+      result.data.status_memory ?? null,
     );
   } else {
     markAttempted(question.id);

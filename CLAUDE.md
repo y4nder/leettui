@@ -10,6 +10,23 @@ bun install
 bun src/index.tsx
 ```
 
+## Checks (run before every PR)
+
+`bun run check` is the full gate: Biome (lint + format check), `tsc --noEmit`, and `bun test`. CI (`.github/workflows/ci.yml`) runs that full script on every PR and push to `main`. Locally the gate is **split across two Husky hooks** (installed by the `prepare` script on `bun install`) so committing stays fast:
+
+- **pre-commit** (`.husky/pre-commit`) → `bun run lint && bun run typecheck` (the fast half).
+- **pre-push** (`.husky/pre-push`) → `bun test` (so broken tests can't reach the remote).
+
+Bypass either in a pinch with `git commit --no-verify` / `git push --no-verify`. Keep `package.json`'s `lint` / `typecheck` / `test` / `check` scripts as the single source of truth so the hooks and CI never drift.
+
+```sh
+bun run check      # the full gate (lint + typecheck + test)
+bun run lint:fix   # auto-fix Biome lint + formatting
+bun run format     # format only
+```
+
+Biome config is `biome.json`. The gate runs with `--error-on-warnings`, so it is **zero-tolerance** — any lint finding (warning or error) fails it; keep the tree clean. The only relaxed rule is `noNonNullAssertion` (off — used deliberately with strict index access). A handful of intentional cases carry inline `// biome-ignore <rule>: <reason>` suppressions (e.g. static, never-reordered render lists keyed by index; the `useMemo(..., [themeVersion])` theme cache-bust pattern); add a justification when you suppress. `bun.lock` pins Biome — run installs with `--frozen-lockfile`.
+
 On first run, leettui runs an auth flow that imports your LeetCode session from Firefox (if logged in) or guides you through a one-time cookie paste, validates it, and writes it to `~/.config/leettui/config.toml`. Re-run any time with `bun src/index.tsx auth`.
 
 ### Subcommands

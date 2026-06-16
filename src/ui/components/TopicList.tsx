@@ -28,7 +28,11 @@ export function TopicList({ topics, selectedIndex, height }: TopicListProps) {
         const realIndex = scrollOffset + i;
         const isSelected = realIndex === selectedIndex;
         return (
-          <box key={topic} backgroundColor={isSelected ? colors.bgHighlight : undefined} width="100%">
+          <box
+            key={topic}
+            backgroundColor={isSelected ? colors.bgHighlight : undefined}
+            width="100%"
+          >
             <text fg={isSelected ? colors.fgAccent : colors.fg}>
               {isSelected ? " ► " : "   "}
               {topic}

@@ -46,7 +46,7 @@ function pickError(short: string | undefined, full: string | undefined): string 
 
 function pairOutputs(
   actual: string[] | undefined,
-  expected: string[] | undefined
+  expected: string[] | undefined,
 ): { label: string; value: string }[] {
   const a = (actual ?? []).filter((s) => s !== "");
   const e = (expected ?? []).filter((s) => s !== "");
@@ -185,7 +185,7 @@ export function buildLocalRunView(report: LocalRunReport): ResultView {
       return info(`Local run not supported for ${report.langSlug} (no harness generator).`);
     case "no-harness":
       return errorView(
-        `No ${report.harnessFilename} found in the ${report.langSlug} folder — cannot run locally.`
+        `No ${report.harnessFilename} found in the ${report.langSlug} folder — cannot run locally.`,
       );
     case "no-cases":
       return info("No test cases. Add tests/case-NN.txt (e.g. by recreating the solution).");

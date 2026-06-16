@@ -33,7 +33,7 @@ query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $fi
 
 export async function fetchQuestionList(
   limit: number,
-  skip: number
+  skip: number,
 ): Promise<ProblemsetQuestionListData> {
   return gqlQuery<ProblemsetQuestionListData>(QUERY, {
     categorySlug: "",

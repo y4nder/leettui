@@ -206,7 +206,7 @@ export function exitCodeForLocalRun(report: LocalRunReport): number {
   switch (report.kind) {
     case "ran":
       return report.cases.some(
-        (cse) => cse.status === "fail" || cse.status === "error" || cse.status === "timeout"
+        (cse) => cse.status === "fail" || cse.status === "error" || cse.status === "timeout",
       )
         ? 1
         : 0;

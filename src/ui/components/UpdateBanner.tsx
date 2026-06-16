@@ -15,7 +15,7 @@ export function UpdateBanner() {
   return (
     <box width="100%" height={1} backgroundColor={colors.info} paddingLeft={1} paddingRight={1}>
       <text fg={colors.bg} attributes={TextAttributes.BOLD}>
-        ▲ Update available: {tag} — run `leettui update`  (x: dismiss)
+        ▲ Update available: {tag} — run `leettui update` (x: dismiss)
       </text>
     </box>
   );

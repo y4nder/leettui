@@ -14,12 +14,12 @@ export function SelectPopup({ title, items, onSelect }: SelectPopupProps) {
   useBindings(
     () => ({
       bindings: [
-        { key: "j",       cmd: () => setSelectedIndex((i) => Math.min(i + 1, items.length - 1)) },
-        { key: "down",    cmd: () => setSelectedIndex((i) => Math.min(i + 1, items.length - 1)) },
-        { key: "k",       cmd: () => setSelectedIndex((i) => Math.max(i - 1, 0)) },
-        { key: "up",      cmd: () => setSelectedIndex((i) => Math.max(i - 1, 0)) },
-        { key: "return",  cmd: () => onSelect(selectedIndex) },
-        { key: "escape",  cmd: () => onSelect(null) },
+        { key: "j", cmd: () => setSelectedIndex((i) => Math.min(i + 1, items.length - 1)) },
+        { key: "down", cmd: () => setSelectedIndex((i) => Math.min(i + 1, items.length - 1)) },
+        { key: "k", cmd: () => setSelectedIndex((i) => Math.max(i - 1, 0)) },
+        { key: "up", cmd: () => setSelectedIndex((i) => Math.max(i - 1, 0)) },
+        { key: "return", cmd: () => onSelect(selectedIndex) },
+        { key: "escape", cmd: () => onSelect(null) },
       ],
     }),
     [items.length, selectedIndex, onSelect],

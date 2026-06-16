@@ -17,7 +17,7 @@ export function SolutionPickerModal() {
   useBindings(() => ({ bindings: pickerBindings }), []);
 
   const problem = useAppStore((s) => s.problem);
-  if (!problem || !problem.solutionPicker) return null;
+  if (!problem?.solutionPicker) return null;
 
   const { snippets, existing, index } = problem.solutionPicker;
   const focused = snippets[index];
@@ -25,11 +25,7 @@ export function SolutionPickerModal() {
   const isExisting = focused ? existing.has(focused.langSlug) : false;
   const previewContent = focused
     ? isExisting
-      ? readSolutionFile(
-          problem.question.id,
-          problem.question.title_slug,
-          focused.langSlug
-        ) ?? ""
+      ? (readSolutionFile(problem.question.id, problem.question.title_slug, focused.langSlug) ?? "")
       : focused.code
     : "";
   const previewFiletype = focused ? filetypeFor(focused.langSlug) : undefined;
@@ -47,16 +43,12 @@ export function SolutionPickerModal() {
       flexDirection="column"
     >
       <text fg={colors.fgAccent}>
-        {" "}Solutions for {problem.question.id}. {problem.question.title}{" "}
+        {" "}
+        Solutions for {problem.question.id}. {problem.question.title}{" "}
       </text>
 
       <box flexDirection="row" flexGrow={1}>
-        <box
-          flexDirection="column"
-          width="38%"
-          borderStyle="single"
-          borderColor={colors.border}
-        >
+        <box flexDirection="column" width="38%" borderStyle="single" borderColor={colors.border}>
           <scrollbox flexGrow={1}>
             {snippets.map((s, i) => {
               const isSelected = i === index;
@@ -70,7 +62,8 @@ export function SolutionPickerModal() {
                   fg={isSelected ? colors.fgAccent : hasSolution ? colors.fg : colors.fgDim}
                   bg={isSelected ? colors.bgHighlight : undefined}
                 >
-                  {" "}{cursor} {marker} {langCol}
+                  {" "}
+                  {cursor} {marker} {langCol}
                 </text>
               );
             })}
@@ -79,7 +72,8 @@ export function SolutionPickerModal() {
 
         <box flexDirection="column" flexGrow={1} borderStyle="single" borderColor={colors.border}>
           <text fg={colors.fgDim}>
-            {" "}{focused ? `${isExisting ? "" : "(new) "}${focused.lang}` : ""}{" "}
+            {" "}
+            {focused ? `${isExisting ? "" : "(new) "}${focused.lang}` : ""}{" "}
           </text>
           <scrollbox flexGrow={1}>
             <code
@@ -91,7 +85,7 @@ export function SolutionPickerModal() {
         </box>
       </box>
 
-      <text fg={colors.fgDim}> j/k:Move  Enter:Select  o:Edit  Esc/q:Cancel </text>
+      <text fg={colors.fgDim}> j/k:Move Enter:Select o:Edit Esc/q:Cancel </text>
     </box>
   );
 }

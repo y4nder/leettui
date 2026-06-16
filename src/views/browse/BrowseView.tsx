@@ -69,9 +69,7 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
 
       <UpdateBanner />
 
-      {syncProgress && (
-        <ProgressBar current={syncProgress.current} total={syncProgress.total} />
-      )}
+      {syncProgress && <ProgressBar current={syncProgress.current} total={syncProgress.total} />}
 
       <box flexDirection="row" flexGrow={1} height={mainHeight}>
         <TopicList topics={topics} selectedIndex={selectedTopicIndex} height={mainHeight} />

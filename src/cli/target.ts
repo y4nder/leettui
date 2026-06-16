@@ -13,17 +13,14 @@ export interface ResolvedTarget {
   langSlug: string;
 }
 
-export type TargetResult =
-  | { ok: true; target: ResolvedTarget }
-  | { ok: false; error: string };
+export type TargetResult = { ok: true; target: ResolvedTarget } | { ok: false; error: string };
 
 export function resolveTarget(cwd: string): TargetResult {
   const resolved = resolveProblemFromCwd(cwd);
   if (!resolved) {
     return {
       ok: false,
-      error:
-        "Not inside a solution folder. cd into solutions/{id}_{slug}/{lang}/ first.",
+      error: "Not inside a solution folder. cd into solutions/{id}_{slug}/{lang}/ first.",
     };
   }
   if (!resolved.langSlug) {

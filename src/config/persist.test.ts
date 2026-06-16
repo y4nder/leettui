@@ -26,7 +26,7 @@ describe("upsertSectionString — append a new section", () => {
     const next = upsertSectionString(FRESH, "paths", "solutions", "/home/me/leetcode");
     expect(parse(next).paths).toEqual({ solutions: "/home/me/leetcode" });
     // The commented scaffolding is untouched, and tokens survive.
-    expect(next).toContain("# solutions = \"\"");
+    expect(next).toContain('# solutions = ""');
     expect(parse(next).csrftoken).toBe("abc");
   });
 

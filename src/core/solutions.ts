@@ -1,5 +1,5 @@
-import { mkdirSync, existsSync, readdirSync, readFileSync, statSync } from "fs";
-import { dirname, join, relative, resolve, sep } from "path";
+import { mkdirSync, existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { getSolutionsDir, getLanguageTemplateDir } from "../config";
 import { getExtension } from "../api/types";
 import { generateHarness } from "./harness";
@@ -42,10 +42,7 @@ export interface ResolvedProblemPath {
   langSlug: string | null;
 }
 
-export function resolveProblemPath(
-  path: string,
-  solutionsDir: string
-): ResolvedProblemPath | null {
+export function resolveProblemPath(path: string, solutionsDir: string): ResolvedProblemPath | null {
   const rel = relative(resolve(solutionsDir), resolve(path));
   // Outside the solutions tree (or equal to it): "" or starts with "..".
   if (rel === "" || rel === ".." || rel.startsWith(`..${sep}`)) return null;
@@ -71,11 +68,7 @@ function solutionFilePath(id: number, titleSlug: string, langSlug: string): stri
   return join(getProblemDir(id, titleSlug), langSlug, getSolutionFilename(langSlug));
 }
 
-export function getSolutionPath(
-  id: number,
-  titleSlug: string,
-  langSlug: string
-): string {
+export function getSolutionPath(id: number, titleSlug: string, langSlug: string): string {
   const path = solutionFilePath(id, titleSlug, langSlug);
   mkdirSync(dirname(path), { recursive: true });
   return path;
@@ -104,11 +97,7 @@ export function readNotes(id: number, titleSlug: string): string | null {
 // Ensures the shared `notes.md` exists (creating the problem dir + a minimal
 // title header if absent) and returns its path, ready to open in $EDITOR. The
 // header is only written on first creation; existing notes are never touched.
-export function ensureNotesFile(
-  id: number,
-  titleSlug: string,
-  title?: string
-): string {
+export function ensureNotesFile(id: number, titleSlug: string, title?: string): string {
   const path = getNotesPath(id, titleSlug);
   if (!existsSync(path)) {
     mkdirSync(dirname(path), { recursive: true });
@@ -118,11 +107,7 @@ export function ensureNotesFile(
   return path;
 }
 
-export function solutionExists(
-  id: number,
-  titleSlug: string,
-  langSlug: string
-): boolean {
+export function solutionExists(id: number, titleSlug: string, langSlug: string): boolean {
   return existsSync(solutionFilePath(id, titleSlug, langSlug));
 }
 
@@ -150,10 +135,7 @@ function langSlugsWithSolution(problemDir: string): string[] {
 }
 
 // Returns the langSlugs that have a solution file on disk for this problem.
-export function findExistingSolutions(
-  id: number,
-  titleSlug: string
-): string[] {
+export function findExistingSolutions(id: number, titleSlug: string): string[] {
   return langSlugsWithSolution(getProblemDir(id, titleSlug)).sort();
 }
 
@@ -185,7 +167,7 @@ export function createSolutionFile(
   id: number,
   titleSlug: string,
   langSlug: string,
-  code: string
+  code: string,
 ): string {
   const path = getSolutionPath(id, titleSlug, langSlug);
   if (!existsSync(path)) {
@@ -202,7 +184,7 @@ export function getLangFilePath(
   id: number,
   titleSlug: string,
   langSlug: string,
-  filename: string
+  filename: string,
 ): string {
   const path = join(getProblemDir(id, titleSlug), langSlug, filename);
   mkdirSync(dirname(path), { recursive: true });
@@ -214,7 +196,7 @@ export function getHarnessPath(
   id: number,
   titleSlug: string,
   langSlug: string,
-  filename: string
+  filename: string,
 ): string {
   return getLangFilePath(id, titleSlug, langSlug, filename);
 }
@@ -226,7 +208,7 @@ export function createHarnessFile(
   titleSlug: string,
   langSlug: string,
   filename: string,
-  content: string
+  content: string,
 ): string {
   const path = getHarnessPath(id, titleSlug, langSlug, filename);
   if (!existsSync(path)) {
@@ -239,11 +221,7 @@ export function createHarnessFile(
 // cases. Each `exampleTestcaseList` entry is already a full case (one JSON
 // value per line), written verbatim as `case-NN.txt`. Existing case files are
 // never overwritten; an empty list is a no-op.
-export function seedTests(
-  id: number,
-  titleSlug: string,
-  exampleTestcases: string[]
-): void {
+export function seedTests(id: number, titleSlug: string, exampleTestcases: string[]): void {
   if (!exampleTestcases || exampleTestcases.length === 0) return;
   const dir = getTestsDir(id, titleSlug);
   mkdirSync(dir, { recursive: true });
@@ -278,11 +256,7 @@ export function renderTemplate(text: string, vars: TemplateVars): string {
 // the caller can suppress the bundled default for any filename the template
 // already provides (e.g. `solution.py` overrides the snippet, `main.py`
 // overrides the generated harness). A missing template dir → empty set.
-export function overlayTemplates(
-  srcDir: string,
-  destDir: string,
-  vars: TemplateVars
-): Set<string> {
+export function overlayTemplates(srcDir: string, destDir: string, vars: TemplateVars): Set<string> {
   const applied = new Set<string>();
   if (!existsSync(srcDir)) return applied;
 
@@ -332,7 +306,7 @@ export function createSolutionWithHarness(
   langSlug: string,
   code: string,
   metaDataRaw?: string,
-  exampleTestcases?: string[]
+  exampleTestcases?: string[],
 ): string {
   const solutionPath = getSolutionPath(id, titleSlug, langSlug);
 
@@ -340,11 +314,7 @@ export function createSolutionWithHarness(
     functionName: functionNameFromMeta(metaDataRaw),
     titleSlug,
   };
-  const applied = overlayTemplates(
-    getLanguageTemplateDir(langSlug),
-    dirname(solutionPath),
-    vars
-  );
+  const applied = overlayTemplates(getLanguageTemplateDir(langSlug), dirname(solutionPath), vars);
 
   if (!applied.has(getSolutionFilename(langSlug))) {
     createSolutionFile(id, titleSlug, langSlug, code);
@@ -375,11 +345,7 @@ function functionNameFromMeta(metaDataRaw?: string | null): string | undefined {
 
 // Returns null on a missing file or any read error, so callers (including the
 // picker's render path) never have to guard against a throw.
-export function readSolutionFile(
-  id: number,
-  titleSlug: string,
-  langSlug: string
-): string | null {
+export function readSolutionFile(id: number, titleSlug: string, langSlug: string): string | null {
   const path = solutionFilePath(id, titleSlug, langSlug);
   try {
     return readFileSync(path, "utf-8");

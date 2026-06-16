@@ -18,8 +18,6 @@ query questionEditorData($titleSlug: String!) {
   }
 }`;
 
-export async function fetchEditorData(
-  titleSlug: string
-): Promise<QuestionEditorData> {
+export async function fetchEditorData(titleSlug: string): Promise<QuestionEditorData> {
   return gqlQuery<QuestionEditorData>(QUERY, { titleSlug }, true);
 }

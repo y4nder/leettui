@@ -28,7 +28,9 @@ export function SyncStep() {
       <Logo subtitle="" />
       <box height={1} />
       <text fg={colors.subtle}>
-        {progress ? `Syncing problems…  ${progress.current}/${progress.total}` : "Setting things up…"}
+        {progress
+          ? `Syncing problems…  ${progress.current}/${progress.total}`
+          : "Setting things up…"}
       </text>
       {progress ? <text fg={colors.accent}>{bar}</text> : null}
     </box>

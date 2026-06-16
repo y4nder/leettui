@@ -48,6 +48,4 @@ const onDiskWorker = fileURLToPath(
 
 process.env.OTUI_TREE_SITTER_WORKER_PATH = existsSync(onDiskWorker)
   ? onDiskWorker
-  : fileURLToPath(
-      new URL("./node_modules/@opentui/core/parser.worker.js", import.meta.url),
-    );
+  : fileURLToPath(new URL("./node_modules/@opentui/core/parser.worker.js", import.meta.url));

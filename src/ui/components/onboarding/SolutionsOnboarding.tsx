@@ -56,7 +56,9 @@ export function SolutionsOnboarding({ defaultDir, onDone }: SolutionsOnboardingP
 
       <box flexDirection="column" width={inputWidth}>
         <text fg={colors.subtle}>Where should your solutions live?</text>
-        <text fg={colors.fgDim}>Tip: point this at a git repo to version-control and push your work.</text>
+        <text fg={colors.fgDim}>
+          Tip: point this at a git repo to version-control and push your work.
+        </text>
       </box>
       <box height={1} />
 
@@ -81,8 +83,10 @@ export function SolutionsOnboarding({ defaultDir, onDone }: SolutionsOnboardingP
       </box>
 
       <box height={1} />
-      <text fg={colors.fgDim}>~ and $VARS are expanded; a relative path resolves against your home dir.</text>
-      <text fg={colors.fgDim}>Enter: use this folder  ·  Esc: use the default</text>
+      <text fg={colors.fgDim}>
+        ~ and $VARS are expanded; a relative path resolves against your home dir.
+      </text>
+      <text fg={colors.fgDim}>Enter: use this folder · Esc: use the default</text>
     </box>
   );
 }

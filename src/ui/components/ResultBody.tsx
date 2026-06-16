@@ -70,14 +70,10 @@ function CaseRow({ c }: { c: ResultCase }) {
 function Section({ label, color, value }: { label: string; color: ThemeColor; value: string }) {
   const lines = value.split("\n");
   return (
-    <box
-      flexDirection="column"
-      borderStyle="single"
-      borderColor={color}
-      marginTop={1}
-    >
+    <box flexDirection="column" borderStyle="single" borderColor={color} marginTop={1}>
       <text fg={color}> {label} </text>
       {lines.map((line, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: static, never-reordered output lines that may repeat
         <text key={i} fg={colors.fg}>
           {" "}
           {line}
@@ -95,8 +91,8 @@ export function ResultBody({ view }: ResultBodyProps) {
 
       {view.metrics && view.metrics.length > 0 && (
         <box flexDirection="column" marginTop={1}>
-          {view.metrics.map((m, i) => (
-            <box key={i} flexDirection="row">
+          {view.metrics.map((m) => (
+            <box key={m.label} flexDirection="row">
               <text fg={colors.subtle}> {m.label}: </text>
               <text fg={colors.fg}>{m.value}</text>
               {m.subtle && <text fg={colors.subtle}> ({m.subtle})</text>}
@@ -108,11 +104,7 @@ export function ResultBody({ view }: ResultBodyProps) {
       {view.diff && (
         <box flexDirection="column">
           {view.diff.testcase && (
-            <Section
-              label="Last Testcase"
-              color={colors.info}
-              value={view.diff.testcase}
-            />
+            <Section label="Last Testcase" color={colors.info} value={view.diff.testcase} />
           )}
           <Section label="Expected" color={colors.success} value={view.diff.expected} />
           <Section label="Your Output" color={colors.error} value={view.diff.actual} />
@@ -121,14 +113,11 @@ export function ResultBody({ view }: ResultBodyProps) {
 
       {view.outputs && view.outputs.length > 0 && (
         <box flexDirection="column" marginTop={1}>
-          {view.outputs.map((o, i) => {
+          {view.outputs.map((o) => {
             const expected = o.label.startsWith("Expected");
             return (
-              <box key={i} flexDirection="row">
-                <text fg={expected ? colors.success : colors.info}>
-                  {" "}
-                  {o.label}:{" "}
-                </text>
+              <box key={o.label} flexDirection="row">
+                <text fg={expected ? colors.success : colors.info}> {o.label}: </text>
                 <text fg={colors.fg}>{o.value}</text>
               </box>
             );
@@ -139,6 +128,7 @@ export function ResultBody({ view }: ResultBodyProps) {
       {view.error && (
         <box flexDirection="column" marginTop={1}>
           {view.error.split("\n").map((line, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: static, never-reordered error lines that may repeat
             <text key={i} fg={colors.error}>
               {" "}
               {line}

@@ -3,8 +3,8 @@
 // time and takes its inputs as explicit args, so they stay pure and unit-testable
 // even though Bun fixes `os.homedir()` at process launch.
 
-import { homedir } from "os";
-import { isAbsolute, join } from "path";
+import { homedir } from "node:os";
+import { isAbsolute, join } from "node:path";
 
 // Expand a raw path string for use as a filesystem location:
 //   - `$VAR` / `${VAR}` are substituted with the matching env value (empty string
