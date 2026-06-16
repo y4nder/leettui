@@ -339,11 +339,46 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     run: () => useAppStore.getState().setProblemFocusedPanel("description"),
   }),
   makeCommand({
+    name: "problem.focusSolutions",
+    title: "Focus solutions panel",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().setProblemFocusedPanel("solutions"),
+  }),
+  makeCommand({
     name: "problem.focusResult",
     title: "Focus result panel",
     category: "Navigation",
     group: "modal",
     run: () => useAppStore.getState().setProblemFocusedPanel("result"),
+  }),
+  makeCommand({
+    name: "problem.focusLeft",
+    title: "Focus panel left",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().moveProblemFocus("left"),
+  }),
+  makeCommand({
+    name: "problem.focusRight",
+    title: "Focus panel right",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().moveProblemFocus("right"),
+  }),
+  makeCommand({
+    name: "problem.focusUp",
+    title: "Focus panel up",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().moveProblemFocus("up"),
+  }),
+  makeCommand({
+    name: "problem.focusDown",
+    title: "Focus panel down",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().moveProblemFocus("down"),
   }),
   makeCommand({
     name: "problem.scrollDown",
@@ -358,6 +393,20 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     category: "Navigation",
     group: "modal",
     run: () => scrollFocusedProblemPanel(-1),
+  }),
+  makeCommand({
+    name: "problem.solutionNext",
+    title: "Next solution",
+    category: "Solve",
+    group: "modal",
+    run: () => useAppStore.getState().moveFocusedSolution(1),
+  }),
+  makeCommand({
+    name: "problem.solutionPrev",
+    title: "Previous solution",
+    category: "Solve",
+    group: "modal",
+    run: () => useAppStore.getState().moveFocusedSolution(-1),
   }),
   makeCommand({
     name: "picker.next",
@@ -691,8 +740,9 @@ export const searchBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
 
 // Always mounted in problem mode regardless of focused panel. Solve actions stay here:
 // they target the focused *solution* (focusedSolutionIndex), which is independent of the
-// focused *panel*. Also focus traversal (Tab/Shift+Tab + Ctrl+h/l, [1]/[2]), notes, the
-// update-banner dismiss, and escape. Only panel-relative keys (j/k) live in panel layers.
+// focused *panel*. Also focus traversal (Tab/Shift+Tab linear + Ctrl+h/j/k/l spatial,
+// [1]/[2]/[3]), notes, the update-banner dismiss, and escape. Only panel-relative keys
+// (j/k) live in panel layers.
 export const problemGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "problem.openPicker": "f",
   "problem.editorOpen": "e",
@@ -700,11 +750,19 @@ export const problemGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFo
   "problem.testLocal": "t",
   "problem.submitFocused": "s",
   "problem.notes": "n",
-  // Mirror browse: Tab/Shift+Tab cycle, Ctrl+l/Ctrl+h traverse right/left, [1]/[2] jump.
-  "problem.focusCycle": ["tab", "ctrl+l"],
-  "problem.focusCyclePrev": ["shift+tab", "ctrl+h"],
+  // Tab/Shift+Tab cycle linearly (wrap); Ctrl+h/j/k/l move spatially across the 2D
+  // layout (left/down/up/right, no wrap); [1]/[2]/[3] jump. NOTE: some terminals deliver
+  // Ctrl+j as LF (= Enter) and Ctrl+h as Backspace — on those, those two may not register
+  // as focus moves; Tab + the remaining Ctrl keys still reach every panel.
+  "problem.focusCycle": "tab",
+  "problem.focusCyclePrev": "shift+tab",
+  "problem.focusLeft": "ctrl+h",
+  "problem.focusRight": "ctrl+l",
+  "problem.focusDown": "ctrl+j",
+  "problem.focusUp": "ctrl+k",
   "problem.focusDescription": "1",
-  "problem.focusResult": "2",
+  "problem.focusSolutions": "2",
+  "problem.focusResult": "3",
   "update.dismiss": "x",
   "problem.escape": ["escape", "q"],
 });
@@ -714,6 +772,17 @@ export const problemGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFo
 export const scrollPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "problem.scrollDown": ["j", "down"],
   "problem.scrollUp": ["k", "up"],
+});
+
+// Mounted only while the Solutions panel is focused. j/k cycle the active solution
+// (what e/R/s/t target), Enter opens it in $EDITOR — reusing problem.editorOpen so
+// Enter and `e` stay identical (incl. the "press f" info-message on an empty list).
+// This is the layer-swap linchpin: j/k means "cycle" here vs "scroll" in scrollPanelBindings,
+// but the two layers are mutually exclusive (gated on focusedPanel), so they never collide.
+export const solutionsPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "problem.solutionNext": ["j", "down"],
+  "problem.solutionPrev": ["k", "up"],
+  "problem.editorOpen": "return",
 });
 
 // Mounted by NotesPopup while open. `e` shadows problem.editorOpen and

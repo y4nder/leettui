@@ -13,10 +13,12 @@ import { StatusBar } from "../../ui/components/StatusBar";
 import { ProgressBar } from "../../ui/components/ProgressBar";
 import { UpdateBanner } from "../../ui/components/UpdateBanner";
 import { SolutionPickerModal } from "../../ui/components/SolutionPickerModal";
+import { SolutionsPanel } from "../../ui/components/SolutionsPanel";
 import { NotesPopup } from "../../ui/components/NotesPopup";
 import {
   problemGlobalBindings,
   scrollPanelBindings,
+  solutionsPanelBindings,
   registerProblemScroller,
 } from "../../ui/keymap";
 
@@ -33,6 +35,11 @@ function ProblemGlobalBindings() {
 
 function ScrollPanelBindings() {
   useBindings(() => ({ bindings: scrollPanelBindings }), []);
+  return null;
+}
+
+function SolutionsPanelBindings() {
+  useBindings(() => ({ bindings: solutionsPanelBindings }), []);
   return null;
 }
 
@@ -77,24 +84,12 @@ function PanelTitle({ tag, label, focused }: { tag: string; label: string; focus
   );
 }
 
-function ActiveSolutionStrip({ langSlug }: { langSlug: string | null }) {
-  return (
-    <box flexDirection="row" width="100%" height={1} backgroundColor={colors.statusBar}>
-      {langSlug ? (
-        <text fg={colors.fgAccent}> ● {langSlug} </text>
-      ) : (
-        <text fg={colors.fgDim}> No solution selected — press f </text>
-      )}
-    </box>
-  );
-}
-
 function HintsFooter() {
   return (
     <box flexDirection="column" borderStyle="single" borderColor={colors.border} width="100%">
       <text fg={colors.fgDim}>
         {" "}
-        Tab:Focus j/k:Scroll f:Solutions e:Edit R:Run t:Test s:Submit n:Notes Esc/q:Back{" "}
+        Tab:Focus j/k:Nav f:Solutions e:Edit R:Run t:Test s:Submit n:Notes Esc/q:Back{" "}
       </text>
     </box>
   );
@@ -145,13 +140,13 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
     solutionPicker,
     notes,
   } = problem;
-  const focusedLangSlug = solutions[focusedSolutionIndex] ?? null;
   const scrollFocused = focusedPanel === "description" || focusedPanel === "result";
 
   return (
     <box flexDirection="column" width="100%" height="100%">
       <ProblemGlobalBindings />
       {scrollFocused && <ScrollPanelBindings />}
+      {focusedPanel === "solutions" && <SolutionsPanelBindings />}
 
       <UpdateBanner />
 
@@ -175,7 +170,12 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
           </box>
 
           <box flexDirection="column" width="40%">
-            <ActiveSolutionStrip langSlug={focusedLangSlug} />
+            <SolutionsPanel
+              solutions={solutions}
+              focusedIndex={focusedSolutionIndex}
+              focused={focusedPanel === "solutions"}
+              tag="2"
+            />
 
             <box
               flexDirection="column"
@@ -184,7 +184,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
               flexGrow={1}
               width="100%"
             >
-              <PanelTitle tag="2" label="Result" focused={focusedPanel === "result"} />
+              <PanelTitle tag="3" label="Result" focused={focusedPanel === "result"} />
               <scrollbox ref={registerResult} flexGrow={1}>
                 {result ? (
                   <ResultBody view={result} />

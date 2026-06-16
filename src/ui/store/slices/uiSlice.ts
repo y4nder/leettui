@@ -16,13 +16,30 @@ export type BrowsePanel = "topics" | "questions";
 export const PANEL_ORDER: BrowsePanel[] = ["topics", "questions"];
 
 // Which ProblemView panel currently holds focus (lazygit-style, Stage 12). Only
-// meaningful while mode === "problem". Description + Result are the focusable panels
-// in the focus-model spike; Solutions/Related join the union in later Stage 12 items.
-export type ProblemPanel = "description" | "result";
+// meaningful while mode === "problem". Description (left), Solutions, and Result
+// (stacked right) are the focusable panels; Related joins the union in a later item.
+export type ProblemPanel = "description" | "solutions" | "result";
 
-// Focus-cycle order for ProblemView, matching the layout (description left, result
-// right). Tab walks forward, Shift+Tab back (both wrap); [1]/[2] map to positions.
-export const PROBLEM_PANEL_ORDER: ProblemPanel[] = ["description", "result"];
+// Focus-cycle order for ProblemView, matching the layout (description full-height
+// left; Solutions then Result stacked right). Tab walks forward, Shift+Tab back
+// (both wrap); [1]/[2]/[3] map to positions.
+export const PROBLEM_PANEL_ORDER: ProblemPanel[] = ["description", "solutions", "result"];
+
+// Spatial focus directions for ProblemView's 2D layout (description full-height left;
+// Solutions over Result on the right), driven by Ctrl+h/j/k/l.
+export type FocusDirection = "left" | "right" | "up" | "down";
+
+// Per-panel directional neighbors. An absent direction is an edge — focus stays put
+// (no wrap; Tab/Shift+Tab remain the wrap-around linear cycle). Extends cleanly when
+// item 4's Related panel joins the right stack below Result.
+const PROBLEM_PANEL_NEIGHBORS: Record<
+  ProblemPanel,
+  Partial<Record<FocusDirection, ProblemPanel>>
+> = {
+  description: { right: "solutions" },
+  solutions: { left: "description", down: "result" },
+  result: { left: "description", up: "solutions" },
+};
 
 export type AppMode =
   | "browse"
@@ -53,7 +70,8 @@ export interface ProblemViewState {
   solutions: string[];
   focusedSolutionIndex: number;
   // Which panel holds focus (lazygit-style, Stage 12) — drives panel-relative
-  // bindings, the accent border, and the j/k scroll target. Defaults to "description".
+  // bindings, the accent border, and the j/k target (scroll for description/result,
+  // active-solution cycle for solutions). Defaults to "description".
   focusedPanel: ProblemPanel;
   result: ResultView | null;
   solutionPicker: SolutionPickerState | null;
@@ -107,10 +125,17 @@ export interface UiSlice {
   }) => void;
   exitProblemView: () => void;
   setProblemSolutions: (solutions: string[], focusLangSlug?: string) => void;
+  // Move the active solution within the existing list (clamped, no-op when empty).
+  // Driven by j/k while the Solutions panel is focused; the active solution is what
+  // e/R/s/t target, so cycling re-points those actions.
+  moveFocusedSolution: (delta: number) => void;
   setProblemResult: (view: ResultView | null) => void;
   setProblemFocusedPanel: (panel: ProblemPanel) => void;
   // dir 1 = next panel, -1 = previous (wraps). Generalizes past two panels.
   cycleProblemFocusedPanel: (dir: 1 | -1) => void;
+  // Move focus across the 2D layout (Ctrl+h/j/k/l); no-op at an edge. Tab/Shift+Tab
+  // still cycle linearly via cycleProblemFocusedPanel.
+  moveProblemFocus: (dir: FocusDirection) => void;
   openSolutionPicker: (
     snippets: CodeSnippet[],
     existing: Set<string>,
@@ -208,6 +233,15 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
       return { problem: { ...state.problem, solutions, focusedSolutionIndex } };
     }),
 
+  moveFocusedSolution: (delta) =>
+    set((state) => {
+      if (!state.problem) return {};
+      const n = state.problem.solutions.length;
+      if (n === 0) return {};
+      const next = Math.max(0, Math.min(n - 1, state.problem.focusedSolutionIndex + delta));
+      return { problem: { ...state.problem, focusedSolutionIndex: next } };
+    }),
+
   setProblemResult: (view) =>
     set((state) => {
       if (!state.problem) return {};
@@ -226,6 +260,14 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
       const n = PROBLEM_PANEL_ORDER.length;
       const i = PROBLEM_PANEL_ORDER.indexOf(state.problem.focusedPanel);
       const next = PROBLEM_PANEL_ORDER[(i + dir + n) % n] ?? state.problem.focusedPanel;
+      return { problem: { ...state.problem, focusedPanel: next } };
+    }),
+
+  moveProblemFocus: (dir) =>
+    set((state) => {
+      if (!state.problem) return {};
+      const next = PROBLEM_PANEL_NEIGHBORS[state.problem.focusedPanel][dir];
+      if (!next) return {};
       return { problem: { ...state.problem, focusedPanel: next } };
     }),
 
