@@ -522,7 +522,8 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     group: "modal",
     run: () => {
       const s = useAppStore.getState();
-      s.updateSearch(s.searchNeedle.slice(0, -1));
+      const active = s.focusedPanel === "topics" ? s.topicNeedle : s.searchNeedle;
+      s.updateSearch(active.slice(0, -1));
     },
   }),
   makeCommand({
@@ -789,7 +790,8 @@ export function installKeymap(keymap: AppKeymap, renderer: CliRenderer): void {
     const name = ctx.event.name ?? "";
     if (name.length !== 1) return;
     if (ctx.event.ctrl || ctx.event.meta) return;
+    const active = s.focusedPanel === "topics" ? s.topicNeedle : s.searchNeedle;
     logKey(name, "", s.mode, `updateSearch(+${name})`);
-    s.updateSearch(s.searchNeedle + name);
+    s.updateSearch(active + name);
   });
 }

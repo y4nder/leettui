@@ -74,9 +74,11 @@ export const createSelectionSlice: StateCreator<AppStore, [], [], SelectionSlice
   restoreSession: () => {
     const session = loadSession();
     if (session.topicSlug) {
-      const idx = get().topics.indexOf(session.topicSlug);
+      // Look up in allTopics (the full list); at boot it equals the displayed
+      // `topics`, but this stays correct if a filter is ever live on restore.
+      const idx = get().allTopics.indexOf(session.topicSlug);
       if (idx > 0) {
-        get().loadTopic(get().topics[idx]!);
+        get().loadTopic(get().allTopics[idx]!);
         set({ selectedTopicIndex: idx });
       }
     }

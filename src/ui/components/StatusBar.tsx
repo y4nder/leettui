@@ -15,6 +15,7 @@ interface StatusBarProps {
   // which has its own HintsFooter — then no hint line is shown.
   focusedPanel?: BrowsePanel;
   searchNeedle: string;
+  topicNeedle?: string;
   stats: StatusCounts;
   difficultyFilter: DifficultyFilter;
   debugEnabled?: boolean;
@@ -24,6 +25,7 @@ export function StatusBar({
   mode,
   focusedPanel,
   searchNeedle,
+  topicNeedle,
   stats,
   difficultyFilter,
   debugEnabled,
@@ -32,10 +34,14 @@ export function StatusBar({
   const { width } = useTerminalDimensions();
 
   if (mode === "search") {
+    // Search is panel-scoped: a "topic" prefix disambiguates the topics-panel
+    // search from the question search (both triggered by `/`).
+    const isTopic = focusedPanel === "topics";
+    const needle = isTopic ? (topicNeedle ?? "") : searchNeedle;
     return (
       <box flexDirection="row" width="100%" height={1} backgroundColor={colors.statusBar}>
-        <text fg={colors.fgAccent}> /</text>
-        <text fg={colors.fg}>{searchNeedle}</text>
+        <text fg={colors.fgAccent}> {isTopic ? "topic /" : "/"}</text>
+        <text fg={colors.fg}>{needle}</text>
         <text fg={colors.fgDim}>█</text>
       </box>
     );

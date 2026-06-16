@@ -60,6 +60,7 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
   const currentTopic = useAppStore((s) => s.topics[s.selectedTopicIndex] ?? "all");
 
   const searchNeedle = useAppStore((s) => s.searchNeedle);
+  const topicNeedle = useAppStore((s) => s.topicNeedle);
   const stats = useAppStore((s) => s.stats);
   const difficultyFilter = useAppStore((s) => s.difficultyFilter);
   const solutionFileIds = useAppStore((s) => s.solutionFileIds);
@@ -112,6 +113,7 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
         mode={mode}
         focusedPanel={focusedPanel}
         searchNeedle={searchNeedle}
+        topicNeedle={topicNeedle}
         stats={stats}
         difficultyFilter={difficultyFilter}
         debugEnabled={isDebugEnabled()}
