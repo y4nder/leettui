@@ -539,7 +539,7 @@ export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor
   "filter.cycleDifficulty": "shift+d",
   "problem.daily": "d",
   "search.start": "/",
-  "help.open": "h",
+  "help.open": "?",
   "debug.open": "`",
   "db.sync": "*",
   "palette.open": "ctrl+p",
