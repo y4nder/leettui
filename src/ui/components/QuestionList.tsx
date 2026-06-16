@@ -37,6 +37,11 @@ export function QuestionList({
 
   const visible = questions.slice(scrollOffset, scrollOffset + visibleCount);
 
+  // When the panel isn't focused, the selected row gets a muted version of the
+  // highlight (dimmer bg + dimmer accent) so the active panel's selection stands out.
+  const selectedBg = focused ? colors.bgHighlight : colors.surface;
+  const selectedFg = focused ? colors.fgAccent : colors.mutedAccent;
+
   return (
     <box
       flexDirection="column"
@@ -71,13 +76,13 @@ export function QuestionList({
             <box
               key={q.id}
               flexDirection="row"
-              backgroundColor={isSelected ? colors.bgHighlight : undefined}
+              backgroundColor={isSelected ? selectedBg : undefined}
               width="100%"
             >
               <text fg={sColor}> {icon} </text>
               <text fg={colors.accent}>{hasSolution ? "◆" : " "}</text>
               <text fg={colors.fgDim}> {idStr} </text>
-              <text fg={isSelected ? colors.fgAccent : colors.fg} flexGrow={1}>
+              <text fg={isSelected ? selectedFg : colors.fg} flexGrow={1}>
                 {q.title}
                 {paidStr}
               </text>

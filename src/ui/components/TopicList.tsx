@@ -18,6 +18,11 @@ export function TopicList({ topics, selectedIndex, height, focused, tag }: Topic
 
   const visible = topics.slice(scrollOffset, scrollOffset + visibleCount);
 
+  // When the panel isn't focused, the selected row gets a muted version of the
+  // highlight (dimmer bg + dimmer accent) so the active panel's selection stands out.
+  const selectedBg = focused ? colors.bgHighlight : colors.surface;
+  const selectedFg = focused ? colors.fgAccent : colors.mutedAccent;
+
   return (
     <box
       flexDirection="column"
@@ -34,12 +39,8 @@ export function TopicList({ topics, selectedIndex, height, focused, tag }: Topic
         const realIndex = scrollOffset + i;
         const isSelected = realIndex === selectedIndex;
         return (
-          <box
-            key={topic}
-            backgroundColor={isSelected ? colors.bgHighlight : undefined}
-            width="100%"
-          >
-            <text fg={isSelected ? colors.fgAccent : colors.fg}>
+          <box key={topic} backgroundColor={isSelected ? selectedBg : undefined} width="100%">
+            <text fg={isSelected ? selectedFg : colors.fg}>
               {isSelected ? " ► " : "   "}
               {topic}
             </text>
