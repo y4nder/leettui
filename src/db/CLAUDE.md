@@ -8,7 +8,7 @@ SQLite database layer via [Drizzle ORM](https://orm.drizzle.team/docs/connect-bu
 - `index.ts` — `openDatabase(path)` opens `bun:sqlite` with WAL mode + foreign keys, wraps it with `drizzle(sqlite, { schema })`, then applies **embedded** migrations on startup via `db.dialect.migrate(embeddedMigrations(), db.session)` (auto-applies pending migrations). `getDb()` returns the singleton typed `Db` (`BunSQLiteDatabase<typeof schema>`).
 - `migrations.ts` — Source of the embedded migration set. The stock `migrate(db, { migrationsFolder })` reads `drizzle/` from disk, which **does not exist in a `bun build --compile` binary**. This module instead imports the journal (JSON) and each `.sql` file as bundled text (`with { type: "text" }`) and rebuilds drizzle's `MigrationMeta[]` in-memory, so migrations travel inside the binary and behave identically in dev and when shipped. See the migration workflow below — keeping `SQL_BY_TAG` current is **mandatory**.
 - `questions.ts` — CRUD for the `questions` table, written with the Drizzle query builder. Rows are mapped back to the snake_case `DbQuestion` shape at the boundary (`toDbQuestion`) so consumers are unchanged. Key exports:
-  - `getAllQuestions()`, `getQuestionsByTopic(slug)`, `getQuestionBySlug(slug)`
+  - `getAllQuestions()`, `getQuestionsByTopic(slug)`, `getQuestionBySlug(slug)`, `getTopicsForQuestion(id)` (topic slugs for a question, via the `idx_qt_question` index — backs the problem-view header tags)
   - `upsertQuestion(q)` — insert with `onConflictDoUpdate` on `id`
   - `upsertQuestionTopics(questionId, slugs[])` — `onConflictDoNothing` into both `topics` and `question_topics`
   - `markAccepted(id)`, `markAttempted(id)` (only sets `notac` when status is null), `getQuestionCount()`

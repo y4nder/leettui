@@ -28,5 +28,5 @@ export const useAppStore = create<AppStore>()((...a) => ({
   ...createSyncSlice(...a),
 }));
 
-export type { AppMode, BrowsePanel } from "./slices/uiSlice";
-export { PANEL_ORDER } from "./slices/uiSlice";
+export type { AppMode, BrowsePanel, ProblemPanel } from "./slices/uiSlice";
+export { PANEL_ORDER, PROBLEM_PANEL_ORDER } from "./slices/uiSlice";

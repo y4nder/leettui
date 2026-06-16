@@ -1,11 +1,12 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useBindings } from "@opentui/keymap/react";
 import { useTerminalDimensions } from "@opentui/react";
 import { TextAttributes } from "@opentui/core";
-import type { createCliRenderer } from "@opentui/core";
+import type { createCliRenderer, ScrollBoxRenderable } from "@opentui/core";
 
 import { useAppStore } from "../../ui/store";
-import { colors, difficultyColor } from "../../ui/theme";
+import type { DbQuestion } from "../../db/questions";
+import { colors, difficultyColor, statusColor } from "../../ui/theme";
 import { buildMarkdownSyntaxStyle } from "../../ui/markdownStyle";
 import { ResultBody } from "../../ui/components/ResultBody";
 import { StatusBar } from "../../ui/components/StatusBar";
@@ -13,7 +14,11 @@ import { ProgressBar } from "../../ui/components/ProgressBar";
 import { UpdateBanner } from "../../ui/components/UpdateBanner";
 import { SolutionPickerModal } from "../../ui/components/SolutionPickerModal";
 import { NotesPopup } from "../../ui/components/NotesPopup";
-import { problemBindings } from "../../ui/keymap";
+import {
+  problemGlobalBindings,
+  scrollPanelBindings,
+  registerProblemScroller,
+} from "../../ui/keymap";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
 
@@ -21,8 +26,13 @@ interface ProblemViewProps {
   renderer: Renderer;
 }
 
-function ProblemBindings() {
-  useBindings(() => ({ bindings: problemBindings }), []);
+function ProblemGlobalBindings() {
+  useBindings(() => ({ bindings: problemGlobalBindings }), []);
+  return null;
+}
+
+function ScrollPanelBindings() {
+  useBindings(() => ({ bindings: scrollPanelBindings }), []);
   return null;
 }
 
@@ -34,6 +44,35 @@ function Header({ id, title, difficulty }: { id: number; title: string; difficul
         {id}. {title}{" "}
       </text>
       <text fg={difficultyColor(difficulty)}>[{difficulty}]</text>
+    </box>
+  );
+}
+
+// Metadata line under the title: solve status, acceptance rate, and topic tags.
+function MetaLine({ question, topicTags }: { question: DbQuestion; topicTags: string[] }) {
+  const status = question.status;
+  const acRate = question.ac_rate;
+  const statusLabel =
+    status === "ac" ? "✓ Solved" : status === "notac" ? "✗ Attempted" : "○ Unsolved";
+  return (
+    <box flexDirection="row" width="100%" height={1}>
+      <text fg={statusColor(status)}> {statusLabel} </text>
+      {acRate != null && <text fg={colors.subtle}> AC {acRate.toFixed(1)}% </text>}
+      {topicTags.length > 0 && <text fg={colors.fgDim}> {topicTags.join(" · ")} </text>}
+    </box>
+  );
+}
+
+// Panel title row with a focus-hotkey [n] tag. Tag + border go accent when the panel is
+// focused (mirrors browse's TopicList/QuestionList); the label stays accent-bold.
+function PanelTitle({ tag, label, focused }: { tag: string; label: string; focused: boolean }) {
+  return (
+    <box flexDirection="row">
+      <text fg={focused ? colors.accent : colors.fgDim}> [{tag}]</text>
+      <text fg={colors.fgAccent} attributes={TextAttributes.BOLD}>
+        {" "}
+        {label}{" "}
+      </text>
     </box>
   );
 }
@@ -53,7 +92,10 @@ function ActiveSolutionStrip({ langSlug }: { langSlug: string | null }) {
 function HintsFooter() {
   return (
     <box flexDirection="column" borderStyle="single" borderColor={colors.border} width="100%">
-      <text fg={colors.fgDim}> f:Solutions e:Edit R:Run t:Test s:Submit n:Notes Esc/q:Back </text>
+      <text fg={colors.fgDim}>
+        {" "}
+        Tab:Focus j/k:Scroll f:Solutions e:Edit R:Run t:Test s:Submit n:Notes Esc/q:Back{" "}
+      </text>
     </box>
   );
 }
@@ -71,6 +113,17 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
   const updateAvailable = useAppStore((s) => s.updateAvailable);
   const problem = useAppStore((s) => s.problem);
 
+  // Stable callback refs (identity-fixed so React only fires them on mount/unmount,
+  // not every render) register each scrollbox so the focus-aware scroll commands reach it.
+  const registerDescription = useCallback(
+    (box: ScrollBoxRenderable | null) => registerProblemScroller("description", box),
+    [],
+  );
+  const registerResult = useCallback(
+    (box: ScrollBoxRenderable | null) => registerProblemScroller("result", box),
+    [],
+  );
+
   const mainHeight = height - (syncProgress ? 2 : 1) - (updateAvailable ? 1 : 0);
 
   if (!problem) {
@@ -81,13 +134,24 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
     );
   }
 
-  const { question, description, solutions, focusedSolutionIndex, result, solutionPicker, notes } =
-    problem;
+  const {
+    question,
+    description,
+    topicTags,
+    solutions,
+    focusedSolutionIndex,
+    focusedPanel,
+    result,
+    solutionPicker,
+    notes,
+  } = problem;
   const focusedLangSlug = solutions[focusedSolutionIndex] ?? null;
+  const scrollFocused = focusedPanel === "description" || focusedPanel === "result";
 
   return (
     <box flexDirection="column" width="100%" height="100%">
-      <ProblemBindings />
+      <ProblemGlobalBindings />
+      {scrollFocused && <ScrollPanelBindings />}
 
       <UpdateBanner />
 
@@ -95,14 +159,17 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
 
       <box flexDirection="column" flexGrow={1} height={mainHeight}>
         <Header id={question.id} title={question.title} difficulty={question.difficulty} />
+        <MetaLine question={question} topicTags={topicTags} />
 
         <box flexDirection="row" flexGrow={1}>
-          <box flexDirection="column" width="60%" borderStyle="rounded" borderColor={colors.border}>
-            <text fg={colors.fgAccent} attributes={TextAttributes.BOLD}>
-              {" "}
-              Description{" "}
-            </text>
-            <scrollbox flexGrow={1} paddingLeft={1} paddingRight={1}>
+          <box
+            flexDirection="column"
+            width="60%"
+            borderStyle="rounded"
+            borderColor={focusedPanel === "description" ? colors.accent : colors.border}
+          >
+            <PanelTitle tag="1" label="Description" focused={focusedPanel === "description"} />
+            <scrollbox ref={registerDescription} flexGrow={1} paddingLeft={1} paddingRight={1}>
               <markdown content={description} syntaxStyle={syntaxStyle} />
             </scrollbox>
           </box>
@@ -113,12 +180,12 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
             <box
               flexDirection="column"
               borderStyle="rounded"
-              borderColor={colors.border}
+              borderColor={focusedPanel === "result" ? colors.accent : colors.border}
               flexGrow={1}
               width="100%"
             >
-              <text fg={colors.fgAccent}> Result </text>
-              <scrollbox flexGrow={1}>
+              <PanelTitle tag="2" label="Result" focused={focusedPanel === "result"} />
+              <scrollbox ref={registerResult} flexGrow={1}>
                 {result ? (
                   <ResultBody view={result} />
                 ) : (

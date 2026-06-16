@@ -4,7 +4,7 @@ import { useBindings } from "@opentui/keymap/react";
 import { colors } from "../theme";
 import { buildMarkdownSyntaxStyle } from "../markdownStyle";
 import { useAppStore } from "../store";
-import { notesBindings } from "../keymap";
+import { notesBindings, registerPopupScroller } from "../keymap";
 
 interface NotesPopupProps {
   content: string;
@@ -35,7 +35,7 @@ export function NotesPopup({ content }: NotesPopupProps) {
         {" "}
         Notes{" "}
       </text>
-      <scrollbox flexGrow={1} paddingLeft={1} paddingRight={1}>
+      <scrollbox ref={registerPopupScroller} flexGrow={1} paddingLeft={1} paddingRight={1}>
         {trimmed ? (
           <markdown content={content} syntaxStyle={syntaxStyle} />
         ) : (

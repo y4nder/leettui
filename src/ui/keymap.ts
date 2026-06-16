@@ -10,12 +10,12 @@
 // - Search-mode 1-char text input falls through via a `key:after` intercept
 //   installed in `installKeymap`.
 
-import type { CliRenderer, KeyEvent, Renderable } from "@opentui/core";
+import type { CliRenderer, KeyEvent, Renderable, ScrollBoxRenderable } from "@opentui/core";
 import type { Binding, Command, KeyLike, Keymap } from "@opentui/keymap";
 import { registerDefaultKeys, registerMetadataFields } from "@opentui/keymap/addons";
 
 import { useAppStore } from "./store";
-import type { BrowsePanel } from "./store";
+import type { BrowsePanel, ProblemPanel } from "./store";
 import { setTheme, cycleTheme, listThemeNames } from "./theme";
 import { isDebugEnabled, dumpToString, logKey } from "../debug";
 import {
@@ -51,15 +51,44 @@ export type ActionCategory = "Navigation" | "Solve" | "View" | "Search" | "Syste
 
 let _renderer: CliRenderer | null = null;
 let _keymap: AppKeymap | null = null;
-const _popupScroll = { current: 0 };
 
 export function getKeymap(): AppKeymap {
   if (!_keymap) throw new Error("Keymap not initialized; call installKeymap() at boot");
   return _keymap;
 }
 
-export function popupScrollRef(): { current: number } {
-  return _popupScroll;
+// The currently-open popup's scrollbox (daily-challenge description, notes). Modals are
+// exclusive, so a single handle suffices; popups register theirs via a callback ref and
+// the popup.scroll* commands drive it. (Replaces the dead _popupScroll counter, which
+// incremented a ref nothing read — now wired to a real scrollbox.)
+let _activePopupScroller: ScrollBoxRenderable | null = null;
+
+export function registerPopupScroller(box: ScrollBoxRenderable | null): void {
+  _activePopupScroller = box;
+}
+
+function scrollActivePopup(delta: number): void {
+  _activePopupScroller?.scrollBy({ x: 0, y: delta }, "step");
+}
+
+// Module-level handles to the ProblemView scrollboxes, keyed by panel (same idea as the
+// popup scroller above, but ProblemView panels coexist so focus selects which one scrolls).
+// Populated via callback refs from ProblemView — imperative renderables can't live in the
+// store, but the focused-panel *identity* does (problem.focusedPanel), so the scroll
+// commands stay single-source: read the focused panel, then scrollBy its registered box.
+const _problemScrollers: Partial<Record<ProblemPanel, ScrollBoxRenderable | null>> = {};
+
+export function registerProblemScroller(
+  panel: ProblemPanel,
+  box: ScrollBoxRenderable | null,
+): void {
+  _problemScrollers[panel] = box;
+}
+
+function scrollFocusedProblemPanel(delta: number): void {
+  const p = useAppStore.getState().problem;
+  if (!p) return;
+  _problemScrollers[p.focusedPanel]?.scrollBy({ x: 0, y: delta }, "step");
 }
 
 interface CommandSpec {
@@ -285,6 +314,51 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
       handleExitProblemView();
     },
   }),
+  // ProblemView focus traversal + panel scroll (Stage 12). Grouped "modal" like the
+  // other problem-view commands: hidden from the browse command palette. The
+  // ProblemView help popup (a later item) surfaces them via its own scope filter.
+  makeCommand({
+    name: "problem.focusCycle",
+    title: "Focus next panel",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().cycleProblemFocusedPanel(1),
+  }),
+  makeCommand({
+    name: "problem.focusCyclePrev",
+    title: "Focus previous panel",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().cycleProblemFocusedPanel(-1),
+  }),
+  makeCommand({
+    name: "problem.focusDescription",
+    title: "Focus description panel",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().setProblemFocusedPanel("description"),
+  }),
+  makeCommand({
+    name: "problem.focusResult",
+    title: "Focus result panel",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().setProblemFocusedPanel("result"),
+  }),
+  makeCommand({
+    name: "problem.scrollDown",
+    title: "Scroll panel down",
+    category: "Navigation",
+    group: "modal",
+    run: () => scrollFocusedProblemPanel(1),
+  }),
+  makeCommand({
+    name: "problem.scrollUp",
+    title: "Scroll panel up",
+    category: "Navigation",
+    group: "modal",
+    run: () => scrollFocusedProblemPanel(-1),
+  }),
   makeCommand({
     name: "picker.next",
     title: "Picker: next entry",
@@ -453,18 +527,14 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     title: "Scroll popup down",
     category: "View",
     group: "modal",
-    run: () => {
-      _popupScroll.current += 1;
-    },
+    run: () => scrollActivePopup(1),
   }),
   makeCommand({
     name: "popup.scrollUp",
     title: "Scroll popup up",
     category: "View",
     group: "modal",
-    run: () => {
-      _popupScroll.current -= 1;
-    },
+    run: () => scrollActivePopup(-1),
   }),
   makeCommand({
     name: "popup.close",
@@ -619,15 +689,31 @@ export const searchBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "search.backspace": "backspace",
 });
 
-export const problemBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+// Always mounted in problem mode regardless of focused panel. Solve actions stay here:
+// they target the focused *solution* (focusedSolutionIndex), which is independent of the
+// focused *panel*. Also focus traversal (Tab/Shift+Tab + Ctrl+h/l, [1]/[2]), notes, the
+// update-banner dismiss, and escape. Only panel-relative keys (j/k) live in panel layers.
+export const problemGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "problem.openPicker": "f",
   "problem.editorOpen": "e",
   "problem.runFocused": "shift+r",
   "problem.testLocal": "t",
   "problem.submitFocused": "s",
   "problem.notes": "n",
+  // Mirror browse: Tab/Shift+Tab cycle, Ctrl+l/Ctrl+h traverse right/left, [1]/[2] jump.
+  "problem.focusCycle": ["tab", "ctrl+l"],
+  "problem.focusCyclePrev": ["shift+tab", "ctrl+h"],
+  "problem.focusDescription": "1",
+  "problem.focusResult": "2",
   "update.dismiss": "x",
   "problem.escape": ["escape", "q"],
+});
+
+// Mounted only while a scroll panel (Description or Result) is focused. The scroll
+// commands self-route to the focused panel's scrollbox, so both panels share one layer.
+export const scrollPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "problem.scrollDown": ["j", "down"],
+  "problem.scrollUp": ["k", "up"],
 });
 
 // Mounted by NotesPopup while open. `e` shadows problem.editorOpen and

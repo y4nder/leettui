@@ -11,7 +11,7 @@ import { htmlToMarkdown } from "../../core/markdown";
 import { fetchQuestionContent } from "../../api/queries/question-content";
 import { fetchEditorData } from "../../api/queries/editor-data";
 import { fetchConsolePanelConfig } from "../../api/queries/console-panel-config";
-import { getQuestionsByTopic } from "../../db/questions";
+import { getQuestionsByTopic, getTopicsForQuestion } from "../../db/questions";
 import {
   createSolutionWithHarness,
   findExistingSolutions,
@@ -50,7 +50,8 @@ export async function handleEnterProblemView(triggerKey: string) {
       ? htmlToMarkdown(html)
       : "_No description available (problem may be premium-only)._";
     const solutions = findExistingSolutions(q.id, q.title_slug);
-    useAppStore.getState().enterProblemView({ question: q, description, solutions });
+    const topicTags = getTopicsForQuestion(q.id);
+    useAppStore.getState().enterProblemView({ question: q, description, solutions, topicTags });
   } catch (e) {
     logError(triggerKey, "browse", "handleEnterProblemView", e);
     useAppStore.getState().showResult(errorView("Error fetching question", errMessage(e)));

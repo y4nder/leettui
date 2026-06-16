@@ -15,6 +15,15 @@ export type BrowsePanel = "topics" | "questions";
 // The numeric jump keys ([1]/[2]) map to this order's positions.
 export const PANEL_ORDER: BrowsePanel[] = ["topics", "questions"];
 
+// Which ProblemView panel currently holds focus (lazygit-style, Stage 12). Only
+// meaningful while mode === "problem". Description + Result are the focusable panels
+// in the focus-model spike; Solutions/Related join the union in later Stage 12 items.
+export type ProblemPanel = "description" | "result";
+
+// Focus-cycle order for ProblemView, matching the layout (description left, result
+// right). Tab walks forward, Shift+Tab back (both wrap); [1]/[2] map to positions.
+export const PROBLEM_PANEL_ORDER: ProblemPanel[] = ["description", "result"];
+
 export type AppMode =
   | "browse"
   | "search"
@@ -38,9 +47,14 @@ export interface SolutionPickerState {
 export interface ProblemViewState {
   question: DbQuestion;
   description: string;
+  // Topic slugs for the header metadata line (fetched once on enter; offline DB read).
+  topicTags: string[];
   // langSlugs of solutions that exist on disk (the solution's identity)
   solutions: string[];
   focusedSolutionIndex: number;
+  // Which panel holds focus (lazygit-style, Stage 12) — drives panel-relative
+  // bindings, the accent border, and the j/k scroll target. Defaults to "description".
+  focusedPanel: ProblemPanel;
   result: ResultView | null;
   solutionPicker: SolutionPickerState | null;
   // Shared, language-agnostic notes popup. Non-null while open; `content` is
@@ -89,10 +103,14 @@ export interface UiSlice {
     question: DbQuestion;
     description: string;
     solutions: string[];
+    topicTags: string[];
   }) => void;
   exitProblemView: () => void;
   setProblemSolutions: (solutions: string[], focusLangSlug?: string) => void;
   setProblemResult: (view: ResultView | null) => void;
+  setProblemFocusedPanel: (panel: ProblemPanel) => void;
+  // dir 1 = next panel, -1 = previous (wraps). Generalizes past two panels.
+  cycleProblemFocusedPanel: (dir: 1 | -1) => void;
   openSolutionPicker: (
     snippets: CodeSnippet[],
     existing: Set<string>,
@@ -158,14 +176,16 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   showEasterEgg: () => set({ mode: "easterEgg" }),
   hideEasterEgg: () => set({ mode: "browse" }),
 
-  enterProblemView: ({ question, description, solutions }) =>
+  enterProblemView: ({ question, description, solutions, topicTags }) =>
     set({
       mode: "problem",
       problem: {
         question,
         description,
+        topicTags,
         solutions,
         focusedSolutionIndex: 0,
+        focusedPanel: "description",
         result: null,
         solutionPicker: null,
         notes: null,
@@ -192,6 +212,21 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
     set((state) => {
       if (!state.problem) return {};
       return { problem: { ...state.problem, result: view } };
+    }),
+
+  setProblemFocusedPanel: (panel) =>
+    set((state) => {
+      if (!state.problem) return {};
+      return { problem: { ...state.problem, focusedPanel: panel } };
+    }),
+
+  cycleProblemFocusedPanel: (dir) =>
+    set((state) => {
+      if (!state.problem) return {};
+      const n = PROBLEM_PANEL_ORDER.length;
+      const i = PROBLEM_PANEL_ORDER.indexOf(state.problem.focusedPanel);
+      const next = PROBLEM_PANEL_ORDER[(i + dir + n) % n] ?? state.problem.focusedPanel;
+      return { problem: { ...state.problem, focusedPanel: next } };
     }),
 
   openSolutionPicker: (snippets, existing, initialLangSlug) =>

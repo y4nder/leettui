@@ -52,6 +52,19 @@ export function getQuestionBySlug(slug: string): DbQuestion | null {
   return row ? toDbQuestion(row) : null;
 }
 
+// Topic slugs attached to a question (for the problem-view header tags). Backed by the
+// idx_qt_question index, so it's a cheap lookup. Returns slugs — the topics table is
+// slug-only — sorted for stable display order.
+export function getTopicsForQuestion(questionId: number): string[] {
+  return getDb()
+    .select({ slug: questionTopics.topicSlug })
+    .from(questionTopics)
+    .where(eq(questionTopics.questionId, questionId))
+    .orderBy(asc(questionTopics.topicSlug))
+    .all()
+    .map((r) => r.slug);
+}
+
 export function upsertQuestion(q: {
   id: number;
   title: string;
