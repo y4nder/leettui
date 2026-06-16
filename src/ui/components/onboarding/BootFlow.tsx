@@ -6,17 +6,20 @@ import { App } from "../../../app";
 import { Splash } from "./Splash";
 import { AuthWizard } from "./AuthWizard";
 import { SyncStep } from "./SyncStep";
+import { RelocatePrompt } from "./RelocatePrompt";
 import { Logo } from "./Logo";
 import { colors } from "../../theme";
-import { loadConfig, hasTokens, getDbPath } from "../../../config";
+import { loadConfig, hasTokens, getDbPath, getSolutionsDir } from "../../../config";
 import { validateTokens, type AuthTokens } from "../../../core/auth";
 import { initClient } from "../../../api/client";
 import { openDatabase } from "../../../db";
 import { syncIfEmpty } from "../../../core/sync";
 import { migrateSolutionsLayout } from "../../../core/migration";
+import { detectSolutionsRelocation, type RelocationPlan } from "../../../core/relocate";
+import { getLastKnownSolutionsDir, setLastKnownSolutionsDir } from "../../../core/session";
 import { useAppStore } from "../../store";
 
-type Phase = "splash" | "auth" | "loading" | "ready" | "error";
+type Phase = "splash" | "auth" | "loading" | "relocate" | "ready" | "error";
 
 interface BootFlowProps {
   renderer: Awaited<ReturnType<typeof createCliRenderer>>;
@@ -31,6 +34,7 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
   const [phase, setPhase] = useState<Phase>("splash");
   const [error, setError] = useState<string | null>(null);
   const tokensRef = useRef<AuthTokens | null>(null);
+  const planRef = useRef<RelocationPlan | null>(null);
 
   const handleSplashDone = useCallback(async () => {
     const config = loadConfig();
@@ -60,6 +64,13 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
     setPhase("error");
   }, []);
 
+  // After the user moves or skips, the current dir becomes the new last-known
+  // (so a skipped relocation isn't re-offered every boot — per the spec).
+  const handleRelocationResolved = useCallback(() => {
+    setLastKnownSolutionsDir(getSolutionsDir());
+    setPhase("ready");
+  }, []);
+
   useEffect(() => {
     if (phase !== "loading") return;
     const tokens = tokensRef.current;
@@ -79,7 +90,18 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
         migrateSolutionsLayout();
         await syncIfEmpty((c, t) => useAppStore.getState().setSyncProgress(c, t));
         useAppStore.getState().clearSyncProgress();
-        if (!cancelled) setPhase("ready");
+        if (cancelled) return;
+        // Did the resolved solutions dir move out from under us (incl. a
+        // hand-edited config.toml)? If the old dir still holds problems, offer
+        // to relocate them; otherwise just adopt the current dir as last-known.
+        const plan = detectSolutionsRelocation(getSolutionsDir(), getLastKnownSolutionsDir());
+        if (plan) {
+          planRef.current = plan;
+          setPhase("relocate");
+        } else {
+          setLastKnownSolutionsDir(getSolutionsDir());
+          setPhase("ready");
+        }
       } catch (e) {
         if (!cancelled) {
           setError(e instanceof Error ? e.message : String(e));
@@ -95,6 +117,8 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
   if (phase === "splash") return <Splash onDone={handleSplashDone} />;
   if (phase === "auth") return <AuthWizard onComplete={handleAuthComplete} onAbort={handleAuthAbort} />;
   if (phase === "loading") return <SyncStep />;
+  if (phase === "relocate" && planRef.current)
+    return <RelocatePrompt plan={planRef.current} onResolved={handleRelocationResolved} />;
   if (phase === "error") return <BootError message={error ?? "Something went wrong."} />;
   return <App renderer={renderer} />;
 }

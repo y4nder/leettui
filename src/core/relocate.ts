@@ -1,9 +1,19 @@
-import { cpSync, existsSync, mkdirSync, readdirSync, renameSync, rmSync } from "fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from "fs";
 import { join, resolve, sep } from "path";
 
 export interface RelocateResult {
   moved: number;
   skipped: number;
+}
+
+// A pending relocation surfaced to the user at boot: the previous solutions dir
+// still holds `count` problem folders, and the resolved location is now `toDir`.
+export interface RelocationPlan {
+  fromDir: string;
+  toDir: string;
+  /** Problem folders in `fromDir` — a pre-skip upper bound (collisions at the
+   * target are skipped by `relocateSolutions`), so it's the count to *offer*. */
+  count: number;
 }
 
 // Moves an entire solutions tree from one directory to another. Each top-level
@@ -61,6 +71,51 @@ export function relocateSolutions(fromDir: string, toDir: string): RelocateResul
   }
 
   return result;
+}
+
+// Counts top-level `{paddedId}_{slug}` problem folders in `dir` — the same
+// directory-name shape `resolveProblemPath`/`listSolutionQuestionIds` key on.
+// Unlike `listSolutionQuestionIds` this does NOT require a solution file inside:
+// a notes-only folder is still the user's work and the engine moves it anyway,
+// so it counts. Never throws (an unreadable/missing dir is 0).
+export function countProblemFolders(dir: string): number {
+  let entries: string[];
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return 0;
+  }
+  let count = 0;
+  for (const entry of entries) {
+    if (!/^\d+_/.test(entry)) continue;
+    try {
+      if (statSync(join(dir, entry)).isDirectory()) count++;
+    } catch {
+      // Unreadable entry — skip it.
+    }
+  }
+  return count;
+}
+
+// Decides whether boot should offer to relocate already-solved problems. Pure:
+// the caller passes the resolved current dir and the tracked "last known" value
+// (undefined on first boot). Returns a plan only when the previous dir is a
+// real, *different* directory that still holds problem folders — otherwise null
+// (caller then just records the current dir as the new last-known). Detecting a
+// difference here is what catches a hand-edited `config.toml`, not just an
+// in-app change.
+export function detectSolutionsRelocation(
+  currentDir: string,
+  lastKnownDir: string | undefined
+): RelocationPlan | null {
+  if (!lastKnownDir) return null; // first boot — nothing was tracked yet
+  const from = resolve(lastKnownDir);
+  const to = resolve(currentDir);
+  if (from === to) return null; // unchanged
+  if (!existsSync(from)) return null; // old dir is gone — nothing to move
+  const count = countProblemFolders(from);
+  if (count === 0) return null; // old dir held no problems
+  return { fromDir: from, toDir: to, count };
 }
 
 // Move a single entry (file or directory subtree). `renameSync` is atomic and
