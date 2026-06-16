@@ -29,7 +29,8 @@ import {
   handleReauth,
 } from "../views/browse/handlers";
 import {
-  handleEnterProblemView,
+  handleEnterProblemFromCursor,
+  handleEnterRelated,
   handleExitProblemView,
   handleProblemOpenEditor,
   handleProblemRun,
@@ -227,7 +228,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     title: "Open problem view",
     category: "View",
     short: "View",
-    run: () => handleEnterProblemView("return"),
+    run: () => handleEnterProblemFromCursor("return"),
   }),
   makeCommand({
     name: "problem.daily",
@@ -353,6 +354,13 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     run: () => useAppStore.getState().setProblemFocusedPanel("result"),
   }),
   makeCommand({
+    name: "problem.focusRelated",
+    title: "Focus related questions panel",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().setProblemFocusedPanel("related"),
+  }),
+  makeCommand({
     name: "problem.focusLeft",
     title: "Focus panel left",
     category: "Navigation",
@@ -407,6 +415,27 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     category: "Solve",
     group: "modal",
     run: () => useAppStore.getState().moveFocusedSolution(-1),
+  }),
+  makeCommand({
+    name: "problem.relatedNext",
+    title: "Next related question",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().moveFocusedRelated(1),
+  }),
+  makeCommand({
+    name: "problem.relatedPrev",
+    title: "Previous related question",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().moveFocusedRelated(-1),
+  }),
+  makeCommand({
+    name: "problem.relatedEnter",
+    title: "Open related question",
+    category: "View",
+    group: "modal",
+    run: () => handleEnterRelated("return"),
   }),
   makeCommand({
     name: "picker.next",
@@ -763,6 +792,7 @@ export const problemGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFo
   "problem.focusDescription": "1",
   "problem.focusSolutions": "2",
   "problem.focusResult": "3",
+  "problem.focusRelated": "4",
   "update.dismiss": "x",
   "problem.escape": ["escape", "q"],
 });
@@ -783,6 +813,16 @@ export const solutionsPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsF
   "problem.solutionNext": ["j", "down"],
   "problem.solutionPrev": ["k", "up"],
   "problem.editorOpen": "return",
+});
+
+// Mounted only while the Related Questions panel is focused (Stage 12 item 4). j/k move
+// the cursor over similar questions; Enter navigates-replace to the focused one (when
+// navigable). Another layer-swap instance: j/k means "cycle related" here, distinct from
+// "scroll" / "cycle solution" in the sibling layers, all mutually exclusive on focusedPanel.
+export const relatedPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "problem.relatedNext": ["j", "down"],
+  "problem.relatedPrev": ["k", "up"],
+  "problem.relatedEnter": "return",
 });
 
 // Mounted by NotesPopup while open. `e` shadows problem.editorOpen and

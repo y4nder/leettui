@@ -14,11 +14,13 @@ import { ProgressBar } from "../../ui/components/ProgressBar";
 import { UpdateBanner } from "../../ui/components/UpdateBanner";
 import { SolutionPickerModal } from "../../ui/components/SolutionPickerModal";
 import { SolutionsPanel } from "../../ui/components/SolutionsPanel";
+import { RelatedPanel } from "../../ui/components/RelatedPanel";
 import { NotesPopup } from "../../ui/components/NotesPopup";
 import {
   problemGlobalBindings,
   scrollPanelBindings,
   solutionsPanelBindings,
+  relatedPanelBindings,
   registerProblemScroller,
 } from "../../ui/keymap";
 
@@ -40,6 +42,11 @@ function ScrollPanelBindings() {
 
 function SolutionsPanelBindings() {
   useBindings(() => ({ bindings: solutionsPanelBindings }), []);
+  return null;
+}
+
+function RelatedPanelBindings() {
+  useBindings(() => ({ bindings: relatedPanelBindings }), []);
   return null;
 }
 
@@ -135,6 +142,8 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
     topicTags,
     solutions,
     focusedSolutionIndex,
+    related,
+    focusedRelatedIndex,
     focusedPanel,
     result,
     solutionPicker,
@@ -142,11 +151,21 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
   } = problem;
   const scrollFocused = focusedPanel === "description" || focusedPanel === "result";
 
+  // Related sits at the bottom of the right column; cap its viewport so a long similar-
+  // questions list can't starve the Result panel above. Budget = right-column inner
+  // height (mainHeight − Header − MetaLine) minus Solutions (~len+3), HintsFooter (3),
+  // Related chrome (3), and a floor reserved for Result. On short terminals Result
+  // (flexGrow) still gives space first; the max(2, …) keeps Related usable regardless.
+  const RESULT_FLOOR = 6;
+  const solutionsRows = (solutions.length || 1) + 3;
+  const relatedMaxRows = Math.max(2, mainHeight - solutionsRows - RESULT_FLOOR - 8);
+
   return (
     <box flexDirection="column" width="100%" height="100%">
       <ProblemGlobalBindings />
       {scrollFocused && <ScrollPanelBindings />}
       {focusedPanel === "solutions" && <SolutionsPanelBindings />}
+      {focusedPanel === "related" && <RelatedPanelBindings />}
 
       <UpdateBanner />
 
@@ -193,6 +212,14 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
                 )}
               </scrollbox>
             </box>
+
+            <RelatedPanel
+              related={related}
+              focusedIndex={focusedRelatedIndex}
+              focused={focusedPanel === "related"}
+              tag="4"
+              maxRows={relatedMaxRows}
+            />
 
             <HintsFooter />
           </box>
