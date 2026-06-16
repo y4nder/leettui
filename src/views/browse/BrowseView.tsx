@@ -2,7 +2,7 @@ import { useTerminalDimensions } from "@opentui/react";
 import { useBindings } from "@opentui/keymap/react";
 import type { createCliRenderer } from "@opentui/core";
 
-import { useAppStore } from "../../ui/store";
+import { useAppStore, PANEL_ORDER } from "../../ui/store";
 import { TopicList } from "../../ui/components/TopicList";
 import { QuestionList } from "../../ui/components/QuestionList";
 import { StatusBar } from "../../ui/components/StatusBar";
@@ -17,7 +17,12 @@ import { CommandPalette } from "../../ui/components/CommandPalette";
 import { ChangeLocationPrompt } from "../../ui/components/ChangeLocationPrompt";
 import { EasterEgg } from "../../ui/components/EasterEgg";
 import { isDebugEnabled, getEntries } from "../../debug";
-import { browseBindings, searchBindings } from "../../ui/keymap";
+import {
+  browseGlobalBindings,
+  topicPanelBindings,
+  questionPanelBindings,
+  searchBindings,
+} from "../../ui/keymap";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
 
@@ -25,8 +30,18 @@ interface BrowseViewProps {
   renderer: Renderer;
 }
 
-function BrowseBindings() {
-  useBindings(() => ({ bindings: browseBindings }), []);
+function BrowseGlobalBindings() {
+  useBindings(() => ({ bindings: browseGlobalBindings }), []);
+  return null;
+}
+
+function TopicPanelBindings() {
+  useBindings(() => ({ bindings: topicPanelBindings }), []);
+  return null;
+}
+
+function QuestionPanelBindings() {
+  useBindings(() => ({ bindings: questionPanelBindings }), []);
   return null;
 }
 
@@ -45,11 +60,13 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
   const currentTopic = useAppStore((s) => s.topics[s.selectedTopicIndex] ?? "all");
 
   const searchNeedle = useAppStore((s) => s.searchNeedle);
+  const topicNeedle = useAppStore((s) => s.topicNeedle);
   const stats = useAppStore((s) => s.stats);
   const difficultyFilter = useAppStore((s) => s.difficultyFilter);
   const solutionFileIds = useAppStore((s) => s.solutionFileIds);
 
   const mode = useAppStore((s) => s.mode);
+  const focusedPanel = useAppStore((s) => s.focusedPanel);
   useAppStore((s) => s.themeVersion);
   const popupTitle = useAppStore((s) => s.popupTitle);
   const popupContent = useAppStore((s) => s.popupContent);
@@ -64,7 +81,9 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
 
   return (
     <box flexDirection="column" width="100%" height="100%">
-      {mode === "browse" && <BrowseBindings />}
+      {mode === "browse" && <BrowseGlobalBindings />}
+      {mode === "browse" && focusedPanel === "topics" && <TopicPanelBindings />}
+      {mode === "browse" && focusedPanel === "questions" && <QuestionPanelBindings />}
       {mode === "search" && <SearchBindings />}
 
       <UpdateBanner />
@@ -72,19 +91,29 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
       {syncProgress && <ProgressBar current={syncProgress.current} total={syncProgress.total} />}
 
       <box flexDirection="row" flexGrow={1} height={mainHeight}>
-        <TopicList topics={topics} selectedIndex={selectedTopicIndex} height={mainHeight} />
+        <TopicList
+          topics={topics}
+          selectedIndex={selectedTopicIndex}
+          height={mainHeight}
+          focused={focusedPanel === "topics"}
+          tag={String(PANEL_ORDER.indexOf("topics") + 1)}
+        />
         <QuestionList
           questions={filteredQuestions}
           selectedIndex={selectedQuestionIndex}
           height={mainHeight}
           topic={currentTopic}
           solutionFileIds={solutionFileIds}
+          focused={focusedPanel === "questions"}
+          tag={String(PANEL_ORDER.indexOf("questions") + 1)}
         />
       </box>
 
       <StatusBar
         mode={mode}
+        focusedPanel={focusedPanel}
         searchNeedle={searchNeedle}
+        topicNeedle={topicNeedle}
         stats={stats}
         difficultyFilter={difficultyFilter}
         debugEnabled={isDebugEnabled()}
@@ -102,7 +131,7 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
 
       {mode === "result" && resultView && <ResultPopup view={resultView} />}
 
-      {mode === "help" && <HelpPopup debugEnabled={isDebugEnabled()} />}
+      {mode === "help" && <HelpPopup focusedPanel={focusedPanel} debugEnabled={isDebugEnabled()} />}
 
       {mode === "debug" && <DebugPopup entries={getEntries()} />}
 

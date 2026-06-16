@@ -7,6 +7,9 @@ interface QuestionListProps {
   height: number;
   topic: string;
   solutionFileIds: Set<number>;
+  focused: boolean;
+  // The number key that focuses this panel ([1]/[2]), shown as a tag in the title.
+  tag: string;
 }
 
 function formatAcRate(acRate: number | null): string {
@@ -20,6 +23,8 @@ export function QuestionList({
   height,
   topic,
   solutionFileIds,
+  focused,
+  tag,
 }: QuestionListProps) {
   const visibleCount = Math.max(1, height - 2);
   let scrollOffset = 0;
@@ -32,18 +37,26 @@ export function QuestionList({
 
   const visible = questions.slice(scrollOffset, scrollOffset + visibleCount);
 
+  // When the panel isn't focused, the selected row gets a muted version of the
+  // highlight (dimmer bg + dimmer accent) so the active panel's selection stands out.
+  const selectedBg = focused ? colors.bgHighlight : colors.surface;
+  const selectedFg = focused ? colors.fgAccent : colors.mutedAccent;
+
   return (
     <box
       flexDirection="column"
       borderStyle="rounded"
-      borderColor={colors.border}
+      borderColor={focused ? colors.accent : colors.border}
       flexGrow={1}
       height="100%"
     >
-      <text fg={colors.fgAccent}>
-        {" "}
-        Questions [{topic}] ({questions.length}){" "}
-      </text>
+      <box flexDirection="row">
+        <text fg={focused ? colors.accent : colors.fgDim}> [{tag}]</text>
+        <text fg={colors.fgAccent}>
+          {" "}
+          Questions [{topic}] ({questions.length}){" "}
+        </text>
+      </box>
       {visible.length === 0 ? (
         <text fg={colors.fgDim}> No questions found</text>
       ) : (
@@ -63,13 +76,13 @@ export function QuestionList({
             <box
               key={q.id}
               flexDirection="row"
-              backgroundColor={isSelected ? colors.bgHighlight : undefined}
+              backgroundColor={isSelected ? selectedBg : undefined}
               width="100%"
             >
               <text fg={sColor}> {icon} </text>
               <text fg={colors.accent}>{hasSolution ? "◆" : " "}</text>
               <text fg={colors.fgDim}> {idStr} </text>
-              <text fg={isSelected ? colors.fgAccent : colors.fg} flexGrow={1}>
+              <text fg={isSelected ? selectedFg : colors.fg} flexGrow={1}>
                 {q.title}
                 {paidStr}
               </text>

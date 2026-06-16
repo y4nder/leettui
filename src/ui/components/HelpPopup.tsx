@@ -1,15 +1,18 @@
 import { useMemo } from "react";
-import { useBindings, useKeymap } from "@opentui/keymap/react";
-import { formatCommandBindings } from "@opentui/keymap/extras";
-import type { CommandEntry } from "@opentui/keymap";
-import type { KeyEvent, Renderable } from "@opentui/core";
+import { useBindings } from "@opentui/keymap/react";
 import { colors } from "../theme";
-import { helpBindings } from "../keymap";
-
-type Entry = CommandEntry<Renderable, KeyEvent>;
+import type { BrowsePanel } from "../store";
+import {
+  helpBindings,
+  browseGlobalBindings,
+  panelBindings,
+  describeScope,
+  formatKeys,
+  isScopeEntryVisible,
+  type ScopeBinding,
+} from "../keymap";
 
 const KEY_WIDTH = 16;
-const CATEGORY_ORDER = ["Navigation", "View", "Solve", "Search", "System"] as const;
 
 interface Row {
   key: string;
@@ -21,38 +24,10 @@ interface Section {
   rows: Row[];
 }
 
-function buildSections(entries: readonly Entry[], debugEnabled: boolean): Section[] {
-  const byCategory = new Map<string, Row[]>();
-  const debugRows: Row[] = [];
-
-  for (const e of entries) {
-    const group = e.command.group as string | undefined;
-    if (group === "modal") continue;
-    if (group === "debug" && !debugEnabled) continue;
-
-    const title = (e.command.title as string | undefined) ?? e.command.name;
-    const display = formatCommandBindings(e.bindings) ?? "";
-    if (!display) continue;
-    const row: Row = { key: display, desc: title };
-
-    if (group === "debug") {
-      debugRows.push(row);
-      continue;
-    }
-    const cat = (e.command.category as string | undefined) ?? "System";
-    if (!byCategory.has(cat)) byCategory.set(cat, []);
-    byCategory.get(cat)!.push(row);
-  }
-
-  const sections: Section[] = [];
-  for (const cat of CATEGORY_ORDER) {
-    const rows = byCategory.get(cat);
-    if (rows && rows.length > 0) sections.push({ header: cat.toUpperCase(), rows });
-  }
-  if (debugEnabled && debugRows.length > 0) {
-    sections.push({ header: "DEBUG", rows: debugRows });
-  }
-  return sections;
+function scopeRows(bindings: Parameters<typeof describeScope>[0], debugEnabled: boolean): Row[] {
+  return describeScope(bindings)
+    .filter((b: ScopeBinding) => isScopeEntryVisible(b, debugEnabled))
+    .map((b) => ({ key: formatKeys(b.keys), desc: b.title }));
 }
 
 function pad(s: string, width: number): string {
@@ -60,16 +35,23 @@ function pad(s: string, width: number): string {
 }
 
 interface HelpPopupProps {
+  focusedPanel: BrowsePanel;
   debugEnabled?: boolean;
 }
 
-export function HelpPopup({ debugEnabled }: HelpPopupProps) {
+export function HelpPopup({ focusedPanel, debugEnabled }: HelpPopupProps) {
   useBindings(() => ({ bindings: helpBindings }), []);
-  const keymap = useKeymap();
-  const sections = useMemo(
-    () => buildSections(keymap.getCommandEntries(), !!debugEnabled),
-    [keymap, debugEnabled],
-  );
+
+  const sections = useMemo<Section[]>(() => {
+    const panelLabel = focusedPanel === "topics" ? "Topics" : "Questions";
+    const out: Section[] = [];
+    const local = scopeRows(panelBindings(focusedPanel), !!debugEnabled);
+    if (local.length > 0)
+      out.push({ header: `LOCAL KEYS — ${panelLabel.toUpperCase()}`, rows: local });
+    const global = scopeRows(browseGlobalBindings, !!debugEnabled);
+    if (global.length > 0) out.push({ header: "GLOBAL KEYS", rows: global });
+    return out;
+  }, [focusedPanel, debugEnabled]);
 
   return (
     <box

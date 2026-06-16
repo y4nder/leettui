@@ -7,12 +7,15 @@ import type { StateCreator } from "zustand";
 import type { DbQuestion, StatusCounts } from "../../../db/questions";
 import { getQuestionsByTopic, getStatusCounts } from "../../../db/questions";
 import { getAllTopicsWithAll } from "../../../db/topics";
-import { filterQuestions } from "../../../core/search";
+import { filterQuestions, filterTopics } from "../../../core/search";
 import { listSolutionQuestionIds } from "../../../core/solutions";
 import type { DifficultyFilter } from "./filtersSlice";
 import type { AppStore } from "../index";
 
 export interface QuestionsSlice {
+  // `allTopics` is the full DB list; `topics` is the displayed projection
+  // (filtered by the topics-panel search) — mirrors allQuestions/filteredQuestions.
+  allTopics: string[];
   topics: string[];
   allQuestions: DbQuestion[];
   filteredQuestions: DbQuestion[];
@@ -24,6 +27,7 @@ export interface QuestionsSlice {
   refreshSolutionFiles: () => void;
   loadTopic: (topic: string) => void;
   applySearch: (needle: string) => void;
+  applyTopicSearch: (needle: string) => void;
   applyFilters: () => void;
 }
 
@@ -37,6 +41,7 @@ function project(all: DbQuestion[], needle: string, difficulty: DifficultyFilter
 }
 
 export const createQuestionsSlice: StateCreator<AppStore, [], [], QuestionsSlice> = (set, get) => ({
+  allTopics: [],
   topics: [],
   allQuestions: [],
   filteredQuestions: [],
@@ -47,6 +52,7 @@ export const createQuestionsSlice: StateCreator<AppStore, [], [], QuestionsSlice
     const topics = getAllTopicsWithAll();
     const questions = getQuestionsByTopic("all");
     set({
+      allTopics: topics,
       topics,
       allQuestions: questions,
       filteredQuestions: project(questions, get().searchNeedle, get().difficultyFilter),
@@ -80,6 +86,27 @@ export const createQuestionsSlice: StateCreator<AppStore, [], [], QuestionsSlice
     set({
       filteredQuestions: project(get().allQuestions, needle, get().difficultyFilter),
     });
+  },
+
+  // Topics-panel search. Empty needle restores the full list and leaves the
+  // current topic's questions untouched (no reload). A real needle filters the
+  // displayed list and live-loads the top match's questions for feedback.
+  // (Cursor resets are owned by searchSlice, per the ui/domain split.)
+  // NOTE: live-load re-queries per keystroke — see the "rapid topic navigation"
+  // perf item in docs/scratchpad/ideas.md; a debounce there covers this path too.
+  applyTopicSearch: (needle) => {
+    if (!needle.trim()) {
+      set({ topics: get().allTopics });
+      return;
+    }
+    const topics = filterTopics(get().allTopics, needle);
+    set({ topics });
+    const top = topics[0];
+    if (top) {
+      get().loadTopic(top);
+    } else {
+      set({ allQuestions: [], filteredQuestions: [] });
+    }
   },
 
   applyFilters: () => {

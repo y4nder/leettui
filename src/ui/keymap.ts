@@ -3,7 +3,7 @@
 // Architecture:
 // - One global command-only layer holds every command + its metadata. It is
 //   registered once at boot via `installKeymap`.
-// - Per-scope binding-only layers (browseBindings, popupBindings, ...) are
+// - Per-scope binding-only layers (browseGlobalBindings, topicPanelBindings, ...) are
 //   registered via `useBindings` from within React components that only mount
 //   while their mode is active. No mode field-gating; conditional rendering
 //   handles activation.
@@ -15,6 +15,7 @@ import type { Binding, Command, KeyLike, Keymap } from "@opentui/keymap";
 import { registerDefaultKeys, registerMetadataFields } from "@opentui/keymap/addons";
 
 import { useAppStore } from "./store";
+import type { BrowsePanel } from "./store";
 import { setTheme, cycleTheme, listThemeNames } from "./theme";
 import { isDebugEnabled, dumpToString, logKey } from "../debug";
 import {
@@ -66,10 +67,17 @@ interface CommandSpec {
   title: string;
   category: ActionCategory;
   group?: "modal" | "debug";
+  // Terse footer label (e.g. "Run"). The full `title` is too long for the
+  // one-line status bar, so only commands that opt in via `short` show there.
+  short?: string;
   run: () => void;
 }
 
+// command name → terse footer label. Populated as commands are constructed.
+const SHORT_BY_NAME = new Map<string, string>();
+
 function makeCommand(spec: CommandSpec): Command<Renderable, KeyEvent> {
+  if (spec.short) SHORT_BY_NAME.set(spec.name, spec.short);
   const cmd: Command<Renderable, KeyEvent> = {
     name: spec.name,
     title: spec.title,
@@ -110,24 +118,28 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "question.next",
     title: "Next question",
     category: "Navigation",
+    short: "Navigate",
     run: () => useAppStore.getState().moveQuestion(1),
   }),
   makeCommand({
     name: "question.prev",
     title: "Previous question",
     category: "Navigation",
+    short: "Navigate",
     run: () => useAppStore.getState().moveQuestion(-1),
   }),
   makeCommand({
     name: "topic.next",
     title: "Next topic",
     category: "Navigation",
+    short: "Navigate",
     run: () => useAppStore.getState().moveTopic(1),
   }),
   makeCommand({
     name: "topic.prev",
     title: "Previous topic",
     category: "Navigation",
+    short: "Navigate",
     run: () => useAppStore.getState().moveTopic(-1),
   }),
   makeCommand({
@@ -156,9 +168,36 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
   }),
 
   makeCommand({
+    name: "focus.cycle",
+    title: "Focus next panel",
+    category: "Navigation",
+    short: "Focus",
+    run: () => useAppStore.getState().cycleFocusedPanel(1),
+  }),
+  makeCommand({
+    name: "focus.cyclePrev",
+    title: "Focus previous panel",
+    category: "Navigation",
+    run: () => useAppStore.getState().cycleFocusedPanel(-1),
+  }),
+  makeCommand({
+    name: "focus.topics",
+    title: "Focus topics panel",
+    category: "Navigation",
+    run: () => useAppStore.getState().setFocusedPanel("topics"),
+  }),
+  makeCommand({
+    name: "focus.questions",
+    title: "Focus questions panel",
+    category: "Navigation",
+    run: () => useAppStore.getState().setFocusedPanel("questions"),
+  }),
+
+  makeCommand({
     name: "problem.enter",
     title: "Open problem view",
     category: "View",
+    short: "View",
     run: () => handleEnterProblemView("return"),
   }),
   makeCommand({
@@ -290,6 +329,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "problem.openEditor",
     title: "Open in editor",
     category: "Solve",
+    short: "Edit",
     run: () => {
       if (_renderer) handleOpenEditor("e", _renderer);
     },
@@ -298,12 +338,14 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "problem.run",
     title: "Run solution against examples",
     category: "Solve",
+    short: "Run",
     run: () => handleRunSolution("R"),
   }),
   makeCommand({
     name: "problem.submit",
     title: "Submit solution",
     category: "Solve",
+    short: "Submit",
     run: () => handleSubmitSolution("s"),
   }),
 
@@ -311,6 +353,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "question.yankUrl",
     title: "Yank problem URL to clipboard",
     category: "View",
+    short: "Yank",
     run: () => handleYankUrl("y"),
   }),
 
@@ -318,6 +361,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "search.start",
     title: "Search / filter questions",
     category: "Search",
+    short: "Search",
     run: () => useAppStore.getState().startSearch(),
   }),
 
@@ -325,6 +369,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "help.open",
     title: "Show help screen",
     category: "System",
+    short: "Help",
     run: () => useAppStore.getState().showHelp(),
   }),
   makeCommand({
@@ -360,6 +405,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "palette.open",
     title: "Open command palette",
     category: "System",
+    short: "Cmds",
     run: () => useAppStore.getState().showPalette(),
   }),
   makeCommand({
@@ -380,6 +426,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "app.quit",
     title: "Quit",
     category: "System",
+    short: "Quit",
     run: () => _renderer?.destroy(),
   }),
 
@@ -475,7 +522,8 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     group: "modal",
     run: () => {
       const s = useAppStore.getState();
-      s.updateSearch(s.searchNeedle.slice(0, -1));
+      const active = s.focusedPanel === "topics" ? s.topicNeedle : s.searchNeedle;
+      s.updateSearch(active.slice(0, -1));
     },
   }),
   makeCommand({
@@ -499,28 +547,52 @@ function bindingsFor(spec: Record<string, KeyLike | KeyLike[]>): Binding<Rendera
   return out;
 }
 
-export const browseBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
-  "question.next": ["j", "down"],
-  "question.prev": ["k", "up"],
-  "question.first": "gg",
-  "question.last": "shift+g",
-  "topic.next": "t",
-  "topic.prev": "shift+t",
+// Panel-independent browse bindings. Always mounted in browse mode regardless of
+// which panel is focused — only genuinely cross-panel commands live here (focus,
+// search, system overlays, view-wide filters/jumps, and the update-banner dismiss).
+// `r` (random) and `x` (dismiss) stay global deliberately: random is a view-wide jump
+// and dismiss targets the banner chrome, not a panel. Question-targeted actions
+// (e/R/s/y) moved to questionPanelBindings.
+export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  // Tab/Shift+Tab cycle; Ctrl+h/Ctrl+l traverse left/right (same commands —
+  // PANEL_ORDER is the spatial left→right order, so Ctrl+l = next, Ctrl+h = prev).
+  "focus.cycle": ["tab", "ctrl+l"],
+  "focus.cyclePrev": ["shift+tab", "ctrl+h"],
+  "focus.topics": "1",
+  "focus.questions": "2",
   "question.random": "r",
-  "question.yankUrl": "y",
   "filter.cycleDifficulty": "shift+d",
-  "problem.enter": "return",
   "problem.daily": "d",
-  "problem.openEditor": "e",
-  "problem.run": "shift+r",
-  "problem.submit": "s",
   "search.start": "/",
-  "help.open": "h",
+  "help.open": "?",
   "debug.open": "`",
   "db.sync": "*",
   "palette.open": "ctrl+p",
   "update.dismiss": "x",
   "app.quit": "q",
+});
+
+// Mounted only while the topics panel is focused. j/k move the topic cursor (which
+// live-filters the question list); Enter hands focus to the questions panel.
+export const topicPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "topic.next": ["j", "down"],
+  "topic.prev": ["k", "up"],
+  "focus.questions": "return",
+});
+
+// Mounted only while the questions panel is focused. j/k move the question cursor,
+// gg/G jump to ends, Enter opens the problem view, and the question-targeted solve
+// actions (open editor / run / submit / yank URL) act on the selected question.
+export const questionPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "question.next": ["j", "down"],
+  "question.prev": ["k", "up"],
+  "question.first": "gg",
+  "question.last": "shift+g",
+  "problem.enter": "return",
+  "problem.openEditor": "e",
+  "problem.run": "shift+r",
+  "problem.submit": "s",
+  "question.yankUrl": "y",
 });
 
 export const popupBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
@@ -575,6 +647,130 @@ export const pickerBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "picker.cancel": ["escape", "q"],
 });
 
+// --- Scope introspection (shared by the status-bar footer and help popup) ---
+// Built from the static binding specs above joined to the command catalog, so both
+// surfaces read one source of truth and never drift from the live keymap (and stay
+// correct even though the panel layers are unregistered while a modal like help is
+// open). Keys/titles come from here, not from runtime `getCommandEntries()`.
+
+const COMMAND_BY_NAME = new Map(COMMANDS.map((c) => [c.name, c]));
+
+export interface ScopeBinding {
+  cmd: string;
+  keys: string[]; // raw key tokens bound to this command, in declaration order
+  title: string;
+  short?: string;
+  group?: string;
+}
+
+// Group a binding spec by command (one command may carry several key aliases).
+export function describeScope(bindings: Binding<Renderable, KeyEvent>[]): ScopeBinding[] {
+  const order: string[] = [];
+  const keysByCmd = new Map<string, string[]>();
+  for (const b of bindings) {
+    const cmd = String(b.cmd);
+    const existing = keysByCmd.get(cmd);
+    if (existing) {
+      existing.push(String(b.key));
+    } else {
+      keysByCmd.set(cmd, [String(b.key)]);
+      order.push(cmd);
+    }
+  }
+  return order.map((cmd) => {
+    const command = COMMAND_BY_NAME.get(cmd);
+    return {
+      cmd,
+      keys: keysByCmd.get(cmd) ?? [],
+      title: (command?.title as string | undefined) ?? cmd,
+      short: SHORT_BY_NAME.get(cmd),
+      group: command?.group as string | undefined,
+    };
+  });
+}
+
+// Modal commands never surface here; debug commands only when LEETTUI_DEBUG is on.
+export function isScopeEntryVisible(b: ScopeBinding, debugEnabled: boolean): boolean {
+  if (b.group === "modal") return false;
+  if (b.group === "debug" && !debugEnabled) return false;
+  return true;
+}
+
+const KEY_DISPLAY: Record<string, string> = {
+  tab: "Tab",
+  "shift+tab": "S-Tab",
+  return: "Enter",
+  escape: "Esc",
+  up: "↑",
+  down: "↓",
+  backspace: "⌫",
+};
+
+export function formatKeyToken(raw: string): string {
+  const mapped = KEY_DISPLAY[raw];
+  if (mapped) return mapped;
+  const shiftLetter = /^shift\+([a-z])$/.exec(raw);
+  if (shiftLetter) return shiftLetter[1]!.toUpperCase();
+  const ctrl = /^ctrl\+(.+)$/.exec(raw);
+  if (ctrl) return `^${ctrl[1]!.toUpperCase()}`;
+  return raw;
+}
+
+export function formatKeys(keys: string[]): string {
+  return keys.map(formatKeyToken).join("/");
+}
+
+// The static binding spec for a panel scope, used by the help popup's Local Keys.
+export function panelBindings(panel: BrowsePanel): Binding<Renderable, KeyEvent>[] {
+  return panel === "topics" ? topicPanelBindings : questionPanelBindings;
+}
+
+// Terse, focus-aware footer hints: the focused panel's local keys first, then the
+// always-available global keys. Only commands with a `short` label appear; commands
+// that share a `short` (e.g. next/prev → "Navigate") merge into one `key/key` segment.
+export function footerSegments(
+  panel: BrowsePanel,
+  debugEnabled: boolean,
+): { keys: string; label: string }[] {
+  const segs: { keys: string; label: string }[] = [];
+  const byShort = new Map<string, number>();
+  for (const scope of [describeScope(panelBindings(panel)), describeScope(browseGlobalBindings)]) {
+    for (const b of scope) {
+      if (!b.short || !isScopeEntryVisible(b, debugEnabled)) continue;
+      const key = formatKeyToken(b.keys[0] ?? "");
+      const at = byShort.get(b.short);
+      if (at != null) {
+        segs[at]!.keys += `/${key}`;
+      } else {
+        byShort.set(b.short, segs.length);
+        segs.push({ keys: key, label: b.short });
+      }
+    }
+  }
+  return segs;
+}
+
+// Join footer segments into a single line that fits `maxWidth`, dropping overflow
+// at a segment boundary with a trailing "…" (never clips mid-segment). Local keys
+// come first in `segments`, so a narrow terminal keeps them and sheds globals.
+export function fitFooter(segments: { keys: string; label: string }[], maxWidth: number): string {
+  const SEP = "  ";
+  const ELLIPSIS = " …";
+  const parts: string[] = [];
+  let len = 0;
+  for (const seg of segments) {
+    const text = `${seg.keys}:${seg.label}`;
+    const add = (parts.length > 0 ? SEP.length : 0) + text.length;
+    if (len + add > maxWidth) {
+      if (parts.length === 0) return text.slice(0, Math.max(0, maxWidth));
+      return parts.join(SEP) + ELLIPSIS;
+    }
+    parts.push(text);
+    len += add;
+  }
+  return parts.join(SEP);
+}
+
 export function installKeymap(keymap: AppKeymap, renderer: CliRenderer): void {
   _keymap = keymap;
   _renderer = renderer;
@@ -594,7 +790,8 @@ export function installKeymap(keymap: AppKeymap, renderer: CliRenderer): void {
     const name = ctx.event.name ?? "";
     if (name.length !== 1) return;
     if (ctx.event.ctrl || ctx.event.meta) return;
+    const active = s.focusedPanel === "topics" ? s.topicNeedle : s.searchNeedle;
     logKey(name, "", s.mode, `updateSearch(+${name})`);
-    s.updateSearch(s.searchNeedle + name);
+    s.updateSearch(active + name);
   });
 }

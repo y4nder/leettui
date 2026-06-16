@@ -73,9 +73,12 @@ Version metadata lives in `src/core/version.ts`, inlined at build time via `--de
 
 ### Key bindings (browse mode)
 
-j/k or arrows: Navigate questions | gg/G: Jump to first/last | t/T: Next/prev topic
-D: Cycle difficulty filter | d: Daily challenge | Enter: View problem | e: Open in editor
-R: Run solution | s: Submit solution | y: Yank problem URL | /: Search | q: Quit
+Browse uses lazygit-style focusable panels (Stage 11): exactly one panel is focused.
+Tab / Shift+Tab: cycle focus | Ctrl+h/Ctrl+l: focus left/right | [1]/[2]: jump to topics/questions panel
+Topics focused — j/k: change topic (live-filters questions) | Enter: focus questions
+Questions focused — j/k or arrows: navigate | gg/G: jump first/last | Enter: view problem
+  e: Open in editor | R: Run | s: Submit | y: Yank URL
+Global (any panel) — d: Daily challenge | D: Cycle difficulty | /: Search | ?: Help | q: Quit
 
 ### Config file (`~/.config/leettui/config.toml`)
 
