@@ -43,10 +43,7 @@ export function matchCliVerb(argv: string[]): CliVerb | null {
   return null;
 }
 
-export async function runCli(
-  verb: CliVerb,
-  cwd: string = process.cwd()
-): Promise<number> {
+export async function runCli(verb: CliVerb, cwd: string = process.cwd()): Promise<number> {
   loadConfig();
   openDatabase(getDbPath());
 
@@ -68,14 +65,14 @@ export async function runCli(
     }
     case "run":
       return runApiVerb(header, "Running against example cases on LeetCode…", () =>
-        runSolution(question, langSlug)
+        runSolution(question, langSlug),
       );
     case "submit":
       // Reuses `runApiVerb` verbatim — `submitSolution` already persists status
       // and runtime/memory stats to the DB (markAccepted/setSubmissionStats),
       // exactly as the TUI submit path does.
       return runApiVerb(header, "Submitting to LeetCode…", () =>
-        submitSolution(question, langSlug)
+        submitSolution(question, langSlug),
       );
   }
 }
@@ -84,7 +81,7 @@ export async function runCli(
 // the missing-session branch is unit-testable without touching the real config.
 // Never invokes any interactive auth flow — that's a TUI/`auth`-subcommand concern.
 export function bootstrapApiClient(
-  config: Config = loadConfig()
+  config: Config = loadConfig(),
 ): { ok: true } | { ok: false; error: string } {
   if (!hasTokens(config)) return { ok: false, error: AUTH_HINT };
   initClient(config.csrftoken, config.lc_session);
@@ -99,7 +96,7 @@ export function bootstrapApiClient(
 async function runApiVerb(
   header: string,
   status: string,
-  action: () => Promise<ParsedResponse>
+  action: () => Promise<ParsedResponse>,
 ): Promise<number> {
   const boot = bootstrapApiClient();
   if (!boot.ok) {

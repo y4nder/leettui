@@ -44,9 +44,7 @@ export function CommandPalette() {
   const all = useMemo(() => rowsFromEntries(keymap.getCommandEntries()), [keymap]);
   const filtered = useMemo(() => filterRows(all, needle), [all, needle]);
 
-  const clampedIndex = filtered.length === 0
-    ? 0
-    : Math.min(selectedIndex, filtered.length - 1);
+  const clampedIndex = filtered.length === 0 ? 0 : Math.min(selectedIndex, filtered.length - 1);
 
   useBindings(
     () => ({
@@ -63,8 +61,11 @@ export function CommandPalette() {
             });
           },
         },
-        { key: "down", cmd: () => setSelectedIndex((i) => Math.min(i + 1, Math.max(filtered.length - 1, 0))) },
-        { key: "up",   cmd: () => setSelectedIndex((i) => Math.max(i - 1, 0)) },
+        {
+          key: "down",
+          cmd: () => setSelectedIndex((i) => Math.min(i + 1, Math.max(filtered.length - 1, 0))),
+        },
+        { key: "up", cmd: () => setSelectedIndex((i) => Math.max(i - 1, 0)) },
         {
           key: "backspace",
           cmd: () => {
@@ -112,7 +113,7 @@ export function CommandPalette() {
       </box>
       <scrollbox flexGrow={1}>
         {filtered.length === 0 ? (
-          <text fg={colors.fgDim}>   (no matches)</text>
+          <text fg={colors.fgDim}> (no matches)</text>
         ) : (
           filtered.map((r, i) => {
             const selected = i === clampedIndex;

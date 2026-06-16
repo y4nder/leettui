@@ -2,7 +2,7 @@
 // handlers but routes results to the in-view inline result panel instead of
 // the modal popup.
 
-import { dirname } from "path";
+import { dirname } from "node:path";
 
 import type { createCliRenderer } from "@opentui/core";
 
@@ -92,9 +92,7 @@ export async function handleOpenSolutionPicker(triggerKey: string) {
     const editorData = await fetchEditorData(p.question.title_slug);
     const snippets = editorData.question.codeSnippets;
     if (!snippets || snippets.length === 0) {
-      useAppStore
-        .getState()
-        .setProblemResult(info("No code snippets available for this problem."));
+      useAppStore.getState().setProblemResult(info("No code snippets available for this problem."));
       return;
     }
     const existing = new Set(findExistingSolutions(p.question.id, p.question.title_slug));
@@ -107,14 +105,10 @@ export async function handleOpenSolutionPicker(triggerKey: string) {
 
     const initialLangSlug = focusedLangSlug();
 
-    useAppStore
-      .getState()
-      .openSolutionPicker(sorted, existing, initialLangSlug ?? undefined);
+    useAppStore.getState().openSolutionPicker(sorted, existing, initialLangSlug ?? undefined);
   } catch (e: any) {
     logError(triggerKey, "problem", "handleOpenSolutionPicker", e);
-    useAppStore
-      .getState()
-      .setProblemResult(errorView("Error fetching editor data", e.message));
+    useAppStore.getState().setProblemResult(errorView("Error fetching editor data", e.message));
   }
 }
 
@@ -167,7 +161,7 @@ export async function handlePickerOpenEditor(_triggerKey: string, renderer: Rend
       snippet.langSlug,
       snippet.code,
       cfg?.question.metaData,
-      cfg?.question.exampleTestcaseList
+      cfg?.question.exampleTestcaseList,
     );
   }
 

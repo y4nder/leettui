@@ -8,11 +8,9 @@ const MAX_CACHE_SIZE = 20;
 export async function gqlQuery<T>(
   query: string,
   variables: Record<string, unknown>,
-  useCache = false
+  useCache = false,
 ): Promise<T> {
-  const cacheKey = useCache
-    ? JSON.stringify({ query, variables })
-    : "";
+  const cacheKey = useCache ? JSON.stringify({ query, variables }) : "";
 
   if (useCache && cacheKey) {
     const cached = cache.get(cacheKey);

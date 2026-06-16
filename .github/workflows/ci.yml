@@ -1,0 +1,34 @@
+name: ci
+
+# Pre-merge gate. Runs the SAME command developers run locally before opening a
+# PR — `bun run check` (Biome lint+format check, tsc --noEmit, bun test) — so a
+# green local run means a green CI run. Keep the gate logic in package.json's
+# `check` script, not here, so the two can never drift.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Cancel superseded runs on the same ref (e.g. rapid pushes to a PR branch).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pin Bun so CI is reproducible: the test runner's behavior is part of the
+      # gate, so a floating `latest` could change results without a code change.
+      # Bump this in lockstep with local dev / the release workflow.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.8
+
+      # --frozen-lockfile fails if bun.lock is stale, keeping installs (and the
+      # pinned Biome version) deterministic.
+      - run: bun install --frozen-lockfile
+
+      - run: bun run check

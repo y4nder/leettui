@@ -20,12 +20,7 @@ export function StatusBar({
 }: StatusBarProps) {
   if (mode === "search") {
     return (
-      <box
-        flexDirection="row"
-        width="100%"
-        height={1}
-        backgroundColor={colors.statusBar}
-      >
+      <box flexDirection="row" width="100%" height={1} backgroundColor={colors.statusBar}>
         <text fg={colors.fgAccent}> /</text>
         <text fg={colors.fg}>{searchNeedle}</text>
         <text fg={colors.fgDim}>█</text>
@@ -50,9 +45,9 @@ export function StatusBar({
           <text fg={difficultyColor(difficultyFilter)}> [{difficultyFilter}] </text>
         )}
         <text fg={colors.accepted}>✓ {stats.solved}</text>
-        <text fg={colors.fgDim}>  </text>
+        <text fg={colors.fgDim}> </text>
         <text fg={colors.attempted}>~ {stats.attempted}</text>
-        <text fg={colors.fgDim}>  / {stats.total}</text>
+        <text fg={colors.fgDim}> / {stats.total}</text>
         {debugEnabled && <text fg={colors.hard}> [DEBUG] </text>}
         <text fg={colors.fgDim}> ?:Help q:Quit </text>
       </box>

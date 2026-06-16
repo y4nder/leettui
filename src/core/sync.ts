@@ -31,7 +31,7 @@ function persistPage(questions: ApiQuestion[]): void {
 }
 
 export async function syncQuestions(
-  onProgress?: (fetched: number, total: number) => void
+  onProgress?: (fetched: number, total: number) => void,
 ): Promise<number> {
   const first = await fetchQuestionList(PAGE_SIZE, 0);
   const total = first.problemsetQuestionList.total;
@@ -60,15 +60,13 @@ export async function syncQuestions(
     }
   }
 
-  await Promise.all(
-    Array.from({ length: Math.min(CONCURRENCY, skips.length) }, () => worker())
-  );
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, skips.length) }, () => worker()));
 
   return fetched;
 }
 
 export async function syncIfEmpty(
-  onProgress?: (fetched: number, total: number) => void
+  onProgress?: (fetched: number, total: number) => void,
 ): Promise<void> {
   const count = getQuestionCount();
   if (count === 0) {

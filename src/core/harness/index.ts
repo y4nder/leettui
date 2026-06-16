@@ -19,7 +19,7 @@ export interface GeneratedHarness {
 
 export function generateHarness(
   langSlug: string,
-  metaDataRaw: string | undefined | null
+  metaDataRaw: string | undefined | null,
 ): GeneratedHarness | null {
   if (!metaDataRaw) return null;
 

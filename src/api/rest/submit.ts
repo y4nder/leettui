@@ -5,14 +5,11 @@ export async function submitCode(
   slug: string,
   lang: string,
   questionId: string,
-  typedCode: string
+  typedCode: string,
 ): Promise<SubmitCodeResponse> {
-  return getClient().post<SubmitCodeResponse>(
-    `/problems/${slug}/submit/`,
-    {
-      lang,
-      question_id: questionId,
-      typed_code: typedCode,
-    }
-  );
+  return getClient().post<SubmitCodeResponse>(`/problems/${slug}/submit/`, {
+    lang,
+    question_id: questionId,
+    typed_code: typedCode,
+  });
 }

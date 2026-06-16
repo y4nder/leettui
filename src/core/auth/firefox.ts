@@ -9,9 +9,9 @@
 // profile has only `csrftoken`).
 
 import { Database } from "bun:sqlite";
-import { homedir, tmpdir } from "os";
-import { join } from "path";
-import { existsSync, readdirSync, copyFileSync, rmSync } from "fs";
+import { homedir, tmpdir } from "node:os";
+import { join } from "node:path";
+import { existsSync, readdirSync, copyFileSync, rmSync } from "node:fs";
 
 export interface FirefoxCookies {
   csrftoken: string;

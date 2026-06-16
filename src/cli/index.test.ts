@@ -37,22 +37,18 @@ function ran(...cases: LocalCaseResult[]): LocalRunReport {
 
 describe("exitCodeForLocalRun", () => {
   test("all pass → 0", () => {
-    expect(
-      exitCodeForLocalRun(ran({ name: "case-01", status: "pass" }))
-    ).toBe(0);
+    expect(exitCodeForLocalRun(ran({ name: "case-01", status: "pass" }))).toBe(0);
   });
 
   test("ran clean with no expected outputs → 0", () => {
-    expect(
-      exitCodeForLocalRun(ran({ name: "case-01", status: "ran" }))
-    ).toBe(0);
+    expect(exitCodeForLocalRun(ran({ name: "case-01", status: "ran" }))).toBe(0);
   });
 
   test("any fail → 1", () => {
     expect(
       exitCodeForLocalRun(
-        ran({ name: "case-01", status: "pass" }, { name: "case-02", status: "fail" })
-      )
+        ran({ name: "case-01", status: "pass" }, { name: "case-02", status: "fail" }),
+      ),
     ).toBe(1);
   });
 
@@ -66,16 +62,14 @@ describe("exitCodeForLocalRun", () => {
   });
 
   test("timeout → 1", () => {
-    expect(
-      exitCodeForLocalRun(ran({ name: "case-01", status: "timeout" }))
-    ).toBe(1);
+    expect(exitCodeForLocalRun(ran({ name: "case-01", status: "timeout" }))).toBe(1);
   });
 
   test("setup arms: no-cases & unsupported → 0, no-harness → 1", () => {
     expect(exitCodeForLocalRun({ kind: "no-cases" })).toBe(0);
     expect(exitCodeForLocalRun({ kind: "unsupported", langSlug: "rust" })).toBe(0);
     expect(
-      exitCodeForLocalRun({ kind: "no-harness", langSlug: "python3", harnessFilename: "main.py" })
+      exitCodeForLocalRun({ kind: "no-harness", langSlug: "python3", harnessFilename: "main.py" }),
     ).toBe(1);
   });
 });
@@ -115,8 +109,8 @@ describe("presentResultView", () => {
     const view = buildLocalRunView(
       ran(
         { name: "case-01", status: "pass", expected: "[0,1]", actual: "[0,1]" },
-        { name: "case-02", status: "fail", expected: "[0,1]", actual: "[1,0]" }
-      )
+        { name: "case-02", status: "fail", expected: "[0,1]", actual: "[1,0]" },
+      ),
     );
     const out = presentResultView(view);
     expect(out).toContain("Local: 1/2 passed");
@@ -130,7 +124,7 @@ describe("presentResultView", () => {
 
   test("shows an errored case with its (error) suffix and message", () => {
     const out = presentResultView(
-      buildLocalRunView(ran({ name: "case-01", status: "error", actual: "NameError: x" }))
+      buildLocalRunView(ran({ name: "case-01", status: "error", actual: "NameError: x" })),
     );
     expect(out).toContain("! case-01 (error)");
     expect(out).toContain("NameError: x");

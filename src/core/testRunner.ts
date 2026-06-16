@@ -13,8 +13,8 @@
 // The pure parts (`pairCases`, `compareOutput`) are unit-tested in
 // `testRunner.test.ts`; the spawn path is exercised manually.
 
-import { existsSync, readdirSync, readFileSync } from "fs";
-import { join } from "path";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import type { DbQuestion } from "../db/questions";
 import { getProblemDir, getTestsDir } from "./solutions";
@@ -57,7 +57,7 @@ interface DiscoveredCase {
 // `case-NN.txt` inputs anchor a case; a stray `.out` with no input is ignored.
 export function pairCases(filenames: string[]): { name: string; hasExpected: boolean }[] {
   const expected = new Set(
-    filenames.filter((f) => f.endsWith(".out")).map((f) => f.slice(0, -".out".length))
+    filenames.filter((f) => f.endsWith(".out")).map((f) => f.slice(0, -".out".length)),
   );
   return filenames
     .filter((f) => /^case-\d+\.txt$/.test(f))
@@ -127,7 +127,7 @@ export function discoverCases(testsDir: string): DiscoveredCase[] {
 async function runOneCase(
   spec: RunnerSpec,
   langDir: string,
-  c: DiscoveredCase
+  c: DiscoveredCase,
 ): Promise<LocalCaseResult> {
   try {
     const proc = Bun.spawn([...spec.command, spec.harnessFilename], {
@@ -155,7 +155,11 @@ async function runOneCase(
       return { name: c.name, status: "timeout", actual: `Killed after ${TIMEOUT_MS / 1000}s` };
     }
     if (exitCode !== 0) {
-      return { name: c.name, status: "error", actual: stderr.trim() || `Exited with code ${exitCode}` };
+      return {
+        name: c.name,
+        status: "error",
+        actual: stderr.trim() || `Exited with code ${exitCode}`,
+      };
     }
     if (c.expectedPath) {
       const expected = readFileSync(c.expectedPath, "utf-8");
@@ -175,7 +179,7 @@ async function runOneCase(
 
 export async function runLocalTests(
   question: DbQuestion,
-  langSlug: string
+  langSlug: string,
 ): Promise<LocalRunReport> {
   const spec = getRunnerSpec(langSlug);
   if (!spec) return { kind: "unsupported", langSlug };

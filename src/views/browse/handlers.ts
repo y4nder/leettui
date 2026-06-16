@@ -2,7 +2,7 @@
 // receives the store and renderer it needs as arguments — no React imports,
 // no top-level singletons — so they remain easy to reason about and reuse.
 
-import { dirname, resolve } from "path";
+import { dirname, resolve } from "node:path";
 
 import type { createCliRenderer } from "@opentui/core";
 
@@ -81,37 +81,41 @@ export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
       return;
     }
 
-    showSelect("Select Language", snippets.map((s) => s.lang), async (index) => {
-      hideSelect();
-      if (index === null) return;
+    showSelect(
+      "Select Language",
+      snippets.map((s) => s.lang),
+      async (index) => {
+        hideSelect();
+        if (index === null) return;
 
-      const snippet = snippets[index]!;
-      // metaData + example cases drive harness generation / tests seeding (cached fetch).
-      const cfg = await fetchConsolePanelConfig(q.title_slug).catch(() => null);
-      const path = createSolutionWithHarness(
-        q.id,
-        q.title_slug,
-        snippet.langSlug,
-        snippet.code,
-        cfg?.question.metaData,
-        cfg?.question.exampleTestcaseList
-      );
+        const snippet = snippets[index]!;
+        // metaData + example cases drive harness generation / tests seeding (cached fetch).
+        const cfg = await fetchConsolePanelConfig(q.title_slug).catch(() => null);
+        const path = createSolutionWithHarness(
+          q.id,
+          q.title_slug,
+          snippet.langSlug,
+          snippet.code,
+          cfg?.question.metaData,
+          cfg?.question.exampleTestcaseList,
+        );
 
-      const editor = getEditorCommand();
-      await withSuspendedRenderer(renderer, async () => {
-        const proc = Bun.spawn([editor, path], {
-          // cwd = the language folder, so the headless CLI's cwd-inference
-          // (`leettui test`) and per-language LSP work from inside the editor.
-          cwd: dirname(path),
-          stdin: "inherit",
-          stdout: "inherit",
-          stderr: "inherit",
+        const editor = getEditorCommand();
+        await withSuspendedRenderer(renderer, async () => {
+          const proc = Bun.spawn([editor, path], {
+            // cwd = the language folder, so the headless CLI's cwd-inference
+            // (`leettui test`) and per-language LSP work from inside the editor.
+            cwd: dirname(path),
+            stdin: "inherit",
+            stdout: "inherit",
+            stderr: "inherit",
+          });
+          await proc.exited;
         });
-        await proc.exited;
-      });
-      // A newly created file should immediately show the "solution exists" mark.
-      useAppStore.getState().refreshSolutionFiles();
-    });
+        // A newly created file should immediately show the "solution exists" mark.
+        useAppStore.getState().refreshSolutionFiles();
+      },
+    );
   } catch (e: any) {
     logError(triggerKey, "browse", "handleOpenEditor", e);
     showResult(errorView("Error fetching editor data", e.message));
@@ -121,7 +125,7 @@ export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
 async function withChosenSolution(
   triggerKey: string,
   action: "run" | "submit",
-  fn: (langSlug: string) => Promise<void>
+  fn: (langSlug: string) => Promise<void>,
 ) {
   const q = currentQuestion();
   if (!q) return;
@@ -289,7 +293,7 @@ const defaultChangeLocationDeps: ChangeLocationDeps = {
 // this invariant is locked by a unit test without touching the real config/fs.
 export function changeSolutionsDir(
   rawInput: string,
-  deps: ChangeLocationDeps = defaultChangeLocationDeps
+  deps: ChangeLocationDeps = defaultChangeLocationDeps,
 ): ChangeLocationOutcome {
   const fromDir = deps.getSolutionsDir(); // BEFORE persist — the invariant
   const toDir = resolve(resolveConfigPath(rawInput));

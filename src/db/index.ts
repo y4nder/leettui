@@ -1,7 +1,7 @@
 import { Database } from "bun:sqlite";
 import { drizzle, type BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
-import { mkdirSync } from "fs";
-import { dirname } from "path";
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 import * as schema from "./schema";
 import { embeddedMigrations } from "./migrations";
 
@@ -12,7 +12,9 @@ export type Db = BunSQLiteDatabase<typeof schema>;
 // accepts pre-read migrations and owns the `__drizzle_migrations` tracking, so
 // we feed it the embedded set instead. `dialect`/`session` are internal props.
 type MigratableDb = Db & {
-  dialect: { migrate: (migrations: ReturnType<typeof embeddedMigrations>, session: unknown) => void };
+  dialect: {
+    migrate: (migrations: ReturnType<typeof embeddedMigrations>, session: unknown) => void;
+  };
   session: unknown;
 };
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { isAbsolute, resolve } from "path";
+import { isAbsolute, resolve } from "node:path";
 
 import { changeSolutionsDir, type ChangeLocationDeps } from "./handlers";
 import type { RelocateResult } from "../../core/relocate";

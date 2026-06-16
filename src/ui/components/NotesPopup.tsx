@@ -30,7 +30,10 @@ export function NotesPopup({ content }: NotesPopupProps) {
       backgroundColor={colors.bgPopup}
       flexDirection="column"
     >
-      <text fg={colors.fgAccent} attributes={TextAttributes.BOLD}> Notes </text>
+      <text fg={colors.fgAccent} attributes={TextAttributes.BOLD}>
+        {" "}
+        Notes{" "}
+      </text>
       <scrollbox flexGrow={1} paddingLeft={1} paddingRight={1}>
         {trimmed ? (
           <markdown content={content} syntaxStyle={syntaxStyle} />
@@ -38,7 +41,7 @@ export function NotesPopup({ content }: NotesPopupProps) {
           <text fg={colors.fgDim}>No notes yet — press e to start.</text>
         )}
       </scrollbox>
-      <text fg={colors.fgDim}> e:Edit  j/k:Scroll  Esc/q:Close </text>
+      <text fg={colors.fgDim}> e:Edit j/k:Scroll Esc/q:Close </text>
     </box>
   );
 }

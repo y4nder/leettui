@@ -4,6 +4,12 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "check": "biome check ./src ./scripts && tsc --noEmit && bun test",
+    "lint": "biome check ./src ./scripts",
+    "lint:fix": "biome check --write ./src ./scripts",
+    "format": "biome format --write ./src ./scripts",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
     "build": "bun scripts/build.ts",
     "smoke": "bash scripts/smoke.sh",
     "db:generate": "drizzle-kit generate",
@@ -11,6 +17,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
     "@types/bun": "latest",
     "@types/react": "^19.2.15",
     "drizzle-kit": "^0.31.10"

@@ -52,9 +52,7 @@ export function Splash({ onDone }: SplashProps) {
     >
       <Logo reveal={reveal} />
       <box height={1} />
-      <text fg={colors.fgDim}>
-        {reveal >= 1 ? `${VERSION}  ·  press any key to continue` : ""}
-      </text>
+      <text fg={colors.fgDim}>{reveal >= 1 ? `${VERSION}  ·  press any key to continue` : ""}</text>
     </box>
   );
 }

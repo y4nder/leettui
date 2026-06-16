@@ -1,4 +1,9 @@
-import { resolveTheme, listThemeNames as listPresetNames, type Theme, type ThemeColor } from "./themes";
+import {
+  resolveTheme,
+  listThemeNames as listPresetNames,
+  type Theme,
+  type ThemeColor,
+} from "./themes";
 import { useAppStore } from "./store";
 import { persistThemeName } from "../config";
 

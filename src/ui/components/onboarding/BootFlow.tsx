@@ -134,7 +134,8 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
   }, [phase]);
 
   if (phase === "splash") return <Splash onDone={handleSplashDone} />;
-  if (phase === "auth") return <AuthWizard onComplete={handleAuthComplete} onAbort={handleAuthAbort} />;
+  if (phase === "auth")
+    return <AuthWizard onComplete={handleAuthComplete} onAbort={handleAuthAbort} />;
   if (phase === "solutions")
     return <SolutionsOnboarding defaultDir={getSolutionsDir()} onDone={handleSolutionsChosen} />;
   if (phase === "loading") return <SyncStep />;

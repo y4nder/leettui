@@ -1,6 +1,6 @@
 import { parse } from "smol-toml";
-import { mkdirSync, existsSync, readFileSync, writeFileSync } from "fs";
-import { join } from "path";
+import { mkdirSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { CONFIG_DIR, CONFIG_FILE, DB_PATH, SOLUTIONS_DIR, TEMPLATES_DIR } from "./paths";
 import { resolveConfigPath } from "./resolvePath";
 import type { Config } from "./types";
@@ -125,7 +125,7 @@ export function upsertSectionString(
   content: string,
   section: string,
   key: string,
-  value: string
+  value: string,
 ): string {
   const escaped = escapeTomlString(value);
   const sectionRe = new RegExp(`^\\s*\\[${section}\\]`, "m");
@@ -135,7 +135,10 @@ export function upsertSectionString(
 
   if (hasKey) return content.replace(keyRe, `$1${key} = "${escaped}"`);
   if (hasSection) {
-    return content.replace(new RegExp(`(^\\s*\\[${section}\\]\\s*\\n)`, "m"), `$1${key} = "${escaped}"\n`);
+    return content.replace(
+      new RegExp(`(^\\s*\\[${section}\\]\\s*\\n)`, "m"),
+      `$1${key} = "${escaped}"\n`,
+    );
   }
   return content.trimEnd() + `\n\n[${section}]\n${key} = "${escaped}"\n`;
 }

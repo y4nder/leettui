@@ -70,12 +70,7 @@ function CaseRow({ c }: { c: ResultCase }) {
 function Section({ label, color, value }: { label: string; color: ThemeColor; value: string }) {
   const lines = value.split("\n");
   return (
-    <box
-      flexDirection="column"
-      borderStyle="single"
-      borderColor={color}
-      marginTop={1}
-    >
+    <box flexDirection="column" borderStyle="single" borderColor={color} marginTop={1}>
       <text fg={color}> {label} </text>
       {lines.map((line, i) => (
         <text key={i} fg={colors.fg}>
@@ -108,11 +103,7 @@ export function ResultBody({ view }: ResultBodyProps) {
       {view.diff && (
         <box flexDirection="column">
           {view.diff.testcase && (
-            <Section
-              label="Last Testcase"
-              color={colors.info}
-              value={view.diff.testcase}
-            />
+            <Section label="Last Testcase" color={colors.info} value={view.diff.testcase} />
           )}
           <Section label="Expected" color={colors.success} value={view.diff.expected} />
           <Section label="Your Output" color={colors.error} value={view.diff.actual} />
@@ -125,10 +116,7 @@ export function ResultBody({ view }: ResultBodyProps) {
             const expected = o.label.startsWith("Expected");
             return (
               <box key={i} flexDirection="row">
-                <text fg={expected ? colors.success : colors.info}>
-                  {" "}
-                  {o.label}:{" "}
-                </text>
+                <text fg={expected ? colors.success : colors.info}> {o.label}: </text>
                 <text fg={colors.fg}>{o.value}</text>
               </box>
             );

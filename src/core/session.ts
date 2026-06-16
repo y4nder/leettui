@@ -11,8 +11,8 @@
 // debounced callback serializes the *live* `_state` at fire time, so a
 // synchronous write landing between schedule and fire is preserved.
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
-import { join } from "path";
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { join } from "node:path";
 import { DATA_DIR } from "../config/paths";
 
 const SESSION_FILE = join(DATA_DIR, "session.json");

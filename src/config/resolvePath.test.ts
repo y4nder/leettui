@@ -1,6 +1,6 @@
 import { describe, expect, test, afterEach } from "bun:test";
-import { homedir } from "os";
-import { join } from "path";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { expandPath, resolveBase, resolveConfigPath } from "./resolvePath";
 
 // homedir() is fixed by Bun at process launch, so the helpers and these tests

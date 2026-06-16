@@ -31,12 +31,7 @@ function toDbQuestion(row: typeof questions.$inferSelect): DbQuestion {
 }
 
 export function getAllQuestions(): DbQuestion[] {
-  return getDb()
-    .select()
-    .from(questions)
-    .orderBy(asc(questions.id))
-    .all()
-    .map(toDbQuestion);
+  return getDb().select().from(questions).orderBy(asc(questions.id)).all().map(toDbQuestion);
 }
 
 export function getQuestionsByTopic(topicSlug: string): DbQuestion[] {
@@ -53,11 +48,7 @@ export function getQuestionsByTopic(topicSlug: string): DbQuestion[] {
 }
 
 export function getQuestionBySlug(slug: string): DbQuestion | null {
-  const row = getDb()
-    .select()
-    .from(questions)
-    .where(eq(questions.titleSlug, slug))
-    .get();
+  const row = getDb().select().from(questions).where(eq(questions.titleSlug, slug)).get();
   return row ? toDbQuestion(row) : null;
 }
 
@@ -97,26 +88,16 @@ export function upsertQuestion(q: {
     .run();
 }
 
-export function upsertQuestionTopics(
-  questionId: number,
-  topicSlugs: string[]
-): void {
+export function upsertQuestionTopics(questionId: number, topicSlugs: string[]): void {
   const db = getDb();
   for (const slug of topicSlugs) {
     db.insert(topics).values({ slug }).onConflictDoNothing().run();
-    db.insert(questionTopics)
-      .values({ questionId, topicSlug: slug })
-      .onConflictDoNothing()
-      .run();
+    db.insert(questionTopics).values({ questionId, topicSlug: slug }).onConflictDoNothing().run();
   }
 }
 
 export function markAccepted(questionId: number): void {
-  getDb()
-    .update(questions)
-    .set({ status: "ac" })
-    .where(eq(questions.id, questionId))
-    .run();
+  getDb().update(questions).set({ status: "ac" }).where(eq(questions.id, questionId)).run();
 }
 
 // Records the runtime/memory of the latest accepted submission so the question
@@ -124,7 +105,7 @@ export function markAccepted(questionId: number): void {
 export function setSubmissionStats(
   questionId: number,
   runtime: string | null,
-  memory: string | null
+  memory: string | null,
 ): void {
   getDb()
     .update(questions)
@@ -142,10 +123,7 @@ export function markAttempted(questionId: number): void {
 }
 
 export function getQuestionCount(): number {
-  const row = getDb()
-    .select({ count: sql<number>`count(*)` })
-    .from(questions)
-    .get();
+  const row = getDb().select({ count: sql<number>`count(*)` }).from(questions).get();
   return row?.count ?? 0;
 }
 

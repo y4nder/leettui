@@ -8,9 +8,9 @@
 // template state.
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "fs";
-import { join } from "path";
-import { tmpdir } from "os";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { overlayTemplates, renderTemplate, resolveProblemPath } from "./solutions";
 
 const TWO_SUM_META = JSON.stringify({
@@ -41,7 +41,10 @@ describe("overlayTemplates", () => {
   let dest: string;
 
   beforeEach(() => {
-    const base = join(tmpdir(), `leettui-overlay-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    const base = join(
+      tmpdir(),
+      `leettui-overlay-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    );
     src = join(base, "src");
     dest = join(base, "dest");
     mkdirSync(src, { recursive: true });
@@ -100,7 +103,7 @@ beforeAll(() => {
     childScript,
     `const { createSolutionWithHarness } = await import(${JSON.stringify(SOLUTIONS_MODULE)});\n` +
       `const s = JSON.parse(process.argv[2]);\n` +
-      `createSolutionWithHarness(s.id, s.slug, s.lang, s.code, s.meta, s.tests);\n`
+      `createSolutionWithHarness(s.id, s.slug, s.lang, s.code, s.meta, s.tests);\n`,
   );
 });
 
@@ -142,7 +145,7 @@ describe("createSolutionWithHarness with template overrides", () => {
       home,
       ".local/share/leettui/solutions",
       `${String(spec.id).padStart(4, "0")}_${spec.slug}`,
-      spec.lang
+      spec.lang,
     );
   }
 
@@ -165,7 +168,11 @@ describe("createSolutionWithHarness with template overrides", () => {
   });
 
   test("solution.{ext} template replaces the snippet; harness still generated", () => {
-    writeTemplate("python3", "solution.py", "# {{titleSlug}} :: {{functionName}}\nclass Solution: ...");
+    writeTemplate(
+      "python3",
+      "solution.py",
+      "# {{titleSlug}} :: {{functionName}}\nclass Solution: ...",
+    );
     const spec: CreateSpec = {
       id: 2,
       slug: "add-two-numbers",
@@ -177,7 +184,7 @@ describe("createSolutionWithHarness with template overrides", () => {
 
     const dir = langDir(spec);
     expect(readFileSync(join(dir, "solution.py"), "utf-8")).toBe(
-      "# add-two-numbers :: twoSum\nclass Solution: ..."
+      "# add-two-numbers :: twoSum\nclass Solution: ...",
     );
     // Harness default is not suppressed — only the solution was overridden.
     expect(readFileSync(join(dir, "main.py"), "utf-8")).toContain("Solution().twoSum");
@@ -207,7 +214,9 @@ describe("createSolutionWithHarness with template overrides", () => {
 
     const dir = langDir(spec);
     expect(readFileSync(join(dir, "solution.rs"), "utf-8")).toBe("fn main() {}");
-    expect(readFileSync(join(dir, "Cargo.toml"), "utf-8")).toBe('[package]\nname = "median-arrays"');
+    expect(readFileSync(join(dir, "Cargo.toml"), "utf-8")).toBe(
+      '[package]\nname = "median-arrays"',
+    );
     expect(readFileSync(join(dir, "build.rs"), "utf-8")).toBe("// build");
     // rust has no harness generator → no main.rs default appears.
     expect(existsSync(join(dir, "main.rs"))).toBe(false);
@@ -242,7 +251,9 @@ describe("resolveProblemPath (Stage 8 cwd-inference)", () => {
   });
 
   test("strips the id padding to a real number", () => {
-    expect(resolveProblemPath(join(root, "0042_trapping-rain-water", "javascript"), root)?.questionId).toBe(42);
+    expect(
+      resolveProblemPath(join(root, "0042_trapping-rain-water", "javascript"), root)?.questionId,
+    ).toBe(42);
   });
 
   test("null when path is the solutions root itself", () => {

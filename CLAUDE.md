@@ -10,6 +10,18 @@ bun install
 bun src/index.tsx
 ```
 
+## Checks (run before every PR)
+
+One gate, two callers: `bun run check` runs Biome (lint + format check), `tsc --noEmit`, and `bun test` — and CI (`.github/workflows/ci.yml`) runs the *same* script on every PR and push to `main`. Green locally ⇒ green in CI. Keep the gate definition in `package.json`'s `check` script so the two never drift.
+
+```sh
+bun run check      # the full gate (lint + typecheck + test)
+bun run lint:fix   # auto-fix Biome lint + formatting
+bun run format     # format only
+```
+
+Biome config is `biome.json`. Errors block the gate; the deliberate `noNonNullAssertion` rule is off (used with strict index access), and `noExplicitAny` / `noArrayIndexKey` / `useExhaustiveDependencies` are warnings (visible debt, non-blocking). `bun.lock` pins Biome — run installs with `--frozen-lockfile`.
+
 On first run, leettui runs an auth flow that imports your LeetCode session from Firefox (if logged in) or guides you through a one-time cookie paste, validates it, and writes it to `~/.config/leettui/config.toml`. Re-run any time with `bun src/index.tsx auth`.
 
 ### Subcommands

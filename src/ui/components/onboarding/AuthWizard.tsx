@@ -49,7 +49,10 @@ export function AuthWizard({ onComplete, onAbort }: AuthWizardProps) {
     if (!browserOpened.current) {
       browserOpened.current = true;
       openInBrowser(LOGIN_URL);
-      push({ text: "Opened leetcode.com — log in there, then paste your cookie below.", tone: "info" });
+      push({
+        text: "Opened leetcode.com — log in there, then paste your cookie below.",
+        tone: "info",
+      });
     }
     setStage("paste");
   };
@@ -94,7 +97,10 @@ export function AuthWizard({ onComplete, onAbort }: AuthWizardProps) {
           onComplete({ csrftoken: ff.csrftoken, lc_session: ff.lc_session, username: v.username });
           return;
         }
-        push({ text: "That Firefox session is logged out or expired — switching to manual paste.", tone: "info" });
+        push({
+          text: "That Firefox session is logged out or expired — switching to manual paste.",
+          tone: "info",
+        });
       }
       if (!cancelled) enterPaste();
     })();
@@ -168,7 +174,9 @@ export function AuthWizard({ onComplete, onAbort }: AuthWizardProps) {
       </box>
 
       {stage === "verifying" || stage === "checking" ? (
-        <text fg={colors.info}>{stage === "verifying" ? "Verifying…" : "Looking for a saved session…"}</text>
+        <text fg={colors.info}>
+          {stage === "verifying" ? "Verifying…" : "Looking for a saved session…"}
+        </text>
       ) : (
         <box
           borderStyle="rounded"
@@ -193,9 +201,10 @@ export function AuthWizard({ onComplete, onAbort }: AuthWizardProps) {
 
       <box height={1} />
       <text fg={colors.fgDim}>
-        Cookie header: DevTools (F12) → Network → any leetcode.com request → Request Headers → "Cookie"
+        Cookie header: DevTools (F12) → Network → any leetcode.com request → Request Headers →
+        "Cookie"
       </text>
-      <text fg={colors.fgDim}>Enter: submit  ·  Esc: cancel</text>
+      <text fg={colors.fgDim}>Enter: submit · Esc: cancel</text>
     </box>
   );
 }

@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
-import { resolve } from "path";
+import { resolve } from "node:path";
 
 import { colors } from "../theme";
 import { useAppStore } from "../store";
@@ -34,7 +34,12 @@ export function ChangeLocationPrompt() {
     const toDir = resolveConfigPath(chosen);
     if (resolve(currentDir) === resolve(toDir)) {
       // No change — short-circuit to a "nothing to do" result, writing nothing.
-      setOutcome({ status: "unchanged", fromDir: currentDir, toDir, result: { moved: 0, skipped: 0 } });
+      setOutcome({
+        status: "unchanged",
+        fromDir: currentDir,
+        toDir,
+        result: { moved: 0, skipped: 0 },
+      });
       setPhase("done");
       return;
     }
@@ -108,9 +113,13 @@ export function ChangeLocationPrompt() {
             />
           </box>
           <box height={1} />
-          <text fg={colors.fgDim}>~ and $VARS are expanded; a relative path resolves against your home dir.</text>
-          <text fg={colors.fgDim}>Tip: point this at a git repo to version-control and push your work.</text>
-          <text fg={colors.fgDim}>Enter: continue  ·  Esc: cancel</text>
+          <text fg={colors.fgDim}>
+            ~ and $VARS are expanded; a relative path resolves against your home dir.
+          </text>
+          <text fg={colors.fgDim}>
+            Tip: point this at a git repo to version-control and push your work.
+          </text>
+          <text fg={colors.fgDim}>Enter: continue · Esc: cancel</text>
         </>
       )}
 
@@ -127,7 +136,7 @@ export function ChangeLocationPrompt() {
           <box height={1} />
           <box flexDirection="row">
             <text fg={colors.success}>y</text>
-            <text fg={colors.subtle}>: change &amp; move  </text>
+            <text fg={colors.subtle}>: change &amp; move </text>
             <text fg={colors.error}>n</text>
             <text fg={colors.subtle}>: cancel</text>
           </box>

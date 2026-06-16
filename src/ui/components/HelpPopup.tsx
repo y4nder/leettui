@@ -10,7 +10,7 @@ type Entry = CommandEntry<Renderable, KeyEvent>;
 
 const KEY_WIDTH = 16;
 const CATEGORY_ORDER = ["Navigation", "View", "Solve", "Search", "System"] as const;
-type Category = typeof CATEGORY_ORDER[number];
+type Category = (typeof CATEGORY_ORDER)[number];
 
 interface Row {
   key: string;

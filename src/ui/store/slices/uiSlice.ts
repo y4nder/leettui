@@ -81,7 +81,11 @@ export interface UiSlice {
   exitProblemView: () => void;
   setProblemSolutions: (solutions: string[], focusLangSlug?: string) => void;
   setProblemResult: (view: ResultView | null) => void;
-  openSolutionPicker: (snippets: CodeSnippet[], existing: Set<string>, initialLangSlug?: string) => void;
+  openSolutionPicker: (
+    snippets: CodeSnippet[],
+    existing: Set<string>,
+    initialLangSlug?: string,
+  ) => void;
   movePicker: (delta: number) => void;
   closeSolutionPicker: () => void;
   openNotes: (content: string) => void;
@@ -110,8 +114,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
 
   showSelect: (title, items, resolve) =>
     set({ mode: "select", selectTitle: title, selectItems: items, selectResolve: resolve }),
-  hideSelect: () =>
-    set({ mode: "browse", selectTitle: "", selectItems: [], selectResolve: null }),
+  hideSelect: () => set({ mode: "browse", selectTitle: "", selectItems: [], selectResolve: null }),
 
   showResult: (view) => set({ mode: "result", resultView: view }),
   hideResult: () => set({ mode: "browse", resultView: null }),

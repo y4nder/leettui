@@ -11,8 +11,6 @@ query consolePanelConfig($titleSlug: String!) {
   }
 }`;
 
-export async function fetchConsolePanelConfig(
-  titleSlug: string
-): Promise<ConsolePanelConfigData> {
+export async function fetchConsolePanelConfig(titleSlug: string): Promise<ConsolePanelConfigData> {
   return gqlQuery<ConsolePanelConfigData>(QUERY, { titleSlug }, true);
 }

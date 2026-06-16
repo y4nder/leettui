@@ -6,12 +6,10 @@ const MAX_POLLS = 60;
 
 export async function pollResult(
   id: string | number,
-  onPoll?: () => void
+  onPoll?: () => void,
 ): Promise<ParsedResponse> {
   for (let i = 0; i < MAX_POLLS; i++) {
-    const raw = await getClient().get<CheckResponse>(
-      `/submissions/detail/${id}/check/`
-    );
+    const raw = await getClient().get<CheckResponse>(`/submissions/detail/${id}/check/`);
 
     const parsed = parseCheckResponse(raw);
     if (parsed.type !== "pending") {

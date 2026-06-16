@@ -3,7 +3,11 @@ import { useKeyboard } from "@opentui/react";
 
 import { Logo } from "./Logo";
 import { colors } from "../../theme";
-import { relocateSolutions, type RelocateResult, type RelocationPlan } from "../../../core/relocate";
+import {
+  relocateSolutions,
+  type RelocateResult,
+  type RelocationPlan,
+} from "../../../core/relocate";
 
 interface RelocatePromptProps {
   plan: RelocationPlan;
@@ -72,7 +76,7 @@ export function RelocatePrompt({ plan, onResolved }: RelocatePromptProps) {
           <text fg={colors.accent}>{`to    ${plan.toDir}`}</text>
           <box height={1} />
           <box flexDirection="row">
-            <text fg={colors.subtle}>Move them now?  </text>
+            <text fg={colors.subtle}>Move them now? </text>
             <text fg={colors.success}>y</text>
             <text fg={colors.subtle}>es</text>
             <text fg={colors.fgDim}> / </text>
