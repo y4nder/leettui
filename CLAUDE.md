@@ -74,7 +74,7 @@ Version metadata lives in `src/core/version.ts`, inlined at build time via `--de
 ### Key bindings (browse mode)
 
 Browse uses lazygit-style focusable panels (Stage 11): exactly one panel is focused.
-Tab / Shift+Tab: cycle focus | h/l: focus left/right | [1]/[2]: jump to topics/questions panel
+Tab / Shift+Tab: cycle focus | Ctrl+h/Ctrl+l: focus left/right | [1]/[2]: jump to topics/questions panel
 Topics focused — j/k: change topic (live-filters questions) | Enter: focus questions
 Questions focused — j/k or arrows: navigate | gg/G: jump first/last | Enter: view problem
   e: Open in editor | R: Run | s: Submit | y: Yank URL
