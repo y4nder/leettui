@@ -110,6 +110,7 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
 
       <StatusBar
         mode={mode}
+        focusedPanel={focusedPanel}
         searchNeedle={searchNeedle}
         stats={stats}
         difficultyFilter={difficultyFilter}

@@ -15,6 +15,7 @@ import type { Binding, Command, KeyLike, Keymap } from "@opentui/keymap";
 import { registerDefaultKeys, registerMetadataFields } from "@opentui/keymap/addons";
 
 import { useAppStore } from "./store";
+import type { BrowsePanel } from "./store";
 import { setTheme, cycleTheme, listThemeNames } from "./theme";
 import { isDebugEnabled, dumpToString, logKey } from "../debug";
 import {
@@ -66,10 +67,17 @@ interface CommandSpec {
   title: string;
   category: ActionCategory;
   group?: "modal" | "debug";
+  // Terse footer label (e.g. "Run"). The full `title` is too long for the
+  // one-line status bar, so only commands that opt in via `short` show there.
+  short?: string;
   run: () => void;
 }
 
+// command name → terse footer label. Populated as commands are constructed.
+const SHORT_BY_NAME = new Map<string, string>();
+
 function makeCommand(spec: CommandSpec): Command<Renderable, KeyEvent> {
+  if (spec.short) SHORT_BY_NAME.set(spec.name, spec.short);
   const cmd: Command<Renderable, KeyEvent> = {
     name: spec.name,
     title: spec.title,
@@ -110,24 +118,28 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "question.next",
     title: "Next question",
     category: "Navigation",
+    short: "Navigate",
     run: () => useAppStore.getState().moveQuestion(1),
   }),
   makeCommand({
     name: "question.prev",
     title: "Previous question",
     category: "Navigation",
+    short: "Navigate",
     run: () => useAppStore.getState().moveQuestion(-1),
   }),
   makeCommand({
     name: "topic.next",
     title: "Next topic",
     category: "Navigation",
+    short: "Navigate",
     run: () => useAppStore.getState().moveTopic(1),
   }),
   makeCommand({
     name: "topic.prev",
     title: "Previous topic",
     category: "Navigation",
+    short: "Navigate",
     run: () => useAppStore.getState().moveTopic(-1),
   }),
   makeCommand({
@@ -159,6 +171,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "focus.cycle",
     title: "Focus next panel",
     category: "Navigation",
+    short: "Focus",
     run: () => useAppStore.getState().cycleFocusedPanel(1),
   }),
   makeCommand({
@@ -184,6 +197,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "problem.enter",
     title: "Open problem view",
     category: "View",
+    short: "View",
     run: () => handleEnterProblemView("return"),
   }),
   makeCommand({
@@ -315,6 +329,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "problem.openEditor",
     title: "Open in editor",
     category: "Solve",
+    short: "Edit",
     run: () => {
       if (_renderer) handleOpenEditor("e", _renderer);
     },
@@ -323,12 +338,14 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "problem.run",
     title: "Run solution against examples",
     category: "Solve",
+    short: "Run",
     run: () => handleRunSolution("R"),
   }),
   makeCommand({
     name: "problem.submit",
     title: "Submit solution",
     category: "Solve",
+    short: "Submit",
     run: () => handleSubmitSolution("s"),
   }),
 
@@ -336,6 +353,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "question.yankUrl",
     title: "Yank problem URL to clipboard",
     category: "View",
+    short: "Yank",
     run: () => handleYankUrl("y"),
   }),
 
@@ -343,6 +361,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "search.start",
     title: "Search / filter questions",
     category: "Search",
+    short: "Search",
     run: () => useAppStore.getState().startSearch(),
   }),
 
@@ -350,6 +369,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "help.open",
     title: "Show help screen",
     category: "System",
+    short: "Help",
     run: () => useAppStore.getState().showHelp(),
   }),
   makeCommand({
@@ -385,6 +405,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "palette.open",
     title: "Open command palette",
     category: "System",
+    short: "Cmds",
     run: () => useAppStore.getState().showPalette(),
   }),
   makeCommand({
@@ -405,6 +426,7 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     name: "app.quit",
     title: "Quit",
     category: "System",
+    short: "Quit",
     run: () => _renderer?.destroy(),
   }),
 
@@ -621,6 +643,109 @@ export const pickerBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "picker.openEditor": "o",
   "picker.cancel": ["escape", "q"],
 });
+
+// --- Scope introspection (shared by the status-bar footer and help popup) ---
+// Built from the static binding specs above joined to the command catalog, so both
+// surfaces read one source of truth and never drift from the live keymap (and stay
+// correct even though the panel layers are unregistered while a modal like help is
+// open). Keys/titles come from here, not from runtime `getCommandEntries()`.
+
+const COMMAND_BY_NAME = new Map(COMMANDS.map((c) => [c.name, c]));
+
+export interface ScopeBinding {
+  cmd: string;
+  keys: string[]; // raw key tokens bound to this command, in declaration order
+  title: string;
+  short?: string;
+  group?: string;
+}
+
+// Group a binding spec by command (one command may carry several key aliases).
+export function describeScope(bindings: Binding<Renderable, KeyEvent>[]): ScopeBinding[] {
+  const order: string[] = [];
+  const keysByCmd = new Map<string, string[]>();
+  for (const b of bindings) {
+    const cmd = String(b.cmd);
+    const existing = keysByCmd.get(cmd);
+    if (existing) {
+      existing.push(String(b.key));
+    } else {
+      keysByCmd.set(cmd, [String(b.key)]);
+      order.push(cmd);
+    }
+  }
+  return order.map((cmd) => {
+    const command = COMMAND_BY_NAME.get(cmd);
+    return {
+      cmd,
+      keys: keysByCmd.get(cmd) ?? [],
+      title: (command?.title as string | undefined) ?? cmd,
+      short: SHORT_BY_NAME.get(cmd),
+      group: command?.group as string | undefined,
+    };
+  });
+}
+
+// Modal commands never surface here; debug commands only when LEETTUI_DEBUG is on.
+export function isScopeEntryVisible(b: ScopeBinding, debugEnabled: boolean): boolean {
+  if (b.group === "modal") return false;
+  if (b.group === "debug" && !debugEnabled) return false;
+  return true;
+}
+
+const KEY_DISPLAY: Record<string, string> = {
+  tab: "Tab",
+  "shift+tab": "S-Tab",
+  return: "Enter",
+  escape: "Esc",
+  up: "↑",
+  down: "↓",
+  backspace: "⌫",
+};
+
+export function formatKeyToken(raw: string): string {
+  const mapped = KEY_DISPLAY[raw];
+  if (mapped) return mapped;
+  const shiftLetter = /^shift\+([a-z])$/.exec(raw);
+  if (shiftLetter) return shiftLetter[1]!.toUpperCase();
+  const ctrl = /^ctrl\+(.+)$/.exec(raw);
+  if (ctrl) return `^${ctrl[1]!.toUpperCase()}`;
+  return raw;
+}
+
+export function formatKeys(keys: string[]): string {
+  return keys.map(formatKeyToken).join("/");
+}
+
+// The static binding spec for a panel scope, used by the help popup's Local Keys.
+export function panelBindings(panel: BrowsePanel): Binding<Renderable, KeyEvent>[] {
+  return panel === "topics" ? topicPanelBindings : questionPanelBindings;
+}
+
+// Terse, focus-aware footer hints: the focused panel's local keys first, then the
+// always-available global keys. Only commands with a `short` label appear; commands
+// that share a `short` (e.g. next/prev → "Navigate") merge into one `key/key` segment.
+export function footerSegments(
+  panel: BrowsePanel,
+  debugEnabled: boolean,
+): { keys: string; label: string }[] {
+  const segs: { keys: string; label: string }[] = [];
+  const byShort = new Map<string, number>();
+  for (const scope of [describeScope(panelBindings(panel)), describeScope(browseGlobalBindings)]) {
+    for (const b of scope) {
+      if (!b.short || !isScopeEntryVisible(b, debugEnabled)) continue;
+      const key = formatKeyToken(b.keys[0] ?? "");
+      const at = byShort.get(b.short);
+      if (at != null) {
+        segs[at]!.keys += `/${key}`;
+      } else {
+        byShort.set(b.short, segs.length);
+        segs.push({ keys: key, label: b.short });
+      }
+    }
+  }
+  return segs;
+}
 
 export function installKeymap(keymap: AppKeymap, renderer: CliRenderer): void {
   _keymap = keymap;

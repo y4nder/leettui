@@ -1,10 +1,14 @@
 import { colors, difficultyColor } from "../theme";
-import type { AppMode } from "../store";
+import type { AppMode, BrowsePanel } from "../store";
 import type { DifficultyFilter } from "../store/slices/filtersSlice";
 import type { StatusCounts } from "../../db/questions";
+import { footerSegments } from "../keymap";
 
 interface StatusBarProps {
   mode: AppMode;
+  // Browse-view focus; drives the panel-aware hint line. Omitted by ProblemView,
+  // which has its own HintsFooter — then no hint line is shown.
+  focusedPanel?: BrowsePanel;
   searchNeedle: string;
   stats: StatusCounts;
   difficultyFilter: DifficultyFilter;
@@ -13,6 +17,7 @@ interface StatusBarProps {
 
 export function StatusBar({
   mode,
+  focusedPanel,
   searchNeedle,
   stats,
   difficultyFilter,
@@ -28,6 +33,15 @@ export function StatusBar({
     );
   }
 
+  // Focus-aware hint line: focused panel's keys first, then global. Built from the
+  // keymap so it never drifts from the actual bindings. Omitted when no panel is
+  // focused (ProblemView, which carries its own HintsFooter).
+  const hints = focusedPanel
+    ? footerSegments(focusedPanel, !!debugEnabled)
+        .map((s) => `${s.keys}:${s.label}`)
+        .join("  ")
+    : "";
+
   return (
     <box
       flexDirection="row"
@@ -36,10 +50,7 @@ export function StatusBar({
       backgroundColor={colors.statusBar}
       justifyContent="space-between"
     >
-      <text fg={colors.statusBarFg}>
-        {" "}
-        j/k:Navigate t/T:Topic D:Difficulty Enter:View e:Edit R:Run s:Submit /:Search
-      </text>
+      <text fg={colors.statusBarFg}> {hints}</text>
       <box flexDirection="row">
         {difficultyFilter !== "all" && (
           <text fg={difficultyColor(difficultyFilter)}> [{difficultyFilter}] </text>
@@ -47,9 +58,8 @@ export function StatusBar({
         <text fg={colors.accepted}>✓ {stats.solved}</text>
         <text fg={colors.fgDim}> </text>
         <text fg={colors.attempted}>~ {stats.attempted}</text>
-        <text fg={colors.fgDim}> / {stats.total}</text>
+        <text fg={colors.fgDim}> / {stats.total} </text>
         {debugEnabled && <text fg={colors.hard}> [DEBUG] </text>}
-        <text fg={colors.fgDim}> ?:Help q:Quit </text>
       </box>
     </box>
   );
