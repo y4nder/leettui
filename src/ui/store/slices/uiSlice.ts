@@ -50,8 +50,11 @@ export interface UiSlice {
   selectResolve: ((index: number | null) => void) | null;
   resultView: ResultView | null;
   problem: ProblemViewState | null;
+  // The newer release tag to advertise in the top banner, or null when none.
+  updateAvailable: string | null;
 
   bumpThemeVersion: () => void;
+  setUpdateAvailable: (tag: string | null) => void;
   setMode: (mode: AppMode) => void;
   showPopup: (title: string, content: string) => void;
   hidePopup: () => void;
@@ -96,8 +99,10 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   selectResolve: null,
   resultView: null,
   problem: null,
+  updateAvailable: null,
 
   bumpThemeVersion: () => set((s) => ({ themeVersion: s.themeVersion + 1 })),
+  setUpdateAvailable: (tag) => set({ updateAvailable: tag }),
   setMode: (mode) => set({ mode }),
 
   showPopup: (title, content) => set({ mode: "popup", popupTitle: title, popupContent: content }),
