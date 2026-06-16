@@ -1,16 +1,8 @@
-import { useMemo } from "react";
 import { useBindings } from "@opentui/keymap/react";
+import type { Binding } from "@opentui/keymap";
+import type { KeyEvent, Renderable } from "@opentui/core";
 import { colors } from "../theme";
-import type { BrowsePanel } from "../store";
-import {
-  helpBindings,
-  browseGlobalBindings,
-  panelBindings,
-  describeScope,
-  formatKeys,
-  isScopeEntryVisible,
-  type ScopeBinding,
-} from "../keymap";
+import { describeScope, formatKeys, isScopeEntryVisible, type ScopeBinding } from "../keymap";
 
 const KEY_WIDTH = 16;
 
@@ -24,9 +16,22 @@ interface Section {
   rows: Row[];
 }
 
-function scopeRows(bindings: Parameters<typeof describeScope>[0], debugEnabled: boolean): Row[] {
+// One named scope to render: a header plus the raw binding spec for that scope.
+// HelpPopup turns each into a section via the shared describeScope/formatKeys seam.
+export interface HelpScope {
+  header: string;
+  bindings: Binding<Renderable, KeyEvent>[];
+}
+
+type VisiblePredicate = (b: ScopeBinding, debugEnabled: boolean) => boolean;
+
+function scopeRows(
+  bindings: Binding<Renderable, KeyEvent>[],
+  visible: VisiblePredicate,
+  debugEnabled: boolean,
+): Row[] {
   return describeScope(bindings)
-    .filter((b: ScopeBinding) => isScopeEntryVisible(b, debugEnabled))
+    .filter((b: ScopeBinding) => visible(b, debugEnabled))
     .map((b) => ({ key: formatKeys(b.keys), desc: b.title }));
 }
 
@@ -35,23 +40,35 @@ function pad(s: string, width: number): string {
 }
 
 interface HelpPopupProps {
-  focusedPanel: BrowsePanel;
+  // Ordered scopes (local panel first, then global) — each becomes a section.
+  scopes: HelpScope[];
+  // The binding layer to mount while open (its close key returns to the right mode:
+  // browse help → help.close; problem help → problem.helpClose).
+  closeBindings: Binding<Renderable, KeyEvent>[];
+  // Visibility filter. Browse hides modal commands (the default); the problem view
+  // passes a variant that keeps its all-modal commands. See keymap isScopeEntryVisible.
+  visible?: VisiblePredicate;
   debugEnabled?: boolean;
+  title?: string;
+  footerHint?: string;
 }
 
-export function HelpPopup({ focusedPanel, debugEnabled }: HelpPopupProps) {
-  useBindings(() => ({ bindings: helpBindings }), []);
+// Generalized keybindings help popup. Used by both browse (mode === "help") and the
+// problem view (problem.help sub-modal); the caller supplies the scopes, the close
+// layer, and which visibility filter to apply — HelpPopup is a pure presenter.
+export function HelpPopup({
+  scopes,
+  closeBindings,
+  visible = isScopeEntryVisible,
+  debugEnabled,
+  title = "Keybindings",
+  footerHint = "Esc/Enter:Close",
+}: HelpPopupProps) {
+  useBindings(() => ({ bindings: closeBindings }), [closeBindings]);
 
-  const sections = useMemo<Section[]>(() => {
-    const panelLabel = focusedPanel === "topics" ? "Topics" : "Questions";
-    const out: Section[] = [];
-    const local = scopeRows(panelBindings(focusedPanel), !!debugEnabled);
-    if (local.length > 0)
-      out.push({ header: `LOCAL KEYS — ${panelLabel.toUpperCase()}`, rows: local });
-    const global = scopeRows(browseGlobalBindings, !!debugEnabled);
-    if (global.length > 0) out.push({ header: "GLOBAL KEYS", rows: global });
-    return out;
-  }, [focusedPanel, debugEnabled]);
+  const sections: Section[] = scopes
+    .map((s) => ({ header: s.header, rows: scopeRows(s.bindings, visible, !!debugEnabled) }))
+    .filter((s) => s.rows.length > 0);
 
   return (
     <box
@@ -65,7 +82,7 @@ export function HelpPopup({ focusedPanel, debugEnabled }: HelpPopupProps) {
       backgroundColor={colors.bgPopup}
       flexDirection="column"
     >
-      <text fg={colors.fgAccent}> Keybindings </text>
+      <text fg={colors.fgAccent}>{` ${title} `}</text>
       <scrollbox flexGrow={1}>
         {sections.flatMap((section) => [
           <text key={`h-${section.header}`} fg={colors.fgAccent}>
@@ -78,7 +95,7 @@ export function HelpPopup({ focusedPanel, debugEnabled }: HelpPopupProps) {
           )),
         ])}
       </scrollbox>
-      <text fg={colors.fgDim}> Esc/Enter:Close </text>
+      <text fg={colors.fgDim}>{` ${footerHint} `}</text>
     </box>
   );
 }

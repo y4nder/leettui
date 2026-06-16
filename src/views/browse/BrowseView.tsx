@@ -22,6 +22,8 @@ import {
   topicPanelBindings,
   questionPanelBindings,
   searchBindings,
+  panelBindings,
+  helpBindings,
 } from "../../ui/keymap";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
@@ -131,7 +133,19 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
 
       {mode === "result" && resultView && <ResultPopup view={resultView} />}
 
-      {mode === "help" && <HelpPopup focusedPanel={focusedPanel} debugEnabled={isDebugEnabled()} />}
+      {mode === "help" && (
+        <HelpPopup
+          scopes={[
+            {
+              header: `LOCAL KEYS — ${focusedPanel === "topics" ? "TOPICS" : "QUESTIONS"}`,
+              bindings: panelBindings(focusedPanel),
+            },
+            { header: "GLOBAL KEYS", bindings: browseGlobalBindings },
+          ]}
+          closeBindings={helpBindings}
+          debugEnabled={isDebugEnabled()}
+        />
+      )}
 
       {mode === "debug" && <DebugPopup entries={getEntries()} />}
 

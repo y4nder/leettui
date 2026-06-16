@@ -7,11 +7,18 @@ import { dirname } from "node:path";
 import type { createCliRenderer } from "@opentui/core";
 
 import { useAppStore } from "../../ui/store";
+import type { RelatedQuestion } from "../../ui/store";
 import { htmlToMarkdown } from "../../core/markdown";
 import { fetchQuestionContent } from "../../api/queries/question-content";
+import { fetchSimilarQuestions } from "../../api/queries/similar-questions";
 import { fetchEditorData } from "../../api/queries/editor-data";
 import { fetchConsolePanelConfig } from "../../api/queries/console-panel-config";
-import { getQuestionsByTopic } from "../../db/questions";
+import {
+  getQuestionsByTopic,
+  getQuestionBySlug,
+  getTopicsForQuestion,
+  type DbQuestion,
+} from "../../db/questions";
 import {
   createSolutionWithHarness,
   findExistingSolutions,
@@ -39,22 +46,68 @@ function focusedLangSlug(): string | null {
   return p.solutions[p.focusedSolutionIndex] ?? null;
 }
 
-export async function handleEnterProblemView(triggerKey: string) {
-  const s = useAppStore.getState();
-  const q = s.filteredQuestions[s.selectedQuestionIndex];
-  if (!q) return;
+// Navigate-replace worker shared by the browse-cursor entry and the Related panel's
+// Enter (Stage 12 item 4). Fetches description + similar questions in parallel; a
+// failed similar fetch never blocks entry (Related just renders empty). Each similar
+// question is resolved against the local DB (getQuestionBySlug) so the panel knows
+// which are navigable — premium ones stay listed (locked) but un-openable.
+export async function handleEnterProblemView(question: DbQuestion, triggerKey = "enter") {
   try {
-    const data = await fetchQuestionContent(q.title_slug);
-    const html = data.question?.content;
+    const [contentData, similarData] = await Promise.all([
+      fetchQuestionContent(question.title_slug),
+      fetchSimilarQuestions(question.title_slug).catch(() => null),
+    ]);
+    const html = contentData.question?.content;
     const description = html
       ? htmlToMarkdown(html)
       : "_No description available (problem may be premium-only)._";
-    const solutions = findExistingSolutions(q.id, q.title_slug);
-    useAppStore.getState().enterProblemView({ question: q, description, solutions });
+    const solutions = findExistingSolutions(question.id, question.title_slug);
+    const topicTags = getTopicsForQuestion(question.id);
+    const related: RelatedQuestion[] = (similarData?.question?.similarQuestionList ?? []).map(
+      (sq) => ({
+        title: sq.title,
+        titleSlug: sq.titleSlug,
+        difficulty: sq.difficulty,
+        paidOnly: sq.isPaidOnly,
+        dbQuestion: sq.isPaidOnly ? null : getQuestionBySlug(sq.titleSlug),
+      }),
+    );
+    useAppStore
+      .getState()
+      .enterProblemView({ question, description, solutions, topicTags, related });
   } catch (e) {
-    logError(triggerKey, "browse", "handleEnterProblemView", e);
+    logError(triggerKey, "problem", "handleEnterProblemView", e);
     useAppStore.getState().showResult(errorView("Error fetching question", errMessage(e)));
   }
+}
+
+// Browse-cursor entry (the keymap's Enter on a question): open the currently-selected
+// question via the worker above.
+export async function handleEnterProblemFromCursor(triggerKey: string) {
+  const s = useAppStore.getState();
+  const q = s.filteredQuestions[s.selectedQuestionIndex];
+  if (!q) return;
+  await handleEnterProblemView(q, triggerKey);
+}
+
+// Related panel Enter: navigate-replace to the focused related question when it's
+// navigable, else surface why (premium / not synced locally) in the Result panel.
+export function handleEnterRelated(triggerKey: string) {
+  const p = useAppStore.getState().problem;
+  if (!p || p.related.length === 0) return;
+  const item = p.related[p.focusedRelatedIndex];
+  if (!item) return;
+  if (item.paidOnly) {
+    useAppStore.getState().setProblemResult(info(`"${item.title}" is premium-only.`));
+    return;
+  }
+  if (!item.dbQuestion) {
+    useAppStore
+      .getState()
+      .setProblemResult(info(`"${item.title}" isn't in your local DB — sync (*) from browse.`));
+    return;
+  }
+  void handleEnterProblemView(item.dbQuestion, triggerKey);
 }
 
 export function handleExitProblemView() {

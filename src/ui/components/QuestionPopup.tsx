@@ -4,7 +4,7 @@ import { useBindings } from "@opentui/keymap/react";
 import { colors } from "../theme";
 import { buildMarkdownSyntaxStyle } from "../markdownStyle";
 import { useAppStore } from "../store";
-import { popupBindings } from "../keymap";
+import { popupBindings, registerPopupScroller } from "../keymap";
 
 interface QuestionPopupProps {
   title: string;
@@ -32,7 +32,7 @@ export function QuestionPopup({ title, content }: QuestionPopupProps) {
         {" "}
         {title}{" "}
       </text>
-      <scrollbox flexGrow={1} paddingLeft={1} paddingRight={1}>
+      <scrollbox ref={registerPopupScroller} flexGrow={1} paddingLeft={1} paddingRight={1}>
         <markdown content={content} syntaxStyle={syntaxStyle} />
       </scrollbox>
       <text fg={colors.fgDim}> j/k:Scroll Esc/Enter:Close </text>

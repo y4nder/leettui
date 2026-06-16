@@ -40,6 +40,21 @@ export interface QuestionContentData {
   } | null;
 }
 
+// similarQuestionList (Related Questions panel, Stage 12 item 4). `question` is
+// null for premium-only problems we can't read.
+export interface SimilarQuestionsData {
+  question: {
+    similarQuestionList: SimilarQuestion[];
+  } | null;
+}
+
+export interface SimilarQuestion {
+  difficulty: "Easy" | "Medium" | "Hard";
+  titleSlug: string;
+  title: string;
+  isPaidOnly: boolean;
+}
+
 // questionEditorData
 export interface QuestionEditorData {
   question: {
