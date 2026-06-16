@@ -7,6 +7,7 @@ interface QuestionListProps {
   height: number;
   topic: string;
   solutionFileIds: Set<number>;
+  focused: boolean;
 }
 
 function formatAcRate(acRate: number | null): string {
@@ -20,6 +21,7 @@ export function QuestionList({
   height,
   topic,
   solutionFileIds,
+  focused,
 }: QuestionListProps) {
   const visibleCount = Math.max(1, height - 2);
   let scrollOffset = 0;
@@ -36,7 +38,7 @@ export function QuestionList({
     <box
       flexDirection="column"
       borderStyle="rounded"
-      borderColor={colors.border}
+      borderColor={focused ? colors.accent : colors.border}
       flexGrow={1}
       height="100%"
     >

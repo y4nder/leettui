@@ -3,7 +3,7 @@
 // Architecture:
 // - One global command-only layer holds every command + its metadata. It is
 //   registered once at boot via `installKeymap`.
-// - Per-scope binding-only layers (browseBindings, popupBindings, ...) are
+// - Per-scope binding-only layers (browseGlobalBindings, topicPanelBindings, ...) are
 //   registered via `useBindings` from within React components that only mount
 //   while their mode is active. No mode field-gating; conditional rendering
 //   handles activation.
@@ -153,6 +153,25 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     title: "Cycle difficulty filter (Easy → Medium → Hard → All)",
     category: "View",
     run: () => useAppStore.getState().cycleDifficulty(),
+  }),
+
+  makeCommand({
+    name: "focus.cycle",
+    title: "Cycle focused panel",
+    category: "Navigation",
+    run: () => useAppStore.getState().cycleFocusedPanel(),
+  }),
+  makeCommand({
+    name: "focus.topics",
+    title: "Focus topics panel",
+    category: "Navigation",
+    run: () => useAppStore.getState().setFocusedPanel("topics"),
+  }),
+  makeCommand({
+    name: "focus.questions",
+    title: "Focus questions panel",
+    category: "Navigation",
+    run: () => useAppStore.getState().setFocusedPanel("questions"),
   }),
 
   makeCommand({
@@ -499,17 +518,16 @@ function bindingsFor(spec: Record<string, KeyLike | KeyLike[]>): Binding<Rendera
   return out;
 }
 
-export const browseBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
-  "question.next": ["j", "down"],
-  "question.prev": ["k", "up"],
-  "question.first": "gg",
-  "question.last": "shift+g",
-  "topic.next": "t",
-  "topic.prev": "shift+t",
+// Panel-independent browse bindings. Always mounted in browse mode regardless of
+// which panel is focused. (Spike: action keys e/R/s/y stay global; step 2 moves the
+// question-oriented ones into questionPanelBindings.)
+export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "focus.cycle": "tab",
+  "focus.topics": "1",
+  "focus.questions": "2",
   "question.random": "r",
   "question.yankUrl": "y",
   "filter.cycleDifficulty": "shift+d",
-  "problem.enter": "return",
   "problem.daily": "d",
   "problem.openEditor": "e",
   "problem.run": "shift+r",
@@ -521,6 +539,24 @@ export const browseBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "palette.open": "ctrl+p",
   "update.dismiss": "x",
   "app.quit": "q",
+});
+
+// Mounted only while the topics panel is focused. j/k move the topic cursor (which
+// live-filters the question list); Enter hands focus to the questions panel.
+export const topicPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "topic.next": ["j", "down"],
+  "topic.prev": ["k", "up"],
+  "focus.questions": "return",
+});
+
+// Mounted only while the questions panel is focused. j/k move the question cursor;
+// Enter opens the problem view.
+export const questionPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "question.next": ["j", "down"],
+  "question.prev": ["k", "up"],
+  "question.first": "gg",
+  "question.last": "shift+g",
+  "problem.enter": "return",
 });
 
 export const popupBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({

@@ -7,6 +7,10 @@ import type { ResultView } from "../../../views/browse/resultView";
 import type { DbQuestion } from "../../../db/questions";
 import type { CodeSnippet } from "../../../api/types";
 
+// Which browse-view panel currently holds focus (lazygit-style). Only meaningful
+// while mode === "browse"; panel-relative bindings (j/k, Enter) are mounted per panel.
+export type BrowsePanel = "topics" | "questions";
+
 export type AppMode =
   | "browse"
   | "search"
@@ -42,6 +46,7 @@ export interface ProblemViewState {
 
 export interface UiSlice {
   mode: AppMode;
+  focusedPanel: BrowsePanel;
   themeVersion: number;
   popupTitle: string;
   popupContent: string;
@@ -56,6 +61,8 @@ export interface UiSlice {
   bumpThemeVersion: () => void;
   setUpdateAvailable: (tag: string | null) => void;
   setMode: (mode: AppMode) => void;
+  setFocusedPanel: (panel: BrowsePanel) => void;
+  cycleFocusedPanel: () => void;
   showPopup: (title: string, content: string) => void;
   hidePopup: () => void;
   showSelect: (title: string, items: string[], resolve: (index: number | null) => void) => void;
@@ -95,6 +102,7 @@ export interface UiSlice {
 
 export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => ({
   mode: "browse",
+  focusedPanel: "questions",
   themeVersion: 0,
   popupTitle: "",
   popupContent: "",
@@ -108,6 +116,9 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   bumpThemeVersion: () => set((s) => ({ themeVersion: s.themeVersion + 1 })),
   setUpdateAvailable: (tag) => set({ updateAvailable: tag }),
   setMode: (mode) => set({ mode }),
+  setFocusedPanel: (panel) => set({ focusedPanel: panel }),
+  cycleFocusedPanel: () =>
+    set((s) => ({ focusedPanel: s.focusedPanel === "topics" ? "questions" : "topics" })),
 
   showPopup: (title, content) => set({ mode: "popup", popupTitle: title, popupContent: content }),
   hidePopup: () => set({ mode: "browse", popupTitle: "", popupContent: "" }),

@@ -17,7 +17,12 @@ import { CommandPalette } from "../../ui/components/CommandPalette";
 import { ChangeLocationPrompt } from "../../ui/components/ChangeLocationPrompt";
 import { EasterEgg } from "../../ui/components/EasterEgg";
 import { isDebugEnabled, getEntries } from "../../debug";
-import { browseBindings, searchBindings } from "../../ui/keymap";
+import {
+  browseGlobalBindings,
+  topicPanelBindings,
+  questionPanelBindings,
+  searchBindings,
+} from "../../ui/keymap";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
 
@@ -25,8 +30,18 @@ interface BrowseViewProps {
   renderer: Renderer;
 }
 
-function BrowseBindings() {
-  useBindings(() => ({ bindings: browseBindings }), []);
+function BrowseGlobalBindings() {
+  useBindings(() => ({ bindings: browseGlobalBindings }), []);
+  return null;
+}
+
+function TopicPanelBindings() {
+  useBindings(() => ({ bindings: topicPanelBindings }), []);
+  return null;
+}
+
+function QuestionPanelBindings() {
+  useBindings(() => ({ bindings: questionPanelBindings }), []);
   return null;
 }
 
@@ -50,6 +65,7 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
   const solutionFileIds = useAppStore((s) => s.solutionFileIds);
 
   const mode = useAppStore((s) => s.mode);
+  const focusedPanel = useAppStore((s) => s.focusedPanel);
   useAppStore((s) => s.themeVersion);
   const popupTitle = useAppStore((s) => s.popupTitle);
   const popupContent = useAppStore((s) => s.popupContent);
@@ -64,7 +80,9 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
 
   return (
     <box flexDirection="column" width="100%" height="100%">
-      {mode === "browse" && <BrowseBindings />}
+      {mode === "browse" && <BrowseGlobalBindings />}
+      {mode === "browse" && focusedPanel === "topics" && <TopicPanelBindings />}
+      {mode === "browse" && focusedPanel === "questions" && <QuestionPanelBindings />}
       {mode === "search" && <SearchBindings />}
 
       <UpdateBanner />
@@ -72,13 +90,19 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
       {syncProgress && <ProgressBar current={syncProgress.current} total={syncProgress.total} />}
 
       <box flexDirection="row" flexGrow={1} height={mainHeight}>
-        <TopicList topics={topics} selectedIndex={selectedTopicIndex} height={mainHeight} />
+        <TopicList
+          topics={topics}
+          selectedIndex={selectedTopicIndex}
+          height={mainHeight}
+          focused={focusedPanel === "topics"}
+        />
         <QuestionList
           questions={filteredQuestions}
           selectedIndex={selectedQuestionIndex}
           height={mainHeight}
           topic={currentTopic}
           solutionFileIds={solutionFileIds}
+          focused={focusedPanel === "questions"}
         />
       </box>
 

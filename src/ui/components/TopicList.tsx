@@ -4,9 +4,10 @@ interface TopicListProps {
   topics: string[];
   selectedIndex: number;
   height: number;
+  focused: boolean;
 }
 
-export function TopicList({ topics, selectedIndex, height }: TopicListProps) {
+export function TopicList({ topics, selectedIndex, height, focused }: TopicListProps) {
   const visibleCount = Math.max(1, height - 2);
   let scrollOffset = 0;
   if (selectedIndex >= scrollOffset + visibleCount) {
@@ -19,7 +20,7 @@ export function TopicList({ topics, selectedIndex, height }: TopicListProps) {
     <box
       flexDirection="column"
       borderStyle="rounded"
-      borderColor={colors.border}
+      borderColor={focused ? colors.accent : colors.border}
       width="20%"
       height="100%"
     >
