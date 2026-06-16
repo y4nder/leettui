@@ -44,6 +44,11 @@ export function logError(key: string, mode: string, action: string, err: unknown
   push({ ts: timestamp(), key, mods: "", mode, action, error });
 }
 
+/** Extract a human-readable message from an unknown thrown value. */
+export function errMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 export function getEntries(): DebugEntry[] {
   return [...ring];
 }

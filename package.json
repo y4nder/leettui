@@ -4,8 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "check": "biome check ./src ./scripts && tsc --noEmit && bun test",
-    "lint": "biome check ./src ./scripts",
+    "check": "biome check --error-on-warnings ./src ./scripts && tsc --noEmit && bun test",
+    "lint": "biome check --error-on-warnings ./src ./scripts",
     "lint:fix": "biome check --write ./src ./scripts",
     "format": "biome format --write ./src ./scripts",
     "typecheck": "tsc --noEmit",

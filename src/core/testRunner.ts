@@ -19,6 +19,7 @@ import { join } from "node:path";
 import type { DbQuestion } from "../db/questions";
 import { getProblemDir, getTestsDir } from "./solutions";
 import { getRunnerSpec, type RunnerSpec } from "./harness";
+import { errMessage } from "../debug";
 
 // Kill a case that runs too long (an accidental infinite loop) so the handler
 // never hangs forever.
@@ -171,9 +172,9 @@ async function runOneCase(
       };
     }
     return { name: c.name, status: "ran", actual: stdout.trimEnd() };
-  } catch (e: any) {
+  } catch (e) {
     // Spawn failure — interpreter not on PATH, etc.
-    return { name: c.name, status: "error", actual: e?.message ?? String(e) };
+    return { name: c.name, status: "error", actual: errMessage(e) };
   }
 }
 

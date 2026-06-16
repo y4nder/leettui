@@ -23,7 +23,7 @@ import { relocateSolutions, type RelocateResult } from "../../core/relocate";
 import { setLastKnownSolutionsDir } from "../../core/session";
 import { getEditorCommand, getSolutionsDir, persistSolutionsDir } from "../../config";
 import { resolveConfigPath } from "../../config/resolvePath";
-import { logError } from "../../debug";
+import { errMessage, logError } from "../../debug";
 import { buildResultView, info, errorView } from "./resultView";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
@@ -62,9 +62,9 @@ export async function handleViewDailyChallenge(triggerKey: string) {
     }
     const md = htmlToMarkdown(html);
     showPopup(`${q.frontendQuestionId}. ${q.title} [${q.difficulty}] — Daily`, md);
-  } catch (e: any) {
+  } catch (e) {
     logError(triggerKey, "browse", "handleViewDailyChallenge", e);
-    showResult(errorView("Error fetching daily challenge", e.message));
+    showResult(errorView("Error fetching daily challenge", errMessage(e)));
   }
 }
 
@@ -116,9 +116,9 @@ export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
         useAppStore.getState().refreshSolutionFiles();
       },
     );
-  } catch (e: any) {
+  } catch (e) {
     logError(triggerKey, "browse", "handleOpenEditor", e);
-    showResult(errorView("Error fetching editor data", e.message));
+    showResult(errorView("Error fetching editor data", errMessage(e)));
   }
 }
 
@@ -147,9 +147,9 @@ async function withChosenSolution(
       if (index === null) return;
       try {
         await fn(existing[index]!);
-      } catch (e: any) {
+      } catch (e) {
         logError(triggerKey, "browse", `handle${action}Solution`, e);
-        showResult(errorView(errTitle, e.message));
+        showResult(errorView(errTitle, errMessage(e)));
       }
     });
     return;
@@ -157,9 +157,9 @@ async function withChosenSolution(
 
   try {
     await fn(existing[0]!);
-  } catch (e: any) {
+  } catch (e) {
     logError(triggerKey, "browse", `handle${action}Solution`, e);
-    showResult(errorView(errTitle, e.message));
+    showResult(errorView(errTitle, errMessage(e)));
   }
 }
 
@@ -175,7 +175,7 @@ export async function handleRunSolution(triggerKey: string) {
       showResult(buildResultView(result));
     } catch (e) {
       if (e instanceof SolutionError) {
-        showResult(errorView(e.message));
+        showResult(errorView(errMessage(e)));
         return;
       }
       throw e;
@@ -196,7 +196,7 @@ export async function handleSubmitSolution(triggerKey: string) {
       showResult(buildResultView(result));
     } catch (e) {
       if (e instanceof SolutionError) {
-        showResult(errorView(e.message));
+        showResult(errorView(errMessage(e)));
         return;
       }
       throw e;
@@ -216,10 +216,10 @@ export async function handleSyncDb(triggerKey: string) {
     clearSyncProgress();
     refreshQuestions(getQuestionsByTopic(currentTopic()));
     init();
-  } catch (e: any) {
+  } catch (e) {
     logError(triggerKey, "browse", "handleSyncDb", e);
     clearSyncProgress();
-    showResult(errorView("Sync error", e.message));
+    showResult(errorView("Sync error", errMessage(e)));
   }
 }
 
@@ -231,9 +231,9 @@ export function handleYankUrl(triggerKey: string) {
     const url = problemUrl(q.title_slug);
     copyToClipboard(url);
     showResult(info(`Copied URL: ${url}`));
-  } catch (e: any) {
+  } catch (e) {
     logError(triggerKey, "browse", "handleYankUrl", e);
-    showResult(errorView("Could not copy URL", e.message));
+    showResult(errorView("Could not copy URL", errMessage(e)));
   }
 }
 
@@ -246,7 +246,7 @@ export async function handleReauth(renderer: Renderer) {
   let result: Awaited<ReturnType<typeof runAuthFlow>> = null;
   try {
     result = await withSuspendedRenderer(renderer, runAuthFlow);
-  } catch (e: any) {
+  } catch (e) {
     logError("reauth", "browse", "handleReauth", e);
   }
 

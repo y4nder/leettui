@@ -14,6 +14,7 @@ interface QuestionPopupProps {
 export function QuestionPopup({ title, content }: QuestionPopupProps) {
   useBindings(() => ({ bindings: popupBindings }), []);
   const themeVersion = useAppStore((s) => s.themeVersion);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: themeVersion is the deliberate cache-bust key; the callback reads the live `colors` proxy
   const syntaxStyle = useMemo(() => buildMarkdownSyntaxStyle(), [themeVersion]);
   return (
     <box

@@ -140,7 +140,7 @@ export function upsertSectionString(
       `$1${key} = "${escaped}"\n`,
     );
   }
-  return content.trimEnd() + `\n\n[${section}]\n${key} = "${escaped}"\n`;
+  return `${content.trimEnd()}\n\n[${section}]\n${key} = "${escaped}"\n`;
 }
 
 // Surgically rewrite the top-level `csrftoken`/`lc_session` values, preserving all
@@ -169,6 +169,6 @@ function upsertTopLevelString(content: string, key: string, value: string): stri
 
   const line = `${key} = "${escaped}"\n`;
   const sectionIdx = content.search(/^\s*\[/m);
-  if (sectionIdx === -1) return content.trimEnd() + "\n" + line;
+  if (sectionIdx === -1) return `${content.trimEnd()}\n${line}`;
   return content.slice(0, sectionIdx) + line + content.slice(sectionIdx);
 }

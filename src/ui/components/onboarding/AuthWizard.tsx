@@ -84,6 +84,7 @@ export function AuthWizard({ onComplete, onAbort }: AuthWizardProps) {
   };
 
   // Stage 1: Firefox auto-import on mount.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: run once on mount; the helpers it calls are stable for the component's lifetime
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -167,6 +168,7 @@ export function AuthWizard({ onComplete, onAbort }: AuthWizardProps) {
 
       <box flexDirection="column" width={inputWidth}>
         {messages.map((m, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: append-only status log, messages are not reordered
           <text key={i} fg={toneColor(m.tone)}>
             {m.text}
           </text>

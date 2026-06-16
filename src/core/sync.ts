@@ -10,7 +10,7 @@ function persistPage(questions: ApiQuestion[]): void {
   getDb().transaction(() => {
     for (const q of questions) {
       const id = parseInt(q.frontendQuestionId, 10);
-      if (isNaN(id)) continue;
+      if (Number.isNaN(id)) continue;
 
       upsertQuestion({
         id,

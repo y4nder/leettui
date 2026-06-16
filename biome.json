@@ -27,11 +27,11 @@
         "noNonNullAssertion": "off"
       },
       "suspicious": {
-        "noExplicitAny": "warn",
-        "noArrayIndexKey": "warn"
+        "noExplicitAny": "error",
+        "noArrayIndexKey": "error"
       },
       "correctness": {
-        "useExhaustiveDependencies": "warn"
+        "useExhaustiveDependencies": "error"
       }
     }
   },

@@ -24,6 +24,7 @@ export function Splash({ onDone }: SplashProps) {
 
   const timeline = useTimeline({ duration: 950, loop: false, onComplete: finish });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: timeline identity is stable for the component's lifetime; run once on mount
   useEffect(() => {
     timeline.add(
       { r: 0 },
@@ -31,12 +32,9 @@ export function Splash({ onDone }: SplashProps) {
         r: 1,
         duration: 650,
         ease: "linear",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onUpdate: (a: any) => setReveal(a.targets[0].r),
+        onUpdate: (a) => setReveal(a.targets[0].r),
       },
     );
-    // timeline identity is stable for the component's lifetime
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useKeyboard(() => finish());

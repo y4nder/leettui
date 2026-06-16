@@ -16,6 +16,7 @@ interface NotesPopupProps {
 export function NotesPopup({ content }: NotesPopupProps) {
   useBindings(() => ({ bindings: notesBindings }), []);
   const themeVersion = useAppStore((s) => s.themeVersion);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: themeVersion is the deliberate cache-bust key; the callback reads the live `colors` proxy
   const syntaxStyle = useMemo(() => buildMarkdownSyntaxStyle(), [themeVersion]);
   const trimmed = content.trim();
   return (

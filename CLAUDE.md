@@ -20,7 +20,7 @@ bun run lint:fix   # auto-fix Biome lint + formatting
 bun run format     # format only
 ```
 
-Biome config is `biome.json`. Errors block the gate; the deliberate `noNonNullAssertion` rule is off (used with strict index access), and `noExplicitAny` / `noArrayIndexKey` / `useExhaustiveDependencies` are warnings (visible debt, non-blocking). `bun.lock` pins Biome — run installs with `--frozen-lockfile`.
+Biome config is `biome.json`. The gate runs with `--error-on-warnings`, so it is **zero-tolerance** — any lint finding (warning or error) fails it; keep the tree clean. The only relaxed rule is `noNonNullAssertion` (off — used deliberately with strict index access). A handful of intentional cases carry inline `// biome-ignore <rule>: <reason>` suppressions (e.g. static, never-reordered render lists keyed by index; the `useMemo(..., [themeVersion])` theme cache-bust pattern); add a justification when you suppress. `bun.lock` pins Biome — run installs with `--frozen-lockfile`.
 
 On first run, leettui runs an auth flow that imports your LeetCode session from Firefox (if logged in) or guides you through a one-time cookie paste, validates it, and writes it to `~/.config/leettui/config.toml`. Re-run any time with `bun src/index.tsx auth`.
 

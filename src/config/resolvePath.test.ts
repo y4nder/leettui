@@ -26,9 +26,11 @@ describe("expandPath", () => {
     expect(expandPath("~someone/x")).toBe("~someone/x");
   });
 
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: the literal ${VAR} in the test name is intentional
   test("substitutes $VAR and ${VAR}", () => {
     process.env.LEETTUI_TEST_VAR = "/data";
     expect(expandPath("$LEETTUI_TEST_VAR/sub")).toBe("/data/sub");
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: ${VAR} is the literal syntax under test
     expect(expandPath("${LEETTUI_TEST_VAR}/sub")).toBe("/data/sub");
   });
 

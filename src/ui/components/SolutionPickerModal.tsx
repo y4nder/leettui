@@ -17,7 +17,7 @@ export function SolutionPickerModal() {
   useBindings(() => ({ bindings: pickerBindings }), []);
 
   const problem = useAppStore((s) => s.problem);
-  if (!problem || !problem.solutionPicker) return null;
+  if (!problem?.solutionPicker) return null;
 
   const { snippets, existing, index } = problem.solutionPicker;
   const focused = snippets[index];

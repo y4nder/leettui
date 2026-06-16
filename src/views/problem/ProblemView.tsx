@@ -61,6 +61,7 @@ function HintsFooter() {
 export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
   const { height } = useTerminalDimensions();
   const themeVersion = useAppStore((s) => s.themeVersion);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: themeVersion is the deliberate cache-bust key; the callback reads the live `colors` proxy
   const syntaxStyle = useMemo(() => buildMarkdownSyntaxStyle(), [themeVersion]);
   const stats = useAppStore((s) => s.stats);
   const mode = useAppStore((s) => s.mode);
