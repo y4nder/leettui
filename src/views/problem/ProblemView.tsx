@@ -9,6 +9,7 @@ import type { DbQuestion } from "../../db/questions";
 import { colors, difficultyColor, statusColor } from "../../ui/theme";
 import { buildMarkdownSyntaxStyle } from "../../ui/markdownStyle";
 import { ResultBody } from "../../ui/components/ResultBody";
+import { Loading } from "../../ui/components/Loading";
 import { StatusBar } from "../../ui/components/StatusBar";
 import { ProgressBar } from "../../ui/components/ProgressBar";
 import { UpdateBanner } from "../../ui/components/UpdateBanner";
@@ -124,8 +125,8 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
 
   if (!problem) {
     return (
-      <box flexDirection="column" width="100%" height="100%">
-        <text fg={colors.fgDim}> Loading problem... </text>
+      <box flexDirection="column" width="100%" height="100%" padding={1}>
+        <Loading label="Loading problem..." />
       </box>
     );
   }

@@ -24,7 +24,7 @@ import { setLastKnownSolutionsDir } from "../../core/session";
 import { getEditorCommand, getSolutionsDir, persistSolutionsDir } from "../../config";
 import { resolveConfigPath } from "../../config/resolvePath";
 import { errMessage, logError } from "../../debug";
-import { buildResultView, info, errorView } from "./resultView";
+import { buildResultView, info, loading, errorView } from "./resultView";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
 
@@ -169,7 +169,7 @@ export async function handleRunSolution(triggerKey: string) {
 
   await withChosenSolution(triggerKey, "run", async (langSlug) => {
     const { showResult, refreshQuestions } = useAppStore.getState();
-    showResult(info("Running solution..."));
+    showResult(loading("Running solution..."));
     try {
       const result = await runSolution(q, langSlug);
       showResult(buildResultView(result));
@@ -190,7 +190,7 @@ export async function handleSubmitSolution(triggerKey: string) {
 
   await withChosenSolution(triggerKey, "submit", async (langSlug) => {
     const { showResult, refreshQuestions } = useAppStore.getState();
-    showResult(info("Submitting solution..."));
+    showResult(loading("Submitting solution..."));
     try {
       const result = await submitSolution(q, langSlug);
       showResult(buildResultView(result));

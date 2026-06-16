@@ -1,7 +1,7 @@
 import type { ParsedResponse } from "../../api/types";
 import type { LocalRunReport, CaseStatus } from "../../core/testRunner";
 
-export type ResultKind = "accepted" | "wrong" | "error" | "info" | "pending";
+export type ResultKind = "accepted" | "wrong" | "error" | "info" | "loading";
 
 export interface ResultMetric {
   label: string;
@@ -36,6 +36,12 @@ export function info(title: string): ResultView {
   return { kind: "info", title };
 }
 
+// An in-flight result (run/submit/local/poll). `ResultBody` renders it with the
+// shared `<Loading>` spinner instead of a plain title line.
+export function loading(title: string): ResultView {
+  return { kind: "loading", title };
+}
+
 export function errorView(title: string, error?: string): ResultView {
   return { kind: "error", title, error };
 }
@@ -61,7 +67,7 @@ function pairOutputs(
 export function buildResultView(result: ParsedResponse): ResultView {
   switch (result.type) {
     case "pending":
-      return { kind: "pending", title: "Still pending..." };
+      return { kind: "loading", title: "Still pending..." };
 
     case "run_accepted": {
       const d = result.data;
