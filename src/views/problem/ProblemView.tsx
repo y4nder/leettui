@@ -10,6 +10,7 @@ import { buildMarkdownSyntaxStyle } from "../../ui/markdownStyle";
 import { ResultBody } from "../../ui/components/ResultBody";
 import { StatusBar } from "../../ui/components/StatusBar";
 import { ProgressBar } from "../../ui/components/ProgressBar";
+import { UpdateBanner } from "../../ui/components/UpdateBanner";
 import { SolutionPickerModal } from "../../ui/components/SolutionPickerModal";
 import { NotesPopup } from "../../ui/components/NotesPopup";
 import { problemBindings } from "../../ui/keymap";
@@ -78,9 +79,10 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
   const searchNeedle = useAppStore((s) => s.searchNeedle);
   const difficultyFilter = useAppStore((s) => s.difficultyFilter);
   const syncProgress = useAppStore((s) => s.syncProgress);
+  const updateAvailable = useAppStore((s) => s.updateAvailable);
   const problem = useAppStore((s) => s.problem);
 
-  const mainHeight = height - (syncProgress ? 2 : 1);
+  const mainHeight = height - (syncProgress ? 2 : 1) - (updateAvailable ? 1 : 0);
 
   if (!problem) {
     return (
@@ -96,6 +98,8 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
   return (
     <box flexDirection="column" width="100%" height="100%">
       <ProblemBindings />
+
+      <UpdateBanner />
 
       {syncProgress && (
         <ProgressBar current={syncProgress.current} total={syncProgress.total} />

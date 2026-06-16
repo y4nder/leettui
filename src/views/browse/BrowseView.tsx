@@ -12,6 +12,7 @@ import { ResultPopup } from "../../ui/components/ResultPopup";
 import { HelpPopup } from "../../ui/components/HelpPopup";
 import { DebugPopup } from "../../ui/components/DebugPopup";
 import { ProgressBar } from "../../ui/components/ProgressBar";
+import { UpdateBanner } from "../../ui/components/UpdateBanner";
 import { CommandPalette } from "../../ui/components/CommandPalette";
 import { ChangeLocationPrompt } from "../../ui/components/ChangeLocationPrompt";
 import { EasterEgg } from "../../ui/components/EasterEgg";
@@ -57,13 +58,16 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
   const selectResolve = useAppStore((s) => s.selectResolve);
   const resultView = useAppStore((s) => s.resultView);
   const syncProgress = useAppStore((s) => s.syncProgress);
+  const updateAvailable = useAppStore((s) => s.updateAvailable);
 
-  const mainHeight = height - (syncProgress ? 2 : 1);
+  const mainHeight = height - (syncProgress ? 2 : 1) - (updateAvailable ? 1 : 0);
 
   return (
     <box flexDirection="column" width="100%" height="100%">
       {mode === "browse" && <BrowseBindings />}
       {mode === "search" && <SearchBindings />}
+
+      <UpdateBanner />
 
       {syncProgress && (
         <ProgressBar current={syncProgress.current} total={syncProgress.total} />

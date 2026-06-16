@@ -363,6 +363,14 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     run: () => useAppStore.getState().showPalette(),
   }),
   makeCommand({
+    name: "update.dismiss",
+    title: "Dismiss update notification",
+    category: "System",
+    // No-op when no banner is showing; hides it for the rest of the session
+    // (not persisted — it reappears on the next launch if still out of date).
+    run: () => useAppStore.getState().setUpdateAvailable(null),
+  }),
+  makeCommand({
     name: "egg.splash",
     title: "✦ Reveal the leettui logo",
     category: "View",
@@ -511,6 +519,7 @@ export const browseBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "debug.open":         "`",
   "db.sync":            "*",
   "palette.open":       "ctrl+p",
+  "update.dismiss":     "x",
   "app.quit":           "q",
 });
 
@@ -545,6 +554,7 @@ export const problemBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "problem.testLocal":     "t",
   "problem.submitFocused": "s",
   "problem.notes":         "n",
+  "update.dismiss":        "x",
   "problem.escape":        ["escape", "q"],
 });
 

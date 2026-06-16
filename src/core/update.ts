@@ -52,6 +52,45 @@ function resolveAsset(): { asset: string } | { error: string } {
   return { asset };
 }
 
+/**
+ * True when `latest` is a strictly newer semver tag than `current`. Tolerates a
+ * leading `v` and ignores any `-suffix` (prerelease/build metadata). Returns
+ * false on any unparseable input, so a garbled tag never raises a false banner.
+ */
+export function isNewerVersion(latest: string, current: string): boolean {
+  const parse = (s: string): [number, number, number] | null => {
+    const m = /^v?(\d+)\.(\d+)\.(\d+)/.exec(s.trim());
+    if (!m) return null;
+    return [Number(m[1]), Number(m[2]), Number(m[3])];
+  };
+  const a = parse(latest);
+  const b = parse(current);
+  if (!a || !b) return false;
+  const [aMajor, aMinor, aPatch] = a;
+  const [bMajor, bMinor, bPatch] = b;
+  if (aMajor !== bMajor) return aMajor > bMajor;
+  if (aMinor !== bMinor) return aMinor > bMinor;
+  return aPatch > bPatch;
+}
+
+/**
+ * Returns the newer release tag to advertise in the in-app banner, or null when
+ * there's nothing to show / the check doesn't apply. Fail-silent: any network or
+ * parse error resolves to null. Only official release builds check (mirrors
+ * runUpdate's IS_RELEASE gate); LEETTUI_FAKE_UPDATE forces a tag for dev preview.
+ */
+export async function checkForUpdate(): Promise<string | null> {
+  const fake = process.env.LEETTUI_FAKE_UPDATE;
+  if (fake) return fake;
+  if (!IS_RELEASE) return null;
+  try {
+    const tag = await fetchLatestTag();
+    return isNewerVersion(tag, VERSION) ? tag : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Fetch the latest published release tag from the GitHub API. */
 async function fetchLatestTag(): Promise<string> {
   const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
