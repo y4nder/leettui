@@ -17,6 +17,7 @@ export type AppMode =
   | "debug"
   | "palette"
   | "problem"
+  | "relocate"
   | "easterEgg";
 
 export interface SolutionPickerState {
@@ -64,6 +65,8 @@ export interface UiSlice {
   hideDebug: () => void;
   showPalette: () => void;
   hidePalette: () => void;
+  showRelocate: () => void;
+  hideRelocate: () => void;
   showEasterEgg: () => void;
   hideEasterEgg: () => void;
 
@@ -116,6 +119,11 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
 
   showPalette: () => set({ mode: "palette" }),
   hidePalette: () => set({ mode: "browse" }),
+
+  // In-TUI "change solutions directory" prompt (Stage 10 item 4). A bare mode
+  // toggle — the ChangeLocationPrompt owns its own input/confirm/done sub-state.
+  showRelocate: () => set({ mode: "relocate" }),
+  hideRelocate: () => set({ mode: "browse" }),
 
   // Easter egg: a full-screen ASCII art reveal that lingers until any key is pressed.
   showEasterEgg: () => set({ mode: "easterEgg" }),
