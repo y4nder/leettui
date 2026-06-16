@@ -100,6 +100,9 @@ export interface ProblemViewState {
   // Shared, language-agnostic notes popup. Non-null while open; `content` is
   // the rendered markdown (empty string when notes.md doesn't exist yet).
   notes: { content: string } | null;
+  // The focus-aware keybindings help popup (Stage 12 item 5). A problem sub-modal:
+  // true while open; closes back to the problem view (not browse), like notes/picker.
+  help: boolean;
 }
 
 export interface UiSlice {
@@ -173,6 +176,8 @@ export interface UiSlice {
   openNotes: (content: string) => void;
   setNotesContent: (content: string) => void;
   closeNotes: () => void;
+  openProblemHelp: () => void;
+  closeProblemHelp: () => void;
 }
 
 export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => ({
@@ -243,6 +248,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
         result: null,
         solutionPicker: null,
         notes: null,
+        help: false,
       },
     }),
 
@@ -355,5 +361,17 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
     set((state) => {
       if (!state.problem) return {};
       return { problem: { ...state.problem, notes: null } };
+    }),
+
+  openProblemHelp: () =>
+    set((state) => {
+      if (!state.problem) return {};
+      return { problem: { ...state.problem, help: true } };
+    }),
+
+  closeProblemHelp: () =>
+    set((state) => {
+      if (!state.problem) return {};
+      return { problem: { ...state.problem, help: false } };
     }),
 });

@@ -16,13 +16,18 @@ import { SolutionPickerModal } from "../../ui/components/SolutionPickerModal";
 import { SolutionsPanel } from "../../ui/components/SolutionsPanel";
 import { RelatedPanel } from "../../ui/components/RelatedPanel";
 import { NotesPopup } from "../../ui/components/NotesPopup";
+import { HelpPopup } from "../../ui/components/HelpPopup";
 import {
   problemGlobalBindings,
   scrollPanelBindings,
   solutionsPanelBindings,
   relatedPanelBindings,
+  problemHelpBindings,
+  problemPanelBindings,
+  isProblemScopeEntryVisible,
   registerProblemScroller,
 } from "../../ui/keymap";
+import { isDebugEnabled } from "../../debug";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
 
@@ -148,6 +153,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
     result,
     solutionPicker,
     notes,
+    help,
   } = problem;
   const scrollFocused = focusedPanel === "description" || focusedPanel === "result";
 
@@ -162,10 +168,12 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
 
   return (
     <box flexDirection="column" width="100%" height="100%">
-      <ProblemGlobalBindings />
-      {scrollFocused && <ScrollPanelBindings />}
-      {focusedPanel === "solutions" && <SolutionsPanelBindings />}
-      {focusedPanel === "related" && <RelatedPanelBindings />}
+      {/* Help is a true modal: while open it gates off the global + panel layers so the
+          keys it lists (e/R/s/t…) can't fire behind it — only problemHelpBindings is live. */}
+      {!help && <ProblemGlobalBindings />}
+      {!help && scrollFocused && <ScrollPanelBindings />}
+      {!help && focusedPanel === "solutions" && <SolutionsPanelBindings />}
+      {!help && focusedPanel === "related" && <RelatedPanelBindings />}
 
       <UpdateBanner />
 
@@ -235,6 +243,20 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
 
       {solutionPicker && <SolutionPickerModal />}
       {notes && <NotesPopup content={notes.content} />}
+      {help && (
+        <HelpPopup
+          scopes={[
+            {
+              header: `LOCAL KEYS — ${focusedPanel.toUpperCase()}`,
+              bindings: problemPanelBindings(focusedPanel),
+            },
+            { header: "GLOBAL KEYS", bindings: problemGlobalBindings },
+          ]}
+          closeBindings={problemHelpBindings}
+          visible={isProblemScopeEntryVisible}
+          debugEnabled={isDebugEnabled()}
+        />
+      )}
     </box>
   );
 }

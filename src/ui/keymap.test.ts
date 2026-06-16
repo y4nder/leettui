@@ -4,6 +4,11 @@ import {
   fitFooter,
   footerSegments,
   formatKeyToken,
+  isProblemScopeEntryVisible,
+  isScopeEntryVisible,
+  problemGlobalBindings,
+  problemHelpBindings,
+  problemPanelBindings,
   questionPanelBindings,
 } from "./keymap";
 
@@ -96,5 +101,46 @@ describe("fitFooter", () => {
 
   test("empty segments → empty string", () => {
     expect(fitFooter([], 40)).toBe("");
+  });
+});
+
+describe("problem help scope visibility (Stage 12 item 5)", () => {
+  type Bindings = Parameters<typeof describeScope>[0];
+  const visibleProblem = (b: Bindings) =>
+    describeScope(b).filter((x) => isProblemScopeEntryVisible(x, false));
+  const visibleBrowse = (b: Bindings) =>
+    describeScope(b).filter((x) => isScopeEntryVisible(x, false));
+
+  // Regression guard for the bug that nearly shipped: the problem-view commands are all
+  // group:"modal", so the BROWSE predicate collapses the help to near-empty. It's type-
+  // and lint-clean (gate-invisible) — only a test catches a revert to isScopeEntryVisible
+  // or a command's group flipping to "modal"-hidden.
+  test("problem predicate surfaces the modal commands the browse one hides", () => {
+    const browseN = visibleBrowse(problemGlobalBindings).length;
+    const problemN = visibleProblem(problemGlobalBindings).length;
+    expect(problemN).toBeGreaterThan(browseN);
+    expect(problemN).toBeGreaterThanOrEqual(15);
+  });
+
+  test("problem global scope includes the live-action + help commands", () => {
+    const cmds = visibleProblem(problemGlobalBindings).map((b) => b.cmd);
+    expect(cmds).toContain("problem.submitFocused"); // the live submit the gating protects
+    expect(cmds).toContain("problem.help");
+  });
+
+  test("every problem panel's local scope is non-empty", () => {
+    for (const panel of ["description", "solutions", "result", "related"] as const) {
+      expect(visibleProblem(problemPanelBindings(panel)).length).toBeGreaterThan(0);
+    }
+  });
+
+  // A binding naming a non-existent command is a typo class tsc can't catch (the title
+  // falls back to the raw command name). Guard the new problem layers against it.
+  test("no dead bindings in the problem global + help layers", () => {
+    for (const scope of [problemGlobalBindings, problemHelpBindings]) {
+      for (const b of describeScope(scope)) {
+        expect(b.title).not.toBe(b.cmd);
+      }
+    }
   });
 });

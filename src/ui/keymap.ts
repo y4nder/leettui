@@ -309,11 +309,33 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     category: "View",
     group: "modal",
     run: () => {
-      // Defer to an open sub-modal's own cancel binding (picker / notes).
+      // Defer to an open sub-modal's own cancel binding (picker / notes / help).
+      // (Help also gates ProblemGlobalBindings off while open, so escape can't even
+      // reach here then — this guard is belt-and-suspenders.)
       const p = useAppStore.getState().problem;
-      if (p?.solutionPicker || p?.notes) return;
+      if (p?.solutionPicker || p?.notes || p?.help) return;
       handleExitProblemView();
     },
+  }),
+  makeCommand({
+    name: "problem.help",
+    title: "Show keybindings help",
+    category: "System",
+    group: "modal",
+    run: () => {
+      // Don't stack help over an open picker/notes — those keep their own layers while
+      // the global `?` stays mounted beneath them.
+      const p = useAppStore.getState().problem;
+      if (p?.solutionPicker || p?.notes) return;
+      useAppStore.getState().openProblemHelp();
+    },
+  }),
+  makeCommand({
+    name: "problem.helpClose",
+    title: "Close help",
+    category: "View",
+    group: "modal",
+    run: () => useAppStore.getState().closeProblemHelp(),
   }),
   // ProblemView focus traversal + panel scroll (Stage 12). Grouped "modal" like the
   // other problem-view commands: hidden from the browse command palette. The
@@ -793,6 +815,7 @@ export const problemGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFo
   "problem.focusSolutions": "2",
   "problem.focusResult": "3",
   "problem.focusRelated": "4",
+  "problem.help": "?",
   "update.dismiss": "x",
   "problem.escape": ["escape", "q"],
 });
@@ -823,6 +846,13 @@ export const relatedPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor
   "problem.relatedNext": ["j", "down"],
   "problem.relatedPrev": ["k", "up"],
   "problem.relatedEnter": "return",
+});
+
+// Mounted by the ProblemView HelpPopup while open (Stage 12 item 5). Esc/Enter/q all
+// close back to the problem view. Help also gates the global + panel layers off while
+// open (see ProblemView), so this is the only active problem layer — a true modal.
+export const problemHelpBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "problem.helpClose": ["escape", "return", "q"],
 });
 
 // Mounted by NotesPopup while open. `e` shadows problem.editorOpen and
@@ -891,6 +921,13 @@ export function isScopeEntryVisible(b: ScopeBinding, debugEnabled: boolean): boo
   return true;
 }
 
+// ProblemView help variant (Stage 12 item 5): the problem-view commands are all
+// group:"modal" (hidden from the browse palette/help), but the problem help popup is
+// exactly where they should surface — so keep modal, only gate debug on the debug flag.
+export function isProblemScopeEntryVisible(b: ScopeBinding, debugEnabled: boolean): boolean {
+  return !(b.group === "debug" && !debugEnabled);
+}
+
 const KEY_DISPLAY: Record<string, string> = {
   tab: "Tab",
   "shift+tab": "S-Tab",
@@ -918,6 +955,19 @@ export function formatKeys(keys: string[]): string {
 // The static binding spec for a panel scope, used by the help popup's Local Keys.
 export function panelBindings(panel: BrowsePanel): Binding<Renderable, KeyEvent>[] {
   return panel === "topics" ? topicPanelBindings : questionPanelBindings;
+}
+
+// The static binding spec for a ProblemView panel's local keys (help popup Local Keys).
+// Description and Result share the scroll layer; Solutions and Related have their own.
+export function problemPanelBindings(panel: ProblemPanel): Binding<Renderable, KeyEvent>[] {
+  switch (panel) {
+    case "solutions":
+      return solutionsPanelBindings;
+    case "related":
+      return relatedPanelBindings;
+    default:
+      return scrollPanelBindings;
+  }
 }
 
 // Terse, focus-aware footer hints: the focused panel's local keys first, then the
