@@ -14,13 +14,15 @@
     "smoke": "bash scripts/smoke.sh",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",
     "@types/bun": "latest",
     "@types/react": "^19.2.15",
-    "drizzle-kit": "^0.31.10"
+    "drizzle-kit": "^0.31.10",
+    "husky": "^9.1.7"
   },
   "peerDependencies": {
     "typescript": "^5"

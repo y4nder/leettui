@@ -1,0 +1,5 @@
+# Pre-commit gate: the same `bun run check` (Biome lint+format, tsc --noEmit,
+# bun test) that CI runs — so dirty code never reaches a commit. This is a
+# commit-time hook only; pushes are not gated here. Bypass in a pinch with
+# `git commit --no-verify`.
+bun run check
