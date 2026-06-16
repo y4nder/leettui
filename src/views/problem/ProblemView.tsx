@@ -96,17 +96,6 @@ function PanelTitle({ tag, label, focused }: { tag: string; label: string; focus
   );
 }
 
-function HintsFooter() {
-  return (
-    <box flexDirection="column" borderStyle="single" borderColor={colors.border} width="100%">
-      <text fg={colors.fgDim}>
-        {" "}
-        Tab:Focus j/k:Nav f:Solutions e:Edit R:Run t:Test s:Submit n:Notes Esc/q:Back{" "}
-      </text>
-    </box>
-  );
-}
-
 export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
   const { height } = useTerminalDimensions();
   const themeVersion = useAppStore((s) => s.themeVersion);
@@ -159,9 +148,10 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
 
   // Related sits at the bottom of the right column; cap its viewport so a long similar-
   // questions list can't starve the Result panel above. Budget = right-column inner
-  // height (mainHeight − Header − MetaLine) minus Solutions (~len+3), HintsFooter (3),
-  // Related chrome (3), and a floor reserved for Result. On short terminals Result
-  // (flexGrow) still gives space first; the max(2, …) keeps Related usable regardless.
+  // height (mainHeight − Header − MetaLine) minus Solutions (~len+3), Related chrome (3),
+  // and a floor reserved for Result. (The keymaps hint line moved to the bottom StatusBar,
+  // so this stays deliberately conservative — Result, flexGrow, absorbs the freed row.)
+  // On short terminals Result still gives space first; the max(2, …) keeps Related usable.
   const RESULT_FLOOR = 6;
   const solutionsRows = (solutions.length || 1) + 3;
   const relatedMaxRows = Math.max(2, mainHeight - solutionsRows - RESULT_FLOOR - 8);
@@ -228,14 +218,13 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
               tag="4"
               maxRows={relatedMaxRows}
             />
-
-            <HintsFooter />
           </box>
         </box>
       </box>
 
       <StatusBar
         mode={mode}
+        problemPanel={focusedPanel}
         searchNeedle={searchNeedle}
         stats={stats}
         difficultyFilter={difficultyFilter}
