@@ -12,9 +12,12 @@ bun src/index.tsx
 
 ## Checks (run before every PR)
 
-One gate, three callers: `bun run check` runs Biome (lint + format check), `tsc --noEmit`, and `bun test`. CI (`.github/workflows/ci.yml`) runs the *same* script on every PR and push to `main`, and a Husky **pre-commit** hook (`.husky/pre-commit`) runs it on every `git commit` so dirty code never even reaches a commit. Green locally ⇒ green in CI. Keep the gate definition in `package.json`'s `check` script so all three never drift.
+`bun run check` is the full gate: Biome (lint + format check), `tsc --noEmit`, and `bun test`. CI (`.github/workflows/ci.yml`) runs that full script on every PR and push to `main`. Locally the gate is **split across two Husky hooks** (installed by the `prepare` script on `bun install`) so committing stays fast:
 
-The hook is installed automatically by the `prepare` script on `bun install`. It gates commits only, not pushes; bypass in a pinch with `git commit --no-verify`.
+- **pre-commit** (`.husky/pre-commit`) → `bun run lint && bun run typecheck` (the fast half).
+- **pre-push** (`.husky/pre-push`) → `bun test` (so broken tests can't reach the remote).
+
+Bypass either in a pinch with `git commit --no-verify` / `git push --no-verify`. Keep `package.json`'s `lint` / `typecheck` / `test` / `check` scripts as the single source of truth so the hooks and CI never drift.
 
 ```sh
 bun run check      # the full gate (lint + typecheck + test)

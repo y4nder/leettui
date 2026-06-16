@@ -1,0 +1,4 @@
+# Pre-push: run the test suite before anything reaches the remote, so broken
+# tests can't be pushed. Lint + typecheck already ran at commit time; CI runs
+# the full `bun run check` again. Bypass in a pinch with `git push --no-verify`.
+bun test
