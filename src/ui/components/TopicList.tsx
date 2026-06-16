@@ -5,9 +5,11 @@ interface TopicListProps {
   selectedIndex: number;
   height: number;
   focused: boolean;
+  // The number key that focuses this panel ([1]/[2]), shown as a tag in the title.
+  tag: string;
 }
 
-export function TopicList({ topics, selectedIndex, height, focused }: TopicListProps) {
+export function TopicList({ topics, selectedIndex, height, focused, tag }: TopicListProps) {
   const visibleCount = Math.max(1, height - 2);
   let scrollOffset = 0;
   if (selectedIndex >= scrollOffset + visibleCount) {
@@ -24,7 +26,10 @@ export function TopicList({ topics, selectedIndex, height, focused }: TopicListP
       width="20%"
       height="100%"
     >
-      <text fg={colors.fgAccent}> Topics </text>
+      <box flexDirection="row">
+        <text fg={focused ? colors.accent : colors.fgDim}> [{tag}]</text>
+        <text fg={colors.fgAccent}> Topics </text>
+      </box>
       {visible.map((topic, i) => {
         const realIndex = scrollOffset + i;
         const isSelected = realIndex === selectedIndex;

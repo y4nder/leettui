@@ -2,7 +2,7 @@ import { useTerminalDimensions } from "@opentui/react";
 import { useBindings } from "@opentui/keymap/react";
 import type { createCliRenderer } from "@opentui/core";
 
-import { useAppStore } from "../../ui/store";
+import { useAppStore, PANEL_ORDER } from "../../ui/store";
 import { TopicList } from "../../ui/components/TopicList";
 import { QuestionList } from "../../ui/components/QuestionList";
 import { StatusBar } from "../../ui/components/StatusBar";
@@ -95,6 +95,7 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
           selectedIndex={selectedTopicIndex}
           height={mainHeight}
           focused={focusedPanel === "topics"}
+          tag={String(PANEL_ORDER.indexOf("topics") + 1)}
         />
         <QuestionList
           questions={filteredQuestions}
@@ -103,6 +104,7 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
           topic={currentTopic}
           solutionFileIds={solutionFileIds}
           focused={focusedPanel === "questions"}
+          tag={String(PANEL_ORDER.indexOf("questions") + 1)}
         />
       </box>
 
