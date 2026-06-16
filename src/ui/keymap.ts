@@ -351,6 +351,12 @@ const COMMANDS: Command<Renderable, KeyEvent>[] = [
     },
   }),
   makeCommand({
+    name: "solutions.changeDir",
+    title: "Change solutions directory",
+    category: "System",
+    run: () => useAppStore.getState().showRelocate(),
+  }),
+  makeCommand({
     name: "palette.open",
     title: "Open command palette",
     category: "System",

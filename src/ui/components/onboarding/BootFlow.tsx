@@ -6,17 +6,21 @@ import { App } from "../../../app";
 import { Splash } from "./Splash";
 import { AuthWizard } from "./AuthWizard";
 import { SyncStep } from "./SyncStep";
+import { RelocatePrompt } from "./RelocatePrompt";
+import { SolutionsOnboarding } from "./SolutionsOnboarding";
 import { Logo } from "./Logo";
 import { colors } from "../../theme";
-import { loadConfig, hasTokens, getDbPath } from "../../../config";
+import { loadConfig, hasTokens, getDbPath, getSolutionsDir } from "../../../config";
 import { validateTokens, type AuthTokens } from "../../../core/auth";
 import { initClient } from "../../../api/client";
 import { openDatabase } from "../../../db";
 import { syncIfEmpty } from "../../../core/sync";
 import { migrateSolutionsLayout } from "../../../core/migration";
+import { detectSolutionsRelocation, type RelocationPlan } from "../../../core/relocate";
+import { getLastKnownSolutionsDir, setLastKnownSolutionsDir } from "../../../core/session";
 import { useAppStore } from "../../store";
 
-type Phase = "splash" | "auth" | "loading" | "ready" | "error";
+type Phase = "splash" | "auth" | "solutions" | "loading" | "relocate" | "ready" | "error";
 
 interface BootFlowProps {
   renderer: Awaited<ReturnType<typeof createCliRenderer>>;
@@ -31,9 +35,15 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
   const [phase, setPhase] = useState<Phase>("splash");
   const [error, setError] = useState<string | null>(null);
   const tokensRef = useRef<AuthTokens | null>(null);
+  const planRef = useRef<RelocationPlan | null>(null);
+  // A brand-new install has empty tokens in config; existing users always carry
+  // token *values* (even when expired), and `auth`-subcommand re-auth keeps this
+  // false — so it gates the first-run solutions prompt to genuine first installs.
+  const firstRunRef = useRef(false);
 
   const handleSplashDone = useCallback(async () => {
     const config = loadConfig();
+    firstRunRef.current = !hasTokens(config);
     if (!force && hasTokens(config)) {
       const v = await validateTokens(config.csrftoken, config.lc_session);
       // An offline/"unknown" result keeps the saved session so the app still opens.
@@ -52,12 +62,24 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
 
   const handleAuthComplete = useCallback((t: AuthTokens) => {
     tokensRef.current = t;
+    // Only brand-new installs get the "where should solutions live?" step.
+    setPhase(firstRunRef.current ? "solutions" : "loading");
+  }, []);
+
+  const handleSolutionsChosen = useCallback(() => {
     setPhase("loading");
   }, []);
 
   const handleAuthAbort = useCallback(() => {
     setError("Authentication is required to use leettui.");
     setPhase("error");
+  }, []);
+
+  // After the user moves or skips, the current dir becomes the new last-known
+  // (so a skipped relocation isn't re-offered every boot — per the spec).
+  const handleRelocationResolved = useCallback(() => {
+    setLastKnownSolutionsDir(getSolutionsDir());
+    setPhase("ready");
   }, []);
 
   useEffect(() => {
@@ -79,7 +101,18 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
         migrateSolutionsLayout();
         await syncIfEmpty((c, t) => useAppStore.getState().setSyncProgress(c, t));
         useAppStore.getState().clearSyncProgress();
-        if (!cancelled) setPhase("ready");
+        if (cancelled) return;
+        // Did the resolved solutions dir move out from under us (incl. a
+        // hand-edited config.toml)? If the old dir still holds problems, offer
+        // to relocate them; otherwise just adopt the current dir as last-known.
+        const plan = detectSolutionsRelocation(getSolutionsDir(), getLastKnownSolutionsDir());
+        if (plan) {
+          planRef.current = plan;
+          setPhase("relocate");
+        } else {
+          setLastKnownSolutionsDir(getSolutionsDir());
+          setPhase("ready");
+        }
       } catch (e) {
         if (!cancelled) {
           setError(e instanceof Error ? e.message : String(e));
@@ -94,7 +127,11 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
 
   if (phase === "splash") return <Splash onDone={handleSplashDone} />;
   if (phase === "auth") return <AuthWizard onComplete={handleAuthComplete} onAbort={handleAuthAbort} />;
+  if (phase === "solutions")
+    return <SolutionsOnboarding defaultDir={getSolutionsDir()} onDone={handleSolutionsChosen} />;
   if (phase === "loading") return <SyncStep />;
+  if (phase === "relocate" && planRef.current)
+    return <RelocatePrompt plan={planRef.current} onResolved={handleRelocationResolved} />;
   if (phase === "error") return <BootError message={error ?? "Something went wrong."} />;
   return <App renderer={renderer} />;
 }

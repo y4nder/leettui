@@ -13,6 +13,7 @@ import { HelpPopup } from "../../ui/components/HelpPopup";
 import { DebugPopup } from "../../ui/components/DebugPopup";
 import { ProgressBar } from "../../ui/components/ProgressBar";
 import { CommandPalette } from "../../ui/components/CommandPalette";
+import { ChangeLocationPrompt } from "../../ui/components/ChangeLocationPrompt";
 import { EasterEgg } from "../../ui/components/EasterEgg";
 import { isDebugEnabled, getEntries } from "../../debug";
 import { browseBindings, searchBindings } from "../../ui/keymap";
@@ -104,6 +105,8 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
       {mode === "debug" && <DebugPopup entries={getEntries()} />}
 
       {mode === "palette" && <CommandPalette />}
+
+      {mode === "relocate" && <ChangeLocationPrompt />}
 
       {mode === "easterEgg" && <EasterEgg />}
     </box>

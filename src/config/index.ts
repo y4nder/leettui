@@ -91,33 +91,53 @@ export function getLanguageTemplateDir(langSlug: string): string {
 }
 
 // Surgical rewrite of `~/.config/leettui/config.toml` to update the active
-// theme name. Regex-based rather than parse→stringify so we preserve the
-// user's comments and formatting. Three cases: replace an existing value,
-// add `name` to an existing [theme] section, or append a new section.
+// theme name, preserving the user's comments and formatting (regex-based rather
+// than parse→stringify, since smol-toml has no comment-preserving stringifier).
 export function persistThemeName(name: string): void {
   if (!existsSync(CONFIG_FILE)) return;
-  const escaped = escapeTomlString(name);
   const content = readFileSync(CONFIG_FILE, "utf-8");
-
-  const hasSection = /^\s*\[theme\]/m.test(content);
-  const hasName = hasSection && /^\s*\[theme\][\s\S]*?^\s*name\s*=\s*"[^"]*"/m.test(content);
-
-  let next: string;
-  if (hasName) {
-    next = content.replace(
-      /(^\s*\[theme\][\s\S]*?^\s*)name\s*=\s*"[^"]*"/m,
-      `$1name = "${escaped}"`,
-    );
-  } else if (hasSection) {
-    next = content.replace(/(^\s*\[theme\]\s*\n)/m, `$1name = "${escaped}"\n`);
-  } else {
-    next = content.trimEnd() + `\n\n[theme]\nname = "${escaped}"\n`;
-  }
-
-  writeFileSync(CONFIG_FILE, next);
+  writeFileSync(CONFIG_FILE, upsertSectionString(content, "theme", "name", name));
   // Refresh the in-process config so getThemeName() reflects the persisted value
   // on the next call (e.g., for diagnostics).
   _config = null;
+}
+
+// Persist the solutions directory to `[paths] solutions` (Stage 10 item 3 —
+// first-run onboarding / item 4 — in-TUI change). Same comment-preserving rewrite
+// as persistThemeName; falls back to DEFAULT_TOML if the file isn't there yet (as
+// persistTokens does) so onboarding can write before anything else has.
+export function persistSolutionsDir(dir: string): void {
+  let content = existsSync(CONFIG_FILE) ? readFileSync(CONFIG_FILE, "utf-8") : DEFAULT_TOML;
+  content = upsertSectionString(content, "paths", "solutions", dir);
+  mkdirSync(CONFIG_DIR, { recursive: true });
+  writeFileSync(CONFIG_FILE, content);
+  _config = null;
+}
+
+// Surgically set `key = "value"` inside `[section]`, preserving all comments and
+// formatting. Three cases: replace the key's existing value, add the key to an
+// existing section, or append a brand-new section. Pure (string→string) so it's
+// unit-tested directly. NOTE: assumes `key` is unique to `section` — the hasKey
+// pattern lazy-matches from the section header, so a same-named key in a *later*
+// section could be reached if the target section lacks it. Safe for the current
+// schema (`theme.name`, `paths.solutions` don't collide elsewhere).
+export function upsertSectionString(
+  content: string,
+  section: string,
+  key: string,
+  value: string
+): string {
+  const escaped = escapeTomlString(value);
+  const sectionRe = new RegExp(`^\\s*\\[${section}\\]`, "m");
+  const hasSection = sectionRe.test(content);
+  const keyRe = new RegExp(`(^\\s*\\[${section}\\][\\s\\S]*?^\\s*)${key}\\s*=\\s*"[^"]*"`, "m");
+  const hasKey = hasSection && keyRe.test(content);
+
+  if (hasKey) return content.replace(keyRe, `$1${key} = "${escaped}"`);
+  if (hasSection) {
+    return content.replace(new RegExp(`(^\\s*\\[${section}\\]\\s*\\n)`, "m"), `$1${key} = "${escaped}"\n`);
+  }
+  return content.trimEnd() + `\n\n[${section}]\n${key} = "${escaped}"\n`;
 }
 
 // Surgically rewrite the top-level `csrftoken`/`lc_session` values, preserving all
