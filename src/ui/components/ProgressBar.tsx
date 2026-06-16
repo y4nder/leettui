@@ -1,5 +1,9 @@
+// SPIKE (opentui-spinner): registers the `<spinner>` intrinsic (idempotent with
+// SyncStep's import). Same star preset as the full-screen sync screen.
+import "opentui-spinner/react";
+
 import { colors } from "../theme";
-import { SPINNER_FRAMES, useTick } from "./Spinner";
+import { useTick } from "./Spinner";
 import { smoothBar, sweepBar } from "../progress";
 
 interface ProgressBarProps {
@@ -12,7 +16,6 @@ interface ProgressBarProps {
 // known), matching the full-screen `SyncStep` so both sync surfaces read alike.
 export function ProgressBar({ current, total }: ProgressBarProps) {
   const tick = useTick();
-  const spinner = SPINNER_FRAMES[tick % SPINNER_FRAMES.length];
   const determinate = total > 0;
   const ratio = determinate ? current / total : 0;
   const pct = Math.round(ratio * 100);
@@ -29,8 +32,10 @@ export function ProgressBar({ current, total }: ProgressBarProps) {
       paddingLeft={1}
       paddingRight={1}
     >
-      <text fg={colors.accent}>{spinner} </text>
-      <text fg={colors.fg}>Syncing problems </text>
+      <spinner name="star" color={colors.accent} />
+      <text fg={colors.fg} marginLeft={1}>
+        Syncing problems{" "}
+      </text>
       {bar ? <text fg={colors.accent}>{bar.filled}</text> : null}
       {bar ? <text fg={colors.subtle}>{bar.empty}</text> : null}
       {sweep ? <text fg={colors.subtle}>{sweep.pre}</text> : null}
