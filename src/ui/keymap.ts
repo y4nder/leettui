@@ -519,19 +519,18 @@ function bindingsFor(spec: Record<string, KeyLike | KeyLike[]>): Binding<Rendera
 }
 
 // Panel-independent browse bindings. Always mounted in browse mode regardless of
-// which panel is focused. (Spike: action keys e/R/s/y stay global; step 2 moves the
-// question-oriented ones into questionPanelBindings.)
+// which panel is focused — only genuinely cross-panel commands live here (focus,
+// search, system overlays, view-wide filters/jumps, and the update-banner dismiss).
+// `r` (random) and `x` (dismiss) stay global deliberately: random is a view-wide jump
+// and dismiss targets the banner chrome, not a panel. Question-targeted actions
+// (e/R/s/y) moved to questionPanelBindings.
 export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "focus.cycle": "tab",
   "focus.topics": "1",
   "focus.questions": "2",
   "question.random": "r",
-  "question.yankUrl": "y",
   "filter.cycleDifficulty": "shift+d",
   "problem.daily": "d",
-  "problem.openEditor": "e",
-  "problem.run": "shift+r",
-  "problem.submit": "s",
   "search.start": "/",
   "help.open": "h",
   "debug.open": "`",
@@ -549,14 +548,19 @@ export const topicPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "focus.questions": "return",
 });
 
-// Mounted only while the questions panel is focused. j/k move the question cursor;
-// Enter opens the problem view.
+// Mounted only while the questions panel is focused. j/k move the question cursor,
+// gg/G jump to ends, Enter opens the problem view, and the question-targeted solve
+// actions (open editor / run / submit / yank URL) act on the selected question.
 export const questionPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "question.next": ["j", "down"],
   "question.prev": ["k", "up"],
   "question.first": "gg",
   "question.last": "shift+g",
   "problem.enter": "return",
+  "problem.openEditor": "e",
+  "problem.run": "shift+r",
+  "problem.submit": "s",
+  "question.yankUrl": "y",
 });
 
 export const popupBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
