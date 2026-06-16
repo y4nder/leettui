@@ -129,7 +129,7 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
 
       {mode === "result" && resultView && <ResultPopup view={resultView} />}
 
-      {mode === "help" && <HelpPopup debugEnabled={isDebugEnabled()} />}
+      {mode === "help" && <HelpPopup focusedPanel={focusedPanel} debugEnabled={isDebugEnabled()} />}
 
       {mode === "debug" && <DebugPopup entries={getEntries()} />}
 
