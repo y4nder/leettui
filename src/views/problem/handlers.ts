@@ -30,7 +30,14 @@ import { runSolution, submitSolution, SolutionError } from "../../core/submissio
 import { runLocalTests } from "../../core/testRunner";
 import { getEditorCommand } from "../../config";
 import { errMessage, logError } from "../../debug";
-import { buildResultView, buildLocalRunView, info, loading, errorView } from "../browse/resultView";
+import {
+  buildResultView,
+  buildLocalRunView,
+  info,
+  loading,
+  errorView,
+  type ResultView,
+} from "../browse/resultView";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
 
@@ -44,6 +51,62 @@ function focusedLangSlug(): string | null {
   const p = useAppStore.getState().problem;
   if (!p || p.solutions.length === 0) return null;
   return p.solutions[p.focusedSolutionIndex] ?? null;
+}
+
+// The repeated catch tail: log against the "problem" scope, then surface the
+// failure through the given result-view setter (`setProblemResult` for in-view
+// results, `showResult` for the modal popup). One place to change the shape.
+function reportError(
+  setResult: (view: ResultView) => void,
+  triggerKey: string,
+  name: string,
+  title: string,
+  e: unknown,
+) {
+  logError(triggerKey, "problem", name, e);
+  setResult(errorView(title, errMessage(e)));
+}
+
+// Shared scaffold for the focused-solution actions (run / submit / test-local /
+// editor): bail if there's no problem, surface the same "pick a language" info
+// when no solution is focused, then run `fn(langSlug)`. The async path is wrapped
+// in the loading→try/catch that those handlers each used to repeat verbatim;
+// `loadingMessage` opts a handler into it (run/submit/test-local), while the
+// editor path passes none and just runs `fn`. `solutionErrorArm` keeps run/submit's
+// behavior of short-circuiting on a `SolutionError` (no logError) without giving
+// test-local that arm — byte-identical to the originals.
+async function withFocusedSolution(
+  triggerKey: string,
+  name: string,
+  fn: (
+    problem: NonNullable<ReturnType<typeof useAppStore.getState>["problem"]>,
+    langSlug: string,
+  ) => Promise<void>,
+  opts?: { loadingMessage: string; errorTitle: string; solutionErrorArm: boolean },
+) {
+  const p = useAppStore.getState().problem;
+  if (!p) return;
+  const langSlug = focusedLangSlug();
+  if (!langSlug) {
+    useAppStore
+      .getState()
+      .setProblemResult(info("No solution selected. Press 'f' to pick a language."));
+    return;
+  }
+  if (!opts) {
+    await fn(p, langSlug);
+    return;
+  }
+  useAppStore.getState().setProblemResult(loading(opts.loadingMessage));
+  try {
+    await fn(p, langSlug);
+  } catch (e) {
+    if (opts.solutionErrorArm && e instanceof SolutionError) {
+      useAppStore.getState().setProblemResult(errorView(errMessage(e)));
+      return;
+    }
+    reportError(useAppStore.getState().setProblemResult, triggerKey, name, opts.errorTitle, e);
+  }
 }
 
 // Navigate-replace worker shared by the browse-cursor entry and the Related panel's
@@ -76,8 +139,13 @@ export async function handleEnterProblemView(question: DbQuestion, triggerKey = 
       .getState()
       .enterProblemView({ question, description, solutions, topicTags, related });
   } catch (e) {
-    logError(triggerKey, "problem", "handleEnterProblemView", e);
-    useAppStore.getState().showResult(errorView("Error fetching question", errMessage(e)));
+    reportError(
+      useAppStore.getState().showResult,
+      triggerKey,
+      "handleEnterProblemView",
+      "Error fetching question",
+      e,
+    );
   }
 }
 
@@ -123,19 +191,11 @@ function refreshProblemSolutions(focusLangSlug?: string) {
   useAppStore.getState().setProblemSolutions(solutions, focusLangSlug);
 }
 
-export async function handleProblemOpenEditor(_triggerKey: string, renderer: Renderer) {
-  const p = useAppStore.getState().problem;
-  if (!p) return;
-
-  const focused = focusedLangSlug();
-  if (!focused) {
-    useAppStore
-      .getState()
-      .setProblemResult(info("No solution selected. Press 'f' to pick a language."));
-    return;
-  }
-  await openInEditor(renderer, focused);
-  refreshProblemSolutions(focused);
+export async function handleProblemOpenEditor(triggerKey: string, renderer: Renderer) {
+  await withFocusedSolution(triggerKey, "handleProblemOpenEditor", async (_p, langSlug) => {
+    await openInEditor(renderer, langSlug);
+    refreshProblemSolutions(langSlug);
+  });
 }
 
 export async function handleOpenSolutionPicker(triggerKey: string) {
@@ -160,8 +220,13 @@ export async function handleOpenSolutionPicker(triggerKey: string) {
 
     useAppStore.getState().openSolutionPicker(sorted, existing, initialLangSlug ?? undefined);
   } catch (e) {
-    logError(triggerKey, "problem", "handleOpenSolutionPicker", e);
-    useAppStore.getState().setProblemResult(errorView("Error fetching editor data", errMessage(e)));
+    reportError(
+      useAppStore.getState().setProblemResult,
+      triggerKey,
+      "handleOpenSolutionPicker",
+      "Error fetching editor data",
+      e,
+    );
   }
 }
 
@@ -250,71 +315,47 @@ async function openInEditorPath(renderer: Renderer, path: string) {
 }
 
 export async function handleProblemRun(triggerKey: string) {
-  const p = useAppStore.getState().problem;
-  if (!p) return;
-  const langSlug = focusedLangSlug();
-  if (!langSlug) {
-    useAppStore
-      .getState()
-      .setProblemResult(info("No solution selected. Press 'f' to pick a language."));
-    return;
-  }
-  useAppStore.getState().setProblemResult(loading("Running solution..."));
-  try {
-    const result = await runSolution(p.question, langSlug);
-    useAppStore.getState().setProblemResult(buildResultView(result));
-  } catch (e) {
-    if (e instanceof SolutionError) {
-      useAppStore.getState().setProblemResult(errorView(errMessage(e)));
-      return;
-    }
-    logError(triggerKey, "problem", "handleProblemRun", e);
-    useAppStore.getState().setProblemResult(errorView("Run error", errMessage(e)));
-  }
+  await withFocusedSolution(
+    triggerKey,
+    "handleProblemRun",
+    async (p, langSlug) => {
+      const result = await runSolution(p.question, langSlug);
+      useAppStore.getState().setProblemResult(buildResultView(result));
+    },
+    { loadingMessage: "Running solution...", errorTitle: "Run error", solutionErrorArm: true },
+  );
 }
 
 export async function handleProblemTestLocal(triggerKey: string) {
-  const p = useAppStore.getState().problem;
-  if (!p) return;
-  const langSlug = focusedLangSlug();
-  if (!langSlug) {
-    useAppStore
-      .getState()
-      .setProblemResult(info("No solution selected. Press 'f' to pick a language."));
-    return;
-  }
-  useAppStore.getState().setProblemResult(loading("Running local tests..."));
-  try {
-    const report = await runLocalTests(p.question, langSlug);
-    useAppStore.getState().setProblemResult(buildLocalRunView(report));
-  } catch (e) {
-    logError(triggerKey, "problem", "handleProblemTestLocal", e);
-    useAppStore.getState().setProblemResult(errorView("Local run error", errMessage(e)));
-  }
+  await withFocusedSolution(
+    triggerKey,
+    "handleProblemTestLocal",
+    async (p, langSlug) => {
+      const report = await runLocalTests(p.question, langSlug);
+      useAppStore.getState().setProblemResult(buildLocalRunView(report));
+    },
+    {
+      loadingMessage: "Running local tests...",
+      errorTitle: "Local run error",
+      solutionErrorArm: false,
+    },
+  );
 }
 
 export async function handleProblemSubmit(triggerKey: string) {
-  const p = useAppStore.getState().problem;
-  if (!p) return;
-  const langSlug = focusedLangSlug();
-  if (!langSlug) {
-    useAppStore
-      .getState()
-      .setProblemResult(info("No solution selected. Press 'f' to pick a language."));
-    return;
-  }
-  useAppStore.getState().setProblemResult(loading("Submitting solution..."));
-  try {
-    const result = await submitSolution(p.question, langSlug);
-    useAppStore.getState().setProblemResult(buildResultView(result));
-  } catch (e) {
-    if (e instanceof SolutionError) {
-      useAppStore.getState().setProblemResult(errorView(errMessage(e)));
-      return;
-    }
-    logError(triggerKey, "problem", "handleProblemSubmit", e);
-    useAppStore.getState().setProblemResult(errorView("Submit error", errMessage(e)));
-  }
+  await withFocusedSolution(
+    triggerKey,
+    "handleProblemSubmit",
+    async (p, langSlug) => {
+      const result = await submitSolution(p.question, langSlug);
+      useAppStore.getState().setProblemResult(buildResultView(result));
+    },
+    {
+      loadingMessage: "Submitting solution...",
+      errorTitle: "Submit error",
+      solutionErrorArm: true,
+    },
+  );
 }
 
 // Notes are shared + language-agnostic, so — unlike e/R/s/t — these never gate
