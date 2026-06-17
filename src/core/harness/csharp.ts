@@ -83,9 +83,16 @@ function toPascalCase(name: string): string {
 // non-mappable type is a hard *compile* error in C#.
 //
 // Three files:
-//   - `main.csproj` — `<OutputType>Exe</OutputType>` + `net9.0` + implicit usings
-//     (mirrors LeetCode's C# environment so a bare snippet using `List<>` etc.
-//     compiles) + `<AssemblyName>main</AssemblyName>` so the built apphost is
+//   - `main.csproj` — `<OutputType>Exe</OutputType>` + a `TargetFramework` that
+//     adapts to the installed SDK (`net$(NETCoreSdkVersion.Split('.')[0]).0` →
+//     `net9.0` on a .NET 9 machine, `net10.0` on .NET 10, …) so the framework
+//     reference pack always resolves. A hardcoded `net9.0` produced CS0518
+//     ("predefined type System.Object is not defined") in the editor's C# LSP on
+//     machines whose only SDK was a *different* major (no net9.0 ref pack ⇒ zero
+//     framework references resolved). The `.Split('.')[0]` (vs. `Version.Parse`)
+//     survives preview SDK strings like `10.0.100-preview.1`. Plus implicit
+//     usings (mirrors LeetCode's C# environment so a bare snippet using `List<>`
+//     etc. compiles) + `<AssemblyName>main</AssemblyName>` so the built apphost is
 //     `out/main`. No `PackageReference`: System.Text.Json is in the framework.
 //   - `.gitignore` — ignores the per-problem build dirs (`bin/`/`obj/`/`out/`);
 //     Stage-10 the solutions tree is git-pushable, so build bloat shouldn't ride.
@@ -112,7 +119,7 @@ export function generateCsharpHarness(meta: MetaData): HarnessFile[] | null {
   const csproj = `<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net$(NETCoreSdkVersion.Split('.')[0]).0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <AssemblyName>main</AssemblyName>

@@ -146,11 +146,16 @@ describe("generateCsharpHarness", () => {
     expect(files!.map((f) => f.filename)).toEqual(["main.csproj", ".gitignore", "main.cs"]);
   });
 
-  test("main.csproj declares an Exe + net9.0 + implicit usings + the main apphost name", () => {
+  test("main.csproj declares an Exe + SDK-adaptive TFM + implicit usings + the main apphost name", () => {
     const files = generateCsharpHarness(parseMetaData(TWO_SUM))!;
     const csproj = files.find((f) => f.filename === "main.csproj")!.content;
     expect(csproj).toContain("<OutputType>Exe</OutputType>");
-    expect(csproj).toContain("<TargetFramework>net9.0</TargetFramework>");
+    // TFM adapts to the installed SDK major (net9.0 / net10.0 / …) so the
+    // framework reference pack always resolves — a hardcoded net9.0 broke the
+    // C# LSP (CS0518) on machines whose only SDK was a different major.
+    expect(csproj).toContain(
+      "<TargetFramework>net$(NETCoreSdkVersion.Split('.')[0]).0</TargetFramework>",
+    );
     expect(csproj).toContain("<ImplicitUsings>enable</ImplicitUsings>");
     expect(csproj).toContain("<AssemblyName>main</AssemblyName>");
     // No NuGet — System.Text.Json ships in the framework.
