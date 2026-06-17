@@ -94,7 +94,7 @@ interface CreateSpec {
   tests?: string[];
 }
 
-const SOLUTIONS_MODULE = join(import.meta.dir, "solutions.ts");
+const SOLUTIONS_MODULE = join(import.meta.dir, "solutions", "index.ts");
 let childScript: string;
 
 beforeAll(() => {
