@@ -69,8 +69,9 @@ describe("generateHarness dispatcher (javascript)", () => {
   test("returns main.js for javascript", () => {
     const out = generateHarness("javascript", TWO_SUM);
     expect(out).not.toBeNull();
-    expect(out!.filename).toBe("main.js");
-    expect(out!.content).toContain("return twoSum;");
+    expect(out!.files).toHaveLength(1);
+    expect(out!.files[0]!.filename).toBe("main.js");
+    expect(out!.files[0]!.content).toContain("return twoSum;");
   });
 
   test("registers a node runner spec for javascript", () => {
@@ -89,7 +90,7 @@ describe("end-to-end execution", () => {
   afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
   test("a bare LeetCode-style solution.js runs against a stdin case", async () => {
-    const harness = generateHarness("javascript", TWO_SUM)!;
+    const harness = generateHarness("javascript", TWO_SUM)!.files[0]!;
     writeFileSync(join(dir, harness.filename), harness.content);
     writeFileSync(
       join(dir, "solution.js"),

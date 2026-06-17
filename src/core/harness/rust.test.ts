@@ -1,6 +1,13 @@
 import { describe, expect, test } from "bun:test";
+import { generateHarness } from "./index";
 import { parseMetaData } from "./meta";
-import { isRustMappable, renderRustArgReads, rustReturnType, rustType } from "./rust";
+import {
+  generateRustHarness,
+  isRustMappable,
+  renderRustArgReads,
+  rustReturnType,
+  rustType,
+} from "./rust";
 
 const TWO_SUM = JSON.stringify({
   name: "twoSum",
@@ -124,5 +131,61 @@ describe("renderRustArgReads", () => {
 
   test("returns null when any param is unmappable", () => {
     expect(renderRustArgReads(parseMetaData(LISTNODE_PARAM))).toBeNull();
+  });
+});
+
+describe("generateRustHarness", () => {
+  test("emits Cargo.toml + .gitignore + main.rs for a mappable signature", () => {
+    const files = generateRustHarness(parseMetaData(TWO_SUM));
+    expect(files).not.toBeNull();
+    expect(files!.map((f) => f.filename)).toEqual(["Cargo.toml", ".gitignore", "main.rs"]);
+  });
+
+  test("Cargo.toml declares the flat [[bin]] and the serde_json dep", () => {
+    const files = generateRustHarness(parseMetaData(TWO_SUM))!;
+    const cargo = files.find((f) => f.filename === "Cargo.toml")!.content;
+    expect(cargo).toContain("[[bin]]");
+    expect(cargo).toContain('name = "main"');
+    expect(cargo).toContain('path = "main.rs"');
+    expect(cargo).toContain('serde_json = "1"');
+  });
+
+  test(".gitignore ignores the build dir", () => {
+    const files = generateRustHarness(parseMetaData(TWO_SUM))!;
+    expect(files.find((f) => f.filename === ".gitignore")!.content).toBe("/target\n");
+  });
+
+  test("main.rs includes the un-touched solution and drives it via serde", () => {
+    const files = generateRustHarness(parseMetaData(TWO_SUM))!;
+    const main = files.find((f) => f.filename === "main.rs")!.content;
+    expect(main).toContain("struct Solution;");
+    expect(main).toContain('include!("solution.rs");');
+    expect(main).toContain("let nums: Vec<i32> = serde_json::from_str(data[0]).unwrap();");
+    expect(main).toContain("let target: i32 = serde_json::from_str(data[1]).unwrap();");
+    expect(main).toContain("serde_json::to_string(&result)");
+  });
+
+  test("calls the snake_case fn LeetCode emits, not the camelCase metaData name", () => {
+    const main = generateRustHarness(parseMetaData(TWO_SUM))!.find(
+      (f) => f.filename === "main.rs",
+    )!.content;
+    expect(main).toContain("Solution::two_sum(nums, target)");
+    expect(main).not.toContain("twoSum");
+  });
+
+  test("returns null for a deferred-type signature (no compilable harness)", () => {
+    expect(generateRustHarness(parseMetaData(LISTNODE_PARAM))).toBeNull();
+  });
+});
+
+describe("generateHarness dispatcher (rust)", () => {
+  test("returns the three-file rust set", () => {
+    const out = generateHarness("rust", TWO_SUM);
+    expect(out).not.toBeNull();
+    expect(out!.files.map((f) => f.filename)).toEqual(["Cargo.toml", ".gitignore", "main.rs"]);
+  });
+
+  test("returns null for a deferred signature", () => {
+    expect(generateHarness("rust", LISTNODE_PARAM)).toBeNull();
   });
 });

@@ -135,9 +135,17 @@ export function createSolutionWithHarness(
     createSolutionFile(id, titleSlug, langSlug, code);
   }
 
+  // A harness can be multiple files (Rust: Cargo.toml + .gitignore + main.rs).
+  // Each is written create-if-absent and skipped if the template overlay already
+  // supplied it, so user/template versions win exactly as for the single-file
+  // languages.
   const harness = generateHarness(langSlug, metaDataRaw);
-  if (harness && !applied.has(harness.filename)) {
-    createHarnessFile(id, titleSlug, langSlug, harness.filename, harness.content);
+  if (harness) {
+    for (const file of harness.files) {
+      if (!applied.has(file.filename)) {
+        createHarnessFile(id, titleSlug, langSlug, file.filename, file.content);
+      }
+    }
   }
 
   if (exampleTestcases) {

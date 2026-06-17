@@ -4,10 +4,11 @@
 // must be `serde_json::from_str::<T>(line)` against the *exact* concrete type from
 // the solution signature, and the result `serde_json::to_string`-ed. That needs a
 // LeetCode-type → Rust-type map, which lives here (mirroring `ecma.ts` owning the
-// JS/TS skeleton). Item 2 (`generateRustHarness`) assembles these into the file set;
-// this file is the pure, language-specific seam only — no generation/dispatch.
+// JS/TS skeleton). The type map + arg-read renderers are the pure seam (item 1);
+// `generateRustHarness` (item 2) assembles them into the `Cargo.toml`/`.gitignore`/
+// `main.rs` file set that `index.ts` dispatches and `create.ts` writes.
 
-import { type MetaData, DEFERRED_TYPES, baseType } from "./meta";
+import { type HarnessFile, type MetaData, DEFERRED_TYPES, baseType } from "./meta";
 
 // LeetCode scalar metaData types → their concrete serde-deserializable Rust types.
 // A JSON number/string/bool round-trips into these via `serde_json::from_str`:
@@ -65,4 +66,71 @@ export function renderRustArgReads(meta: MetaData): string | null {
       : `    let ${p.name}: ${t} = serde_json::from_str(data[${i}]).unwrap();`;
   });
   return lines.includes(null) ? null : lines.join("\n");
+}
+
+// LeetCode's `metaData.name` is camelCase (`twoSum`), but the Rust `impl
+// Solution` it hands you defines the fn in snake_case (`two_sum`). The harness
+// calls `Solution::{fn}`, so the name must be converted or it won't compile.
+function toSnakeCase(name: string): string {
+  return name.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`).replace(/^_/, "");
+}
+
+// Assembles the full Rust harness file set for a mappable signature, or null
+// when item-1's gate (`isRustMappable`) rejects it (a deferred `ListNode`/
+// `TreeNode` or unknown scalar) — the caller then writes a blank `solution.rs`
+// stub, since a non-mappable type is a hard *compile* error in Rust.
+//
+// Three files (the flat, build-verified layout from the stage plan):
+//   - `Cargo.toml` — `[package]` + a `[[bin]]` pointing at `main.rs` (no `src/`)
+//     + the one `serde_json` dependency the deserialization needs;
+//   - `.gitignore` — ignores the per-problem `/target` build dir (Stage-10 the
+//     solutions tree is git-pushable, and `target/` bloat shouldn't ride along);
+//   - `main.rs` — reads stdin lines into `data`, runs item-1's typed
+//     `serde_json::from_str` per arg, calls `Solution::{fn}(...)`, and prints
+//     `serde_json::to_string(&result)`. `struct Solution;` + `include!` pulls in
+//     the un-modified, byte-for-byte-submittable `solution.rs` (the same "load
+//     the solution without touching it" trick as the JS/TS harnesses). A `void`
+//     return maps to `()`, whose JSON is `null` — matching the dynamic harnesses.
+export function generateRustHarness(meta: MetaData): HarnessFile[] | null {
+  const argReads = renderRustArgReads(meta);
+  if (argReads === null || !isRustMappable(meta)) return null;
+
+  const fn = toSnakeCase(meta.name);
+  const argList = meta.params.map((p) => p.name).join(", ");
+
+  const cargoToml = `[package]
+name = "main"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "main"
+path = "main.rs"
+
+[dependencies]
+serde_json = "1"
+`;
+
+  const gitignore = "/target\n";
+
+  const mainRs = `use std::io::{self, Read};
+
+struct Solution;
+include!("solution.rs");
+
+fn main() {
+    let mut input = String::new();
+    io::stdin().read_to_string(&mut input).unwrap();
+    let data: Vec<&str> = input.lines().collect();
+${argReads}
+    let result = Solution::${fn}(${argList});
+    println!("{}", serde_json::to_string(&result).unwrap());
+}
+`;
+
+  return [
+    { filename: "Cargo.toml", content: cargoToml },
+    { filename: ".gitignore", content: gitignore },
+    { filename: "main.rs", content: mainRs },
+  ];
 }

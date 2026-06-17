@@ -3,18 +3,22 @@
 // `solution.{ext}`, or null when the language is unsupported or the metaData is
 // unusable. Never throws — solution creation must not fail on a bad harness.
 //
-// Supported: `python3` (Stage 7 item 3), `javascript` (item 5), and
-// `typescript`. Adding a language is one `case` below + one `RUNNERS` entry —
-// the item-4 runner stays unchanged.
+// Supported: `python3` (Stage 7 item 3), `javascript` (item 5), `typescript`,
+// and `rust` (Stage 14 — the first compiled language). Adding a language is one
+// `case` below + one `RUNNERS` entry — the item-4 runner stays unchanged.
 
-import { parseMetaData } from "./meta";
+import { type HarnessFile, parseMetaData } from "./meta";
 import { generatePythonHarness } from "./python";
 import { generateJavascriptHarness } from "./javascript";
 import { generateTypescriptHarness } from "./typescript";
+import { generateRustHarness } from "./rust";
 
+// A harness is a *set* of files, because a compiled language needs more than the
+// single interpreter-run script: Rust emits `Cargo.toml` + `.gitignore` +
+// `main.rs`. The interpreted languages return a one-element `files` array, so
+// the create-flow writer (`create.ts`) iterates uniformly.
 export interface GeneratedHarness {
-  filename: string;
-  content: string;
+  files: HarnessFile[];
 }
 
 export function generateHarness(
@@ -27,15 +31,21 @@ export function generateHarness(
     switch (langSlug) {
       case "python3": {
         const meta = parseMetaData(metaDataRaw);
-        return { filename: "main.py", content: generatePythonHarness(meta) };
+        return { files: [{ filename: "main.py", content: generatePythonHarness(meta) }] };
       }
       case "javascript": {
         const meta = parseMetaData(metaDataRaw);
-        return { filename: "main.js", content: generateJavascriptHarness(meta) };
+        return { files: [{ filename: "main.js", content: generateJavascriptHarness(meta) }] };
       }
       case "typescript": {
         const meta = parseMetaData(metaDataRaw);
-        return { filename: "main.ts", content: generateTypescriptHarness(meta) };
+        return { files: [{ filename: "main.ts", content: generateTypescriptHarness(meta) }] };
+      }
+      case "rust": {
+        const meta = parseMetaData(metaDataRaw);
+        const files = generateRustHarness(meta);
+        // null = a deferred/unmappable signature → no harness (blank stub).
+        return files ? { files } : null;
       }
       default:
         return null;

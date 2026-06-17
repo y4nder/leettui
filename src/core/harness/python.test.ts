@@ -80,13 +80,14 @@ describe("generateHarness dispatcher", () => {
   test("returns main.py for python3", () => {
     const out = generateHarness("python3", TWO_SUM);
     expect(out).not.toBeNull();
-    expect(out!.filename).toBe("main.py");
-    expect(out!.content).toContain("Solution().twoSum");
+    expect(out!.files).toHaveLength(1);
+    expect(out!.files[0]!.filename).toBe("main.py");
+    expect(out!.files[0]!.content).toContain("Solution().twoSum");
   });
 
   test("returns null for unsupported languages", () => {
     expect(generateHarness("cpp", TWO_SUM)).toBeNull();
-    expect(generateHarness("rust", TWO_SUM)).toBeNull();
+    expect(generateHarness("go", TWO_SUM)).toBeNull();
   });
 
   test("returns null (never throws) on missing or bad metaData", () => {
