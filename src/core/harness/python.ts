@@ -9,15 +9,14 @@
 // (`python3 main.py < tests/case-01.txt`) with cwd set to the language folder
 // so `from solution import Solution` resolves.
 
-import { type MetaData, DEFERRED_TYPES, baseType } from "./meta";
+import type { MetaData } from "./meta";
 
+// Only called for a signature of round-trippable types (scalars/arrays) — the
+// dispatcher (`index.ts`) refuses `ListNode`/`TreeNode` before reaching here, so
+// every param parses straight through `json.loads`.
 export function generatePythonHarness(meta: MetaData): string {
   const argReads = meta.params.map((p, i) => {
-    const deferred = DEFERRED_TYPES.has(baseType(p.type));
-    const comment = deferred
-      ? `  # ${p.type} — TODO: deserialize ${baseType(p.type)}`
-      : `  # ${p.type}`;
-    return `    ${p.name} = json.loads(data[${i}])${comment}`;
+    return `    ${p.name} = json.loads(data[${i}])  # ${p.type}`;
   });
 
   const argList = meta.params.map((p) => p.name).join(", ");

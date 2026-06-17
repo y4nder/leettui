@@ -29,6 +29,19 @@ export function baseType(type: string): string {
   return type.replace(/(\[\])+$/, "");
 }
 
+// True when any param or the return type touches a `DEFERRED_TYPES` member
+// (`ListNode`/`TreeNode`), at any array depth. The interpreted harness
+// generators (python/js/ts) refuse such a signature — returning no harness
+// rather than emitting a broken passthrough that hands a raw `[1,2,3]` array to
+// a function expecting a node and crashes confusingly at run time. (Rust uses
+// its own `isRustMappable` gate, which also rejects unknown scalars.)
+export function hasDeferredType(meta: MetaData): boolean {
+  return (
+    DEFERRED_TYPES.has(baseType(meta.return.type)) ||
+    meta.params.some((p) => DEFERRED_TYPES.has(baseType(p.type)))
+  );
+}
+
 export function parseMetaData(raw: string): MetaData {
   const data = JSON.parse(raw);
   if (

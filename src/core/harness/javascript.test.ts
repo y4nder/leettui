@@ -58,10 +58,9 @@ describe("generateJavascriptHarness", () => {
     expect(src).toContain("loadSolution()(matrix)");
   });
 
-  test("ListNode param is passed through raw with a TODO comment", () => {
-    const src = generateJavascriptHarness(parseMetaData(LISTNODE_PARAM));
-    expect(src).toContain("const head = JSON.parse(data[0]);");
-    expect(src).toContain("TODO: deserialize ListNode");
+  test("no TODO/passthrough branch survives — scalars/arrays only", () => {
+    const src = generateJavascriptHarness(parseMetaData(TWO_SUM));
+    expect(src).not.toContain("TODO");
   });
 });
 
@@ -79,6 +78,10 @@ describe("generateHarness dispatcher (javascript)", () => {
       harnessFilename: "main.js",
       command: ["node"],
     });
+  });
+
+  test("refuses a deferred-type signature (no broken passthrough)", () => {
+    expect(generateHarness("javascript", LISTNODE_PARAM)).toBeNull();
   });
 });
 
