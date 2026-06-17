@@ -100,19 +100,48 @@ Re-authenticate any time: run `leettui auth` (or `bun src/index.tsx auth` from s
 
 ## Keybindings
 
+Both the browser and the problem view use a **lazygit-style panel layout** — exactly one panel is focused, and `j`/`k` act on whatever is focused. Cycle focus with `Tab` / `Shift+Tab`, move spatially with `Ctrl+h/l` (and `Ctrl+j/k` in the problem view), or jump straight to a panel with the number keys. Press `?` anywhere for a focus-aware help popup, or `Ctrl+P` for the full command palette.
+
+### Browse
+
 | Key | Action |
 |-----|--------|
-| `j` / `k` or arrows | Navigate problems |
-| `t` / `T` | Next / previous topic |
-| `Enter` | Open problem description |
-| `e` | Open solution in `$EDITOR` |
-| `R` | Run solution |
-| `s` | Submit solution |
-| `/` | Search |
+| `Tab` / `Shift+Tab` | Cycle panel focus |
+| `Ctrl+h` / `Ctrl+l` | Focus panel left / right |
+| `1` / `2` | Jump to topics / questions panel |
+| `r` | Jump to a random question |
+| `D` | Cycle difficulty filter (Easy → Medium → Hard → All) |
 | `d` | Open today's daily challenge |
+| `/` | Search (scoped to the focused panel) |
+| `?` | Help |
 | `Ctrl+P` | Command palette |
-| `h` | Help screen |
 | `q` | Quit |
+
+**Topics panel focused** — `j`/`k` or arrows change topic (live-filters questions) · `Enter` focuses the questions panel
+
+**Questions panel focused** — `j`/`k` or arrows navigate · `gg` / `G` jump to first / last · `Enter` open problem view · `e` open in `$EDITOR` · `R` run · `s` submit · `y` yank URL
+
+### Problem view
+
+| Key | Action |
+|-----|--------|
+| `Tab` / `Shift+Tab` | Cycle panel focus |
+| `Ctrl+h/j/k/l` | Focus panel left / down / up / right |
+| `1` / `2` / `3` / `4` | Jump to description / solutions / result / related |
+| `f` | Solution picker (switch language or start a new one) |
+| `e` | Open active solution in `$EDITOR` |
+| `R` | Run against example test cases |
+| `t` | Run against local test cases |
+| `s` | Submit |
+| `n` | Notes |
+| `?` | Help |
+| `Esc` / `q` | Close problem view |
+
+**Description / Result panel focused** — `j`/`k` or arrows scroll
+
+**Solutions panel focused** — `j`/`k` cycle the active solution · `Enter` open it in `$EDITOR`
+
+**Related panel focused** — `j`/`k` move the cursor · `Enter` open the related question
 
 ---
 
