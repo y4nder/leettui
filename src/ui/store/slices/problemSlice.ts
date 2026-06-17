@@ -85,6 +85,10 @@ export interface ProblemViewState {
   // The focus-aware keybindings help popup (Stage 12 item 5). A problem sub-modal:
   // true while open; closes back to the problem view (not browse), like notes/picker.
   help: boolean;
+  // The delete-solution confirm modal (Stage 16). Non-null while open; carries the
+  // langSlug captured at open time (used at confirm, NOT re-read from focus), so a
+  // focus change behind the modal can't retarget the irreversible delete.
+  deleteConfirm: { langSlug: string } | null;
 }
 
 export interface ProblemSlice {
@@ -126,6 +130,10 @@ export interface ProblemSlice {
   closeNotes: () => void;
   openProblemHelp: () => void;
   closeProblemHelp: () => void;
+  // Delete-solution confirm sub-modal (Stage 16). `openDeleteConfirm` freezes the
+  // langSlug to remove; `closeDeleteConfirm` is the cancel/after-delete no-op closer.
+  openDeleteConfirm: (langSlug: string) => void;
+  closeDeleteConfirm: () => void;
 }
 
 export const createProblemSlice: StateCreator<AppStore, [], [], ProblemSlice> = (set) => ({
@@ -147,6 +155,7 @@ export const createProblemSlice: StateCreator<AppStore, [], [], ProblemSlice> = 
         solutionPicker: null,
         notes: null,
         help: false,
+        deleteConfirm: null,
       },
     }),
 
@@ -271,5 +280,17 @@ export const createProblemSlice: StateCreator<AppStore, [], [], ProblemSlice> = 
     set((state) => {
       if (!state.problem) return {};
       return { problem: { ...state.problem, help: false } };
+    }),
+
+  openDeleteConfirm: (langSlug) =>
+    set((state) => {
+      if (!state.problem) return {};
+      return { problem: { ...state.problem, deleteConfirm: { langSlug } } };
+    }),
+
+  closeDeleteConfirm: () =>
+    set((state) => {
+      if (!state.problem) return {};
+      return { problem: { ...state.problem, deleteConfirm: null } };
     }),
 });

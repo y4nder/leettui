@@ -144,7 +144,7 @@ Both the browser and the problem view use a **lazygit-style panel layout** — e
 
 **Description / Result panel focused** — `j`/`k` or arrows scroll
 
-**Solutions panel focused** — `j`/`k` cycle the active solution · `Enter` open it in `$EDITOR`
+**Solutions panel focused** — `j`/`k` cycle the active solution · `Enter` open it in `$EDITOR` · `d` delete the active solution (a `y`/`n` confirm names the language; removes only that language folder, keeping shared notes/tests)
 
 **Related panel focused** — `j`/`k` move the cursor · `Enter` open the related question
 

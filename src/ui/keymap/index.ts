@@ -31,6 +31,7 @@ export {
 export {
   browseGlobalBindings,
   debugBindings,
+  deletePromptBindings,
   helpBindings,
   notesBindings,
   pickerBindings,
