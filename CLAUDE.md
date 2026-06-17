@@ -63,6 +63,7 @@ Version metadata lives in `src/core/version.ts`, inlined at build time via `--de
 - **Keymap**: `@opentui/keymap` — global command catalog registered at boot in `src/ui/keymap/` (a barrel module: `command`/`runtime`/`commands/`/`bindings`/`scopes`/`format`), per-scope binding-only layers attached via `useBindings` from the components that own each scope
 - **API auth**: Cookie-based (`LEETCODE_SESSION` + `csrftoken`). Acquired by `src/core/auth/` (Firefox cookie import → guided paste fallback), validated against LeetCode, then persisted to config. Boot validates the saved session and re-prompts on expiry; an in-app "Re-authenticate" command (Ctrl+P) recovers mid-session
 - **DB sync**: Paginated fetch of all LeetCode problems on first run, stored in SQLite
+- **Local test harness**: Each solution gets an auto-generated harness (`src/core/harness/`) so `t` (problem view) and `leettui test` run the seeded example cases **offline**, no LeetCode round-trip. Interpreted langs (`python3`/`node`/`bun`) run the harness script per case; **rust** (Stage 14) is the first **compiled** language — it scaffolds a `cargo` + `serde_json` project (`Cargo.toml` + `main.rs` + `.gitignore`, with the bare `impl Solution` kept byte-for-byte submittable in `solution.rs`) and **compiles once** before the case loop. Running tests needs the language's toolchain on PATH — for rust the Rust toolchain (`cargo`/`rustc`, via rustup); a missing one surfaces as a clean run/compile error, never a crash. See `src/core/CLAUDE.md` for the generator + runner internals.
 
 ### LeetCode API
 
