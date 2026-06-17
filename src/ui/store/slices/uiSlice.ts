@@ -6,6 +6,7 @@
 import type { StateCreator } from "zustand";
 import type { AppStore } from "../index";
 import type { ResultView } from "../../../views/browse/resultView";
+import type { ReleaseInfo } from "../../../core/update";
 
 // Which browse-view panel currently holds focus (lazygit-style). Only meaningful
 // while mode === "browse"; panel-relative bindings (j/k, Enter) are mounted per panel.
@@ -26,6 +27,7 @@ export type AppMode =
   | "palette"
   | "problem"
   | "relocate"
+  | "changelog"
   | "easterEgg";
 
 export interface UiSlice {
@@ -40,9 +42,13 @@ export interface UiSlice {
   resultView: ResultView | null;
   // The newer release tag to advertise in the top banner, or null when none.
   updateAvailable: string | null;
+  // The release whose "What's new" popup is open (tag + notes body), or null.
+  changelog: ReleaseInfo | null;
 
   bumpThemeVersion: () => void;
   setUpdateAvailable: (tag: string | null) => void;
+  showChangelog: (release: ReleaseInfo) => void;
+  hideChangelog: () => void;
   setMode: (mode: AppMode) => void;
   setFocusedPanel: (panel: BrowsePanel) => void;
   // dir 1 = next panel, -1 = previous (wraps). Generalizes past two panels.
@@ -76,9 +82,15 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   selectResolve: null,
   resultView: null,
   updateAvailable: null,
+  changelog: null,
 
   bumpThemeVersion: () => set((s) => ({ themeVersion: s.themeVersion + 1 })),
   setUpdateAvailable: (tag) => set({ updateAvailable: tag }),
+
+  // "What's new" popup (Stage 18). Auto-opened once per new version at boot and
+  // on demand from the command palette; closing returns to browse.
+  showChangelog: (release) => set({ mode: "changelog", changelog: release }),
+  hideChangelog: () => set({ mode: "browse", changelog: null }),
   setMode: (mode) => set({ mode }),
   setFocusedPanel: (panel) => set({ focusedPanel: panel }),
   cycleFocusedPanel: (dir) =>

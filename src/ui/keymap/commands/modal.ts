@@ -6,6 +6,8 @@ import { useAppStore } from "../../store";
 import { makeCommand, type CommandEntry } from "../command";
 import { scrollActivePopup } from "../runtime";
 import { dumpToString } from "../../../debug";
+import { openInBrowser } from "../../../core/auth";
+import { releaseUrl } from "../../../core/update";
 
 export const modalCommands: CommandEntry[] = [
   // Modal-only commands. Hidden from the palette via group: "modal".
@@ -71,6 +73,25 @@ export const modalCommands: CommandEntry[] = [
     category: "View",
     group: "modal",
     run: () => useAppStore.getState().hidePalette(),
+  }),
+  makeCommand({
+    name: "changelog.close",
+    title: "Close changelog",
+    category: "View",
+    group: "modal",
+    run: () => useAppStore.getState().hideChangelog(),
+  }),
+  makeCommand({
+    name: "changelog.openGithub",
+    title: "Open release on GitHub",
+    category: "View",
+    group: "modal",
+    // Fire-and-forget (openInBrowser is try/caught + unref'd); no-op if somehow
+    // open with no payload.
+    run: () => {
+      const cl = useAppStore.getState().changelog;
+      if (cl) openInBrowser(releaseUrl(cl.tag));
+    },
   }),
   makeCommand({
     name: "search.backspace",

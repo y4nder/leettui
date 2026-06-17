@@ -15,6 +15,7 @@ import { ProgressBar } from "../../ui/components/ProgressBar";
 import { UpdateBanner } from "../../ui/components/UpdateBanner";
 import { CommandPalette } from "../../ui/components/CommandPalette";
 import { ChangeLocationPrompt } from "../../ui/components/ChangeLocationPrompt";
+import { ChangelogPopup } from "../../ui/components/ChangelogPopup";
 import { EasterEgg } from "../../ui/components/EasterEgg";
 import { isDebugEnabled, getEntries } from "../../debug";
 import {
@@ -78,6 +79,7 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
   const resultView = useAppStore((s) => s.resultView);
   const syncProgress = useAppStore((s) => s.syncProgress);
   const updateAvailable = useAppStore((s) => s.updateAvailable);
+  const changelog = useAppStore((s) => s.changelog);
 
   const mainHeight = height - (syncProgress ? 2 : 1) - (updateAvailable ? 1 : 0);
 
@@ -152,6 +154,10 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
       {mode === "palette" && <CommandPalette />}
 
       {mode === "relocate" && <ChangeLocationPrompt />}
+
+      {mode === "changelog" && changelog && (
+        <ChangelogPopup tag={changelog.tag} body={changelog.body} />
+      )}
 
       {mode === "easterEgg" && <EasterEgg />}
     </box>

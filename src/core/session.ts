@@ -2,7 +2,9 @@
 //   - the last-viewed browse position (topic + question) so the app reopens
 //     where the user left off (Stage 5);
 //   - the last resolved solutions dir ("last known") so a later change can be
-//     detected even when the user hand-edits config.toml (Stage 10).
+//     detected even when the user hand-edits config.toml (Stage 10);
+//   - the most recent release tag whose changelog popup was shown, so the
+//     "What's new" popup fires once per new version, not every launch (Stage 18).
 //
 // All writers merge into a single in-memory mirror (`_state`) that is lazily
 // loaded from disk on first touch, so a partial update from one feature never
@@ -21,6 +23,7 @@ export interface SessionState {
   topicSlug?: string;
   questionId?: number;
   solutionsDir?: string;
+  lastShownChangelogVersion?: string;
 }
 
 // In-memory mirror of the session file. Lazily initialized from disk so the
@@ -77,5 +80,21 @@ export function getLastKnownSolutionsDir(): string | undefined {
 // coexists with a debounced position save in flight.
 export function setLastKnownSolutionsDir(dir: string): void {
   state().solutionsDir = dir;
+  writeNow();
+}
+
+// The most recent release tag whose "What's new" popup was shown, or undefined
+// if none yet. Lets the boot trigger fire the popup once per new version, then
+// fall back to the 1-line UpdateBanner on later launches for the same tag.
+// Distinct from the session-only banner dismiss (uiSlice.updateAvailable) and
+// the module-level on-quit reminder (setPendingUpdate) in core/update.
+export function getLastShownChangelogVersion(): string | undefined {
+  return state().lastShownChangelogVersion;
+}
+
+// Record the release tag whose changelog popup we just showed. Synchronous (it's
+// rare) and merges, so it coexists with a debounced position save in flight.
+export function setLastShownChangelogVersion(tag: string): void {
+  state().lastShownChangelogVersion = tag;
   writeNow();
 }

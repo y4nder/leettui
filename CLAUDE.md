@@ -83,6 +83,8 @@ Global (any panel) — d: Daily challenge | D: Cycle difficulty | /: Search | ?:
 
 `e` opens the single `solution.{ext}` with cwd = the language folder (so `leettui test` cwd-inference + per-language LSP work); `w` opens the whole problem folder (`$EDITOR {problemDir}`) as a workspace so `problem.md`, `notes.md`, and every language subfolder are in the editor's file tree at once. `w` works in problem view too. Opening a workspace generates `problem.md` (the description, create-if-absent) and `notes.md` if absent.
 
+A **"What's new" changelog popup** (Stage 18) auto-appears once on the first launch **after you update** — showing the notes of the version you just installed (fetched from that release's GitHub notes). A fresh install doesn't pop (it's seeded "caught up"); only a genuine version change triggers it. Reopen the changelog anytime from the command palette (`Ctrl+P` → "What's new"), which shows the **latest** release; inside the popup `o` opens the full release page on GitHub, `j/k` scroll, `Esc`/`q` close. The palette command works on dev/from-source builds too; the auto-popup only fires on official release builds.
+
 ### Config file (`~/.config/leettui/config.toml`)
 
 `csrftoken` and `lc_session` are normally written by the auth flow (`src/core/auth/`), not by hand — Firefox auto-import or a guided, validated paste. `bun src/index.tsx auth` re-runs it.

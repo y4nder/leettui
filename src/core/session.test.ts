@@ -25,6 +25,7 @@ beforeAll(() => {
       `for (const op of ops) {\n` +
       `  if (op.op === "save") session.saveSession(op.state);\n` +
       `  else if (op.op === "setDir") session.setLastKnownSolutionsDir(op.dir);\n` +
+      `  else if (op.op === "setChangelog") session.setLastShownChangelogVersion(op.tag);\n` +
       `  else if (op.op === "flush") await new Promise((r) => setTimeout(r, 500));\n` +
       `}\n` +
       `process.stdout.write(JSON.stringify(session.loadSession()));\n`,
@@ -52,7 +53,12 @@ describe("session merge", () => {
 
   // Each spawn is a fresh process (fresh in-memory mirror) but shares the temp
   // $HOME, so they read/write the same session.json — i.e. a real cross-boot.
-  function run(ops: object[]): { topicSlug?: string; questionId?: number; solutionsDir?: string } {
+  function run(ops: object[]): {
+    topicSlug?: string;
+    questionId?: number;
+    solutionsDir?: string;
+    lastShownChangelogVersion?: string;
+  } {
     const res = Bun.spawnSync(["bun", childScript, JSON.stringify(ops)], {
       env: { ...process.env, HOME: home, XDG_DATA_HOME: undefined, XDG_CONFIG_HOME: undefined },
     });
@@ -78,6 +84,20 @@ describe("session merge", () => {
 
     const final = run([]);
     expect(final).toEqual({ solutionsDir: "/new/solutions", topicSlug: "graph", questionId: 207 });
+  });
+
+  test("recording a shown changelog version coexists with position + solutions dir", () => {
+    run([{ op: "save", state: { topicSlug: "tree", questionId: 226 } }, { op: "flush" }]);
+    run([{ op: "setDir", dir: "/sol" }]);
+    run([{ op: "setChangelog", tag: "v0.5.2" }]);
+
+    const final = run([]);
+    expect(final).toEqual({
+      solutionsDir: "/sol",
+      topicSlug: "tree",
+      questionId: 226,
+      lastShownChangelogVersion: "v0.5.2",
+    });
   });
 
   test("a sync setDir between a scheduled debounce and its fire is not clobbered", () => {

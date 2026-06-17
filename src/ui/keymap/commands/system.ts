@@ -9,7 +9,7 @@ import { makeCommand, type CommandEntry } from "../command";
 import { getRenderer } from "../runtime";
 import { cycleTheme, listThemeNames, setTheme } from "../../theme";
 import { isDebugEnabled } from "../../../debug";
-import { handleReauth, handleSyncDb } from "../../../views/browse/handlers";
+import { handleReauth, handleSyncDb, handleViewChangelog } from "../../../views/browse/handlers";
 
 function prettyThemeName(name: string): string {
   // kebab → Title Case: "tokyo-night" → "Tokyo Night", "system" → "System"
@@ -90,6 +90,15 @@ export const systemCommands: CommandEntry[] = [
     // No-op when no banner is showing; hides it for the rest of the session
     // (not persisted — it reappears on the next launch if still out of date).
     run: () => useAppStore.getState().setUpdateAvailable(null),
+  }),
+  makeCommand({
+    name: "changelog.open",
+    title: "What's new — view changelog",
+    category: "System",
+    short: "What's new",
+    // Un-gated: fetches the latest release on demand so the changelog is viewable
+    // on dev / from-source builds too (the boot auto-popup stays IS_RELEASE-gated).
+    run: () => handleViewChangelog(),
   }),
   makeCommand({
     name: "egg.splash",
