@@ -4,14 +4,16 @@
 // unusable. Never throws — solution creation must not fail on a bad harness.
 //
 // Supported: `python3` (Stage 7 item 3), `javascript` (item 5), `typescript`,
-// and `rust` (Stage 14 — the first compiled language). Adding a language is one
-// `case` below + one `RUNNERS` entry — the item-4 runner stays unchanged.
+// `rust` (Stage 14 — the first compiled language), and `csharp` (Stage 17 — the
+// second). Adding a language is one `case` below + one `RUNNERS` entry — the
+// runner stays unchanged.
 
 import { type HarnessFile, type MetaData, hasDeferredType, parseMetaData } from "./meta";
 import { generatePythonHarness } from "./python";
 import { generateJavascriptHarness } from "./javascript";
 import { generateTypescriptHarness } from "./typescript";
 import { generateRustHarness } from "./rust";
+import { generateCsharpHarness } from "./csharp";
 
 // A harness is a *set* of files, because a compiled language needs more than the
 // single interpreter-run script: Rust emits `Cargo.toml` + `.gitignore` +
@@ -55,6 +57,11 @@ export function generateHarness(
       // null = a deferred/unmappable signature → no harness (blank stub).
       return files ? { files } : null;
     }
+    case "csharp": {
+      const files = generateCsharpHarness(meta);
+      // null = a deferred/unmappable signature → no harness (blank stub).
+      return files ? { files } : null;
+    }
     default:
       return null;
   }
@@ -93,6 +100,15 @@ const RUNNERS: Record<string, RunnerSpec> = {
     harnessFilename: "main.rs",
     command: ["./target/debug/main"],
     compile: { command: ["cargo", "build", "--quiet"] },
+  },
+  // C# (Stage 17): `dotnet build -o out` produces the `out/main` apphost (named
+  // by `<AssemblyName>main</AssemblyName>`), run directly per case (reads stdin,
+  // so `harnessFilename` isn't appended — same as rust's binary). `-v q --nologo`
+  // keeps the build output quiet so a real failure's diagnostics stand out.
+  csharp: {
+    harnessFilename: "main.cs",
+    command: ["./out/main"],
+    compile: { command: ["dotnet", "build", "-o", "out", "--nologo", "-v", "q"] },
   },
 };
 
