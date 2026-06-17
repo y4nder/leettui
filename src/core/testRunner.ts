@@ -5,6 +5,13 @@
 // import the sibling `solution.*`) and feeds the case file on stdin, exactly
 // the contract `core/harness/python.ts` was built around.
 //
+// Compiled languages (Stage 14 — rust) add a one-shot **compile phase**: the
+// `RunnerSpec.compile` command runs once in the language folder (its own generous
+// timeout — the first `cargo` build fetches+compiles serde, well past the per-case
+// limit) to produce a binary, then the case loop spawns that binary directly
+// (`spec.command`, *not* appending `harnessFilename`). A compile failure surfaces
+// as a single `compile-error` report instead of N per-case errors.
+//
 // Verdicts are diffed against an *optional* sibling `case-NN.out`. Seeded cases
 // only ship inputs (LeetCode's `exampleTestcaseList` has no expected outputs),
 // so a problem with no `.out` files runs every case with no verdict (`ran`) —
@@ -24,6 +31,11 @@ import { errMessage } from "../debug";
 // Kill a case that runs too long (an accidental infinite loop) so the handler
 // never hangs forever.
 const TIMEOUT_MS = 10_000;
+
+// The compile phase gets its own, far more generous budget: the *first* rust
+// build downloads serde_json + serde from crates.io and compiles them (easily
+// >10s, the per-case limit). Distinct from `TIMEOUT_MS` on purpose.
+const COMPILE_TIMEOUT_MS = 120_000;
 
 export type CaseStatus =
   | "pass" // output matched the expected `.out`
@@ -45,6 +57,10 @@ export type LocalRunReport =
   | { kind: "unsupported"; langSlug: string }
   | { kind: "no-harness"; langSlug: string; harnessFilename: string }
   | { kind: "no-cases" }
+  // A compiled language's one-shot compile phase failed before any case ran.
+  // `toolchainMissing` splits "cargo not on PATH" (a one-line install hint) from
+  // a real compile error (`output` carries the compiler diagnostics).
+  | { kind: "compile-error"; langSlug: string; toolchainMissing: boolean; output: string }
   | { kind: "ran"; cases: LocalCaseResult[] };
 
 interface DiscoveredCase {
@@ -131,7 +147,11 @@ async function runOneCase(
   c: DiscoveredCase,
 ): Promise<LocalCaseResult> {
   try {
-    const proc = Bun.spawn([...spec.command, spec.harnessFilename], {
+    // Interpreted: `[...command, harnessFilename]` (run the harness source). Compiled:
+    // `[...command]` alone — `command` is the produced binary, which reads stdin
+    // directly; appending a source-file arg would be wrong.
+    const argv = spec.compile ? [...spec.command] : [...spec.command, spec.harnessFilename];
+    const proc = Bun.spawn(argv, {
       cwd: langDir,
       stdin: Bun.file(c.inputPath),
       stdout: "pipe",
@@ -178,6 +198,57 @@ async function runOneCase(
   }
 }
 
+// Run a compiled language's one-shot compile phase in the lang dir. Returns `ok`
+// on a clean build; otherwise distinguishes a missing toolchain (spawn threw —
+// `cargo` not on PATH) from a real compile failure (non-zero exit, diagnostics in
+// `output`) or a timeout, so the caller can phrase one clear message.
+async function runCompile(
+  spec: RunnerSpec,
+  langDir: string,
+): Promise<{ ok: true } | { ok: false; toolchainMissing: boolean; output: string }> {
+  // Caller only invokes this when `spec.compile` is set; guard keeps it total.
+  if (!spec.compile) return { ok: true };
+  try {
+    const proc = Bun.spawn([...spec.compile.command], {
+      cwd: langDir,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      proc.kill();
+    }, COMPILE_TIMEOUT_MS);
+
+    const [stdout, stderr] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+    ]);
+    const exitCode = await proc.exited;
+    clearTimeout(timer);
+
+    if (timedOut) {
+      return {
+        ok: false,
+        toolchainMissing: false,
+        output: `Compile timed out after ${COMPILE_TIMEOUT_MS / 1000}s`,
+      };
+    }
+    if (exitCode !== 0) {
+      return {
+        ok: false,
+        toolchainMissing: false,
+        output: stderr.trim() || stdout.trim() || `Compile exited with code ${exitCode}`,
+      };
+    }
+    return { ok: true };
+  } catch (err) {
+    // Spawn threw — the compiler (`cargo`) isn't on PATH.
+    return { ok: false, toolchainMissing: true, output: errMessage(err) };
+  }
+}
+
 export async function runLocalTests(
   question: DbQuestion,
   langSlug: string,
@@ -192,6 +263,20 @@ export async function runLocalTests(
 
   const cases = discoverCases(getTestsDir(question.id, question.title_slug));
   if (cases.length === 0) return { kind: "no-cases" };
+
+  // Compiled languages: build once before the loop. A failure short-circuits to a
+  // single report rather than N identical per-case errors.
+  if (spec.compile) {
+    const compiled = await runCompile(spec, langDir);
+    if (!compiled.ok) {
+      return {
+        kind: "compile-error",
+        langSlug,
+        toolchainMissing: compiled.toolchainMissing,
+        output: compiled.output,
+      };
+    }
+  }
 
   const results: LocalCaseResult[] = [];
   for (const c of cases) {

@@ -57,21 +57,39 @@ export function generateHarness(
 }
 
 // How the local test runner (Stage 7 item 4) executes a language's harness:
-// the harness file to invoke and the interpreter argv prefix. The runner spawns
-// `[...command, harnessFilename]` with cwd = the language folder so the harness
-// can `import` the sibling `solution.*`. Keeping this beside `generateHarness`
-// means a new language is one entry here + one `case` above; the runner itself
-// stays unchanged. Each `command` is a toolchain the user must have on PATH
-// (`python3`/`node`/`bun`) — a missing one degrades to a per-case `error`.
+// the harness file to invoke and the interpreter argv prefix. Keeping this beside
+// `generateHarness` means a new language is one entry here + one `case` above; the
+// runner itself stays unchanged. Each `command` (and `compile.command`) is a
+// toolchain the user must have on PATH (`python3`/`node`/`bun`/`cargo`) — a
+// missing interpreter degrades to a per-case `error`, a missing compiler to the
+// runner's one-shot `compile-error` report.
+//
+// Two execution models share this shape:
+//   - **Interpreted** (no `compile`): the runner spawns `[...command,
+//     harnessFilename]` per case, cwd = the language folder so the harness can
+//     `import` the sibling `solution.*`.
+//   - **Compiled** (`compile` present, Stage 14 — rust): the runner runs
+//     `compile.command` **once** in the language folder to produce a binary, then
+//     spawns `[...command]` per case — `command` already *is* the binary path
+//     (`./target/debug/main`), so `harnessFilename` is NOT appended (a trailing
+//     source-file arg would be wrong; the binary reads stdin directly).
+//     `harnessFilename` still anchors the runner's "no harness generated yet"
+//     precheck for both models.
 export interface RunnerSpec {
   harnessFilename: string;
   command: string[];
+  compile?: { command: string[] };
 }
 
 const RUNNERS: Record<string, RunnerSpec> = {
   python3: { harnessFilename: "main.py", command: ["python3"] },
   javascript: { harnessFilename: "main.js", command: ["node"] },
   typescript: { harnessFilename: "main.ts", command: ["bun"] },
+  rust: {
+    harnessFilename: "main.rs",
+    command: ["./target/debug/main"],
+    compile: { command: ["cargo", "build", "--quiet"] },
+  },
 };
 
 export function getRunnerSpec(langSlug: string): RunnerSpec | null {

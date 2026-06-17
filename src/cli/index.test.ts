@@ -72,6 +72,54 @@ describe("exitCodeForLocalRun", () => {
       exitCodeForLocalRun({ kind: "no-harness", langSlug: "python3", harnessFilename: "main.py" }),
     ).toBe(1);
   });
+
+  // A compile failure means the harness never ran → "couldn't run the verb", the
+  // exit-2 family (same as a target-resolution failure), not ran-but-failed (1).
+  test("compile-error → 2 (couldn't run), missing toolchain or not", () => {
+    expect(
+      exitCodeForLocalRun({
+        kind: "compile-error",
+        langSlug: "rust",
+        toolchainMissing: true,
+        output: "spawn cargo ENOENT",
+      }),
+    ).toBe(2);
+    expect(
+      exitCodeForLocalRun({
+        kind: "compile-error",
+        langSlug: "rust",
+        toolchainMissing: false,
+        output: "error[E0308]: mismatched types",
+      }),
+    ).toBe(2);
+  });
+});
+
+describe("buildLocalRunView (compile-error)", () => {
+  test("missing toolchain → an install hint, not the raw spawn error", () => {
+    const view = buildLocalRunView({
+      kind: "compile-error",
+      langSlug: "rust",
+      toolchainMissing: true,
+      output: "spawn cargo ENOENT",
+    });
+    expect(view.kind).toBe("error");
+    expect(view.title).toContain("toolchain not found");
+    expect(view.error).toContain("rustup");
+    expect(view.error).not.toContain("ENOENT");
+  });
+
+  test("real compile failure → the compiler diagnostics", () => {
+    const view = buildLocalRunView({
+      kind: "compile-error",
+      langSlug: "rust",
+      toolchainMissing: false,
+      output: "error[E0308]: mismatched types",
+    });
+    expect(view.kind).toBe("error");
+    expect(view.title).toContain("Compile Error");
+    expect(view.error).toContain("error[E0308]");
+  });
 });
 
 describe("exitCodeForResultView (API verbs)", () => {
