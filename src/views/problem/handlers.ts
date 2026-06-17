@@ -24,6 +24,8 @@ import {
   findExistingSolutions,
   getSolutionPath,
   ensureNotesFile,
+  ensureProblemDir,
+  ensureProblemMd,
   readNotes,
 } from "../../core/solutions";
 import { runSolution, submitSolution, SolutionError } from "../../core/submission";
@@ -311,6 +313,44 @@ async function openInEditorPath(renderer: Renderer, path: string) {
     await proc.exited;
   } finally {
     renderer.resume();
+  }
+}
+
+// Open the whole problem folder as a workspace (Stage 13). Reuses the already-
+// loaded `p.description` (no fetch) — unlike the browse worker which must fetch.
+// Spawns `$EDITOR {problemDir}` with cwd = the problem dir itself (a true
+// workspace, NOT a single file), so notes + statement + every language subfolder
+// are in the editor's file tree at once.
+export async function handleOpenProblemWorkspace(triggerKey: string, renderer: Renderer) {
+  const p = useAppStore.getState().problem;
+  if (!p) return;
+  try {
+    const problemDir = ensureProblemDir(p.question.id, p.question.title_slug);
+    ensureProblemMd(p.question.id, p.question.title_slug, p.description, p.question.title);
+    ensureNotesFile(p.question.id, p.question.title_slug, p.question.title);
+
+    const editor = getEditorCommand();
+    renderer.suspend();
+    try {
+      const proc = Bun.spawn([editor, problemDir], {
+        cwd: problemDir,
+        stdin: "inherit",
+        stdout: "inherit",
+        stderr: "inherit",
+      });
+      await proc.exited;
+    } finally {
+      renderer.resume();
+    }
+    refreshProblemSolutions();
+  } catch (e) {
+    reportError(
+      useAppStore.getState().setProblemResult,
+      triggerKey,
+      "handleOpenProblemWorkspace",
+      "Error opening workspace",
+      e,
+    );
   }
 }
 

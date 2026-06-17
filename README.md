@@ -123,7 +123,7 @@ Both the browser and the problem view use a **lazygit-style panel layout** — e
 
 **Topics panel focused** — `j`/`k` or arrows change topic (live-filters questions) · `Enter` focuses the questions panel
 
-**Questions panel focused** — `j`/`k` or arrows navigate · `gg` / `G` jump to first / last · `Enter` open problem view · `e` open in `$EDITOR` · `R` run · `s` submit · `y` yank URL
+**Questions panel focused** — `j`/`k` or arrows navigate · `gg` / `G` jump to first / last · `Enter` open problem view · `e` open in `$EDITOR` · `w` open workspace (whole problem folder) · `R` run · `s` submit · `y` yank URL
 
 ### Problem view
 
@@ -134,6 +134,7 @@ Both the browser and the problem view use a **lazygit-style panel layout** — e
 | `1` / `2` / `3` / `4` | Jump to description / solutions / result / related |
 | `f` | Solution picker (switch language or start a new one) |
 | `e` | Open active solution in `$EDITOR` |
+| `w` | Open the whole problem folder as a workspace |
 | `R` | Run against example test cases |
 | `t` | Run against local test cases |
 | `s` | Submit |

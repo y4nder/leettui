@@ -1,13 +1,23 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { getSolutionsDir } from "../../config";
-import { getNotesPath, getProblemDir, solutionFilePath } from "./paths";
+import { getNotesPath, getProblemDir, getProblemMdPath, solutionFilePath } from "./paths";
 
 // Returns the shared `notes.md` content, or null if it doesn't exist yet (so
 // the view can show a placeholder). No side effects.
 export function readNotes(id: number, titleSlug: string): string | null {
   try {
     return readFileSync(getNotesPath(id, titleSlug), "utf-8");
+  } catch {
+    return null;
+  }
+}
+
+// Returns the shared `problem.md` content, or null if it hasn't been generated
+// yet (the workspace hasn't been opened). No side effects.
+export function readProblemMd(id: number, titleSlug: string): string | null {
+  try {
+    return readFileSync(getProblemMdPath(id, titleSlug), "utf-8");
   } catch {
     return null;
   }

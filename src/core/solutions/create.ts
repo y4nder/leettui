@@ -6,6 +6,8 @@ import { parseMetaData } from "../harness/meta";
 import {
   getHarnessPath,
   getNotesPath,
+  getProblemDir,
+  getProblemMdPath,
   getSolutionFilename,
   getSolutionPath,
   getTestsDir,
@@ -21,6 +23,36 @@ export function ensureNotesFile(id: number, titleSlug: string, title?: string): 
     mkdirSync(dirname(path), { recursive: true });
     const heading = title ? `# ${id}. ${title}` : `# ${id}`;
     Bun.write(path, `${heading}\n\n`);
+  }
+  return path;
+}
+
+// Ensures the problem-folder level exists, so a workspace (Stage 13) can be
+// opened in $EDITOR before any solution language has been started. Returns the
+// problem dir path.
+export function ensureProblemDir(id: number, titleSlug: string): string {
+  const dir = getProblemDir(id, titleSlug);
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+// Ensures the shared `problem.md` exists (the offline problem statement),
+// creating the problem dir + a `# {id}. {title}` heading above the description
+// if absent. **Create-if-absent** — an existing `problem.md` (e.g. one the user
+// has edited) is never touched. Mirrors `ensureNotesFile`; creating it must not
+// flip the "has solution" marker (it's a problem-level file, not a lang subdir).
+// Returns its path, ready to open in $EDITOR.
+export function ensureProblemMd(
+  id: number,
+  titleSlug: string,
+  descriptionMarkdown: string,
+  title?: string,
+): string {
+  const path = getProblemMdPath(id, titleSlug);
+  if (!existsSync(path)) {
+    mkdirSync(dirname(path), { recursive: true });
+    const heading = title ? `# ${id}. ${title}` : `# ${id}`;
+    Bun.write(path, `${heading}\n\n${descriptionMarkdown}\n`);
   }
   return path;
 }

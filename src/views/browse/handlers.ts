@@ -15,7 +15,13 @@ import { fetchEditorData } from "../../api/queries/editor-data";
 import { fetchConsolePanelConfig } from "../../api/queries/console-panel-config";
 import { fetchDailyChallenge } from "../../api/queries/daily-challenge";
 import { getQuestionsByTopic } from "../../db/questions";
-import { createSolutionWithHarness, findExistingSolutions } from "../../core/solutions";
+import {
+  createSolutionWithHarness,
+  ensureNotesFile,
+  ensureProblemDir,
+  ensureProblemMd,
+  findExistingSolutions,
+} from "../../core/solutions";
 import { runSolution, submitSolution, SolutionError } from "../../core/submission";
 import { copyToClipboard, problemUrl } from "../../core/clipboard";
 import { syncQuestions } from "../../core/sync";
@@ -137,6 +143,52 @@ export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
     );
   } catch (e) {
     reportError(showResult, triggerKey, "handleOpenEditor", "Error fetching editor data", e);
+  }
+}
+
+// Spawn `$EDITOR {dir}` as a workspace (Stage 13): cwd is the dir itself, so an
+// editor opens it as a project (VS Code) / file tree (vim netrw). Deliberately
+// NOT `openInEditorPath` — that sets cwd to the file's *parent*; here cwd must be
+// the problem dir itself. (cwd = problem dir is also why `leettui test` can't
+// infer a langSlug from a workspace — that path stays on `e`.)
+async function spawnEditorInDir(renderer: Renderer, dir: string) {
+  const editor = getEditorCommand();
+  await withSuspendedRenderer(renderer, async () => {
+    const proc = Bun.spawn([editor, dir], {
+      cwd: dir,
+      stdin: "inherit",
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+    await proc.exited;
+  });
+}
+
+// Open the whole problem folder as a workspace (Stage 13): ensure the problem
+// dir, a create-if-absent `problem.md` (description fetched like the problem
+// view), and `notes.md`, then spawn `$EDITOR {problemDir}` so the language
+// subfolders + notes + statement are all in the editor's file tree at once.
+// A premium-only problem (no description) still opens, with a placeholder
+// `problem.md` — only a genuine fetch failure aborts (mirrors the other handlers).
+export async function handleOpenWorkspace(triggerKey: string, renderer: Renderer) {
+  const q = currentQuestion();
+  if (!q) return;
+  const { showResult } = useAppStore.getState();
+  try {
+    const content = await fetchQuestionContent(q.title_slug);
+    const html = content.question?.content;
+    const description = html
+      ? htmlToMarkdown(html)
+      : "_No description available (problem may be premium-only)._";
+
+    const problemDir = ensureProblemDir(q.id, q.title_slug);
+    ensureProblemMd(q.id, q.title_slug, description, q.title);
+    ensureNotesFile(q.id, q.title_slug, q.title);
+
+    await spawnEditorInDir(renderer, problemDir);
+    useAppStore.getState().refreshSolutionFiles();
+  } catch (e) {
+    reportError(showResult, triggerKey, "handleOpenWorkspace", "Error opening workspace", e);
   }
 }
 

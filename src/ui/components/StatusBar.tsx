@@ -21,7 +21,7 @@ const PROBLEM_PANEL_LABEL: Record<ProblemPanel, string> = {
   related: "Related",
 };
 const PROBLEM_HINTS =
-  "Tab:Focus j/k:Nav f:Solutions e:Edit R:Run t:Test s:Submit n:Notes ?:Help Esc/q:Back";
+  "Tab:Focus j/k:Nav f:Solutions e:Edit w:Wkspc R:Run t:Test s:Submit n:Notes ?:Help Esc/q:Back";
 
 interface StatusBarProps {
   mode: AppMode;

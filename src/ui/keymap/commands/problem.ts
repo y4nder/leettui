@@ -13,6 +13,7 @@ import {
   handleEnterRelated,
   handleExitProblemView,
   handleOpenNotes,
+  handleOpenProblemWorkspace,
   handleOpenSolutionPicker,
   handlePickerCancel,
   handlePickerConfirm,
@@ -83,6 +84,17 @@ export const problemCommands: CommandEntry[] = [
     category: "Solve",
     group: "modal",
     run: () => handleProblemTestLocal("t"),
+  }),
+  makeCommand({
+    name: "problem.openWorkspace",
+    title: "Open problem workspace (whole folder) in editor",
+    category: "Solve",
+    group: "modal",
+    short: "Wkspc",
+    run: () => {
+      const r = getRenderer();
+      if (r) handleOpenProblemWorkspace("w", r);
+    },
   }),
   makeCommand({
     name: "problem.notes",
