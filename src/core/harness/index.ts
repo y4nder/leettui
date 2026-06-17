@@ -7,7 +7,7 @@
 // and `rust` (Stage 14 — the first compiled language). Adding a language is one
 // `case` below + one `RUNNERS` entry — the item-4 runner stays unchanged.
 
-import { type HarnessFile, parseMetaData } from "./meta";
+import { type HarnessFile, type MetaData, hasDeferredType, parseMetaData } from "./meta";
 import { generatePythonHarness } from "./python";
 import { generateJavascriptHarness } from "./javascript";
 import { generateTypescriptHarness } from "./typescript";
@@ -27,32 +27,36 @@ export function generateHarness(
 ): GeneratedHarness | null {
   if (!metaDataRaw) return null;
 
+  let meta: MetaData;
   try {
-    switch (langSlug) {
-      case "python3": {
-        const meta = parseMetaData(metaDataRaw);
-        return { files: [{ filename: "main.py", content: generatePythonHarness(meta) }] };
-      }
-      case "javascript": {
-        const meta = parseMetaData(metaDataRaw);
-        return { files: [{ filename: "main.js", content: generateJavascriptHarness(meta) }] };
-      }
-      case "typescript": {
-        const meta = parseMetaData(metaDataRaw);
-        return { files: [{ filename: "main.ts", content: generateTypescriptHarness(meta) }] };
-      }
-      case "rust": {
-        const meta = parseMetaData(metaDataRaw);
-        const files = generateRustHarness(meta);
-        // null = a deferred/unmappable signature → no harness (blank stub).
-        return files ? { files } : null;
-      }
-      default:
-        return null;
-    }
+    meta = parseMetaData(metaDataRaw);
   } catch {
     // Missing/unparseable metaData — skip the harness, keep the solution.
     return null;
+  }
+
+  switch (langSlug) {
+    // The interpreted languages can only drive types that round-trip through
+    // `json.loads`/`JSON.parse` (scalars, arrays). A `ListNode`/`TreeNode` would
+    // need a real deserializer we don't have yet, so they refuse outright
+    // (no harness) rather than emit a broken passthrough — the runner then shows
+    // the honest "use R/s" no-harness message.
+    case "python3":
+      if (hasDeferredType(meta)) return null;
+      return { files: [{ filename: "main.py", content: generatePythonHarness(meta) }] };
+    case "javascript":
+      if (hasDeferredType(meta)) return null;
+      return { files: [{ filename: "main.js", content: generateJavascriptHarness(meta) }] };
+    case "typescript":
+      if (hasDeferredType(meta)) return null;
+      return { files: [{ filename: "main.ts", content: generateTypescriptHarness(meta) }] };
+    case "rust": {
+      const files = generateRustHarness(meta);
+      // null = a deferred/unmappable signature → no harness (blank stub).
+      return files ? { files } : null;
+    }
+    default:
+      return null;
   }
 }
 

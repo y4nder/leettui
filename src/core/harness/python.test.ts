@@ -69,10 +69,9 @@ describe("generatePythonHarness", () => {
     expect(src).toContain("Solution().setZeroes(matrix)");
   });
 
-  test("ListNode param is passed through raw with a TODO comment", () => {
-    const src = generatePythonHarness(parseMetaData(LISTNODE_PARAM));
-    expect(src).toContain("head = json.loads(data[0])");
-    expect(src).toContain("TODO: deserialize ListNode");
+  test("no TODO/passthrough branch survives — scalars/arrays only", () => {
+    const src = generatePythonHarness(parseMetaData(TWO_SUM));
+    expect(src).not.toContain("TODO");
   });
 });
 
@@ -88,6 +87,16 @@ describe("generateHarness dispatcher", () => {
   test("returns null for unsupported languages", () => {
     expect(generateHarness("cpp", TWO_SUM)).toBeNull();
     expect(generateHarness("go", TWO_SUM)).toBeNull();
+  });
+
+  test("refuses a deferred-type signature (no broken passthrough)", () => {
+    const treeReturn = JSON.stringify({
+      name: "insertIntoBST",
+      params: [{ name: "val", type: "integer" }],
+      return: { type: "TreeNode" },
+    });
+    expect(generateHarness("python3", LISTNODE_PARAM)).toBeNull();
+    expect(generateHarness("python3", treeReturn)).toBeNull();
   });
 
   test("returns null (never throws) on missing or bad metaData", () => {

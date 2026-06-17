@@ -65,12 +65,14 @@ describe("exitCodeForLocalRun", () => {
     expect(exitCodeForLocalRun(ran({ name: "case-01", status: "timeout" }))).toBe(1);
   });
 
-  test("setup arms: no-cases & unsupported → 0, no-harness → 1", () => {
+  test("setup arms: no-cases & unsupported → 0, no-harness → 2 (couldn't run)", () => {
     expect(exitCodeForLocalRun({ kind: "no-cases" })).toBe(0);
     expect(exitCodeForLocalRun({ kind: "unsupported", langSlug: "rust" })).toBe(0);
+    // no-harness is the designed fallback for an unsupported type (Stage 15) —
+    // the verb couldn't run, so exit 2 (not a failed test's 1).
     expect(
       exitCodeForLocalRun({ kind: "no-harness", langSlug: "python3", harnessFilename: "main.py" }),
-    ).toBe(1);
+    ).toBe(2);
   });
 
   // A compile failure means the harness never ran → "couldn't run the verb", the
@@ -119,6 +121,20 @@ describe("buildLocalRunView (compile-error)", () => {
     expect(view.kind).toBe("error");
     expect(view.title).toContain("Compile Error");
     expect(view.error).toContain("error[E0308]");
+  });
+});
+
+describe("buildLocalRunView (no-harness)", () => {
+  test("is actionable: names the language and points to R/s", () => {
+    const view = buildLocalRunView({
+      kind: "no-harness",
+      langSlug: "python3",
+      harnessFilename: "main.py",
+    });
+    expect(view.kind).toBe("error");
+    expect(view.title).toContain("python3");
+    expect(view.error).toContain("R to run");
+    expect(view.error).toContain("s to submit");
   });
 });
 

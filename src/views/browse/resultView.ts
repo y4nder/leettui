@@ -190,8 +190,13 @@ export function buildLocalRunView(report: LocalRunReport): ResultView {
     case "unsupported":
       return info(`Local run not supported for ${report.langSlug} (no harness generator).`);
     case "no-harness":
+      // The harness file is absent — could be a type the local harness doesn't
+      // support yet (e.g. ListNode/TreeNode), or a solution made before harness
+      // generation. The runner can't tell which here (it has no metaData), so the
+      // message stays type-agnostic but actionable: R/s always works regardless.
       return errorView(
-        `No ${report.harnessFilename} found in the ${report.langSlug} folder — cannot run locally.`,
+        `No local harness for ${report.langSlug}.`,
+        "Some types (e.g. ListNode/TreeNode) aren't supported locally yet — use R to run or s to submit on LeetCode.",
       );
     case "no-cases":
       return info("No test cases. Add tests/case-NN.txt (e.g. by recreating the solution).");

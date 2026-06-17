@@ -66,13 +66,15 @@ verbs so the `index.tsx` seam is wired once — items 3/4 only edit `src/cli/`.
 ## Exit codes
 
 - `0` — `test`: all cases passed, or ran clean. `run`/`submit`: accepted.
-- `1` — ran, didn't pass. `test`: any case `fail`/`error`/`timeout`, or
-  `no-harness` (a started solution with no runnable harness). `run`/`submit`:
-  wrong answer or compile/runtime/limit/timeout error (`ResultView.kind` in
-  `{wrong, error, loading}`).
+- `1` — ran, didn't pass. `test`: any case `fail`/`error`/`timeout`.
+  `run`/`submit`: wrong answer or compile/runtime/limit/timeout error
+  (`ResultView.kind` in `{wrong, error, loading}`).
 - `2` — **couldn't run the verb at all** → message to **stderr**. Target not
   identified (cwd not inside a solution folder, no language subfolder, or unknown
-  problem); for API verbs also a missing/expired session (→ `run \`leettui
+  problem); `test`: `no-harness` (no harness was generated — since Stage 15 the
+  designed fallback for an unsupported type like `ListNode`/`TreeNode`, so a
+  `leettui test && …` hook reads it as "couldn't run", not a failed test) or a
+  `compile-error`; for API verbs also a missing/expired session (→ `run \`leettui
   auth\``) or an unreadable solution file.
 
 **The `test` exit code is derived from the raw `LocalRunReport`, not from

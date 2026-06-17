@@ -6,20 +6,15 @@
 // arg-reading and `main()` body are identical, so they live here and each
 // language file passes in just its `loadSolution()` definition.
 
-import { type MetaData, DEFERRED_TYPES, baseType } from "./meta";
+import type { MetaData } from "./meta";
 
 // Renders the `const x = JSON.parse(data[i]);` lines (2-space indented) with a
-// trailing type comment, and a TODO for the not-yet-deserialized ListNode/
-// TreeNode params (passed through raw, mirroring the Python harness).
+// trailing type comment. Only called for round-trippable signatures — the
+// dispatcher (`index.ts`) refuses `ListNode`/`TreeNode` before reaching here, so
+// every param parses straight through `JSON.parse`.
 export function renderArgReads(meta: MetaData): string {
   return meta.params
-    .map((p, i) => {
-      const deferred = DEFERRED_TYPES.has(baseType(p.type));
-      const comment = deferred
-        ? ` // ${p.type} — TODO: deserialize ${baseType(p.type)}`
-        : ` // ${p.type}`;
-      return `  const ${p.name} = JSON.parse(data[${i}]);${comment}`;
-    })
+    .map((p, i) => `  const ${p.name} = JSON.parse(data[${i}]); // ${p.type}`)
     .join("\n");
 }
 

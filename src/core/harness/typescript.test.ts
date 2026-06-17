@@ -34,10 +34,9 @@ describe("generateTypescriptHarness", () => {
     expect(src).toContain("console.log(JSON.stringify(result ?? null));");
   });
 
-  test("ListNode param is passed through raw with a TODO comment", () => {
-    const src = generateTypescriptHarness(parseMetaData(LISTNODE_PARAM));
-    expect(src).toContain("const head = JSON.parse(data[0]);");
-    expect(src).toContain("TODO: deserialize ListNode");
+  test("no TODO/passthrough branch survives — scalars/arrays only", () => {
+    const src = generateTypescriptHarness(parseMetaData(TWO_SUM));
+    expect(src).not.toContain("TODO");
   });
 });
 
@@ -55,6 +54,10 @@ describe("generateHarness dispatcher (typescript)", () => {
       harnessFilename: "main.ts",
       command: ["bun"],
     });
+  });
+
+  test("refuses a deferred-type signature (no broken passthrough)", () => {
+    expect(generateHarness("typescript", LISTNODE_PARAM)).toBeNull();
   });
 });
 
