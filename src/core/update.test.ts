@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import {
+  assetUrls,
+  fetchAsset,
   fetchLatestRelease,
   fetchReleaseByTag,
   isNewerVersion,
@@ -83,6 +85,52 @@ describe("release fetch", () => {
   test("throws on a non-ok response", async () => {
     stubFetch(404, {});
     expect(fetchLatestRelease()).rejects.toThrow("GitHub API returned 404");
+  });
+});
+
+describe("asset download URL resolution (.gz-preferred, raw fallback)", () => {
+  const realFetch = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = realFetch;
+  });
+
+  // Resolve responses per requested URL so the .gz / raw branch is exercised.
+  function stubFetchByUrl(byUrl: Record<string, { status: number; body?: string }>): void {
+    globalThis.fetch = (async (url: string) => {
+      const entry = byUrl[String(url)] ?? { status: 404 };
+      return new Response(entry.status === 404 ? "" : (entry.body ?? ""), {
+        status: entry.status,
+      });
+    }) as unknown as typeof fetch;
+  }
+
+  test("assetUrls appends .gz to the raw download URL", () => {
+    const { gz, raw } = assetUrls("v1.2.3", "leettui-linux-x64");
+    expect(raw).toBe(
+      "https://github.com/y4nder/leettui/releases/download/v1.2.3/leettui-linux-x64",
+    );
+    expect(gz).toBe(`${raw}.gz`);
+  });
+
+  test("fetchAsset prefers the .gz sibling when present", async () => {
+    const { gz, raw } = assetUrls("v1.2.3", "leettui-linux-x64");
+    stubFetchByUrl({ [gz]: { status: 200, body: "gz" }, [raw]: { status: 200, body: "raw" } });
+    const r = await fetchAsset("v1.2.3", "leettui-linux-x64");
+    expect(r.compressed).toBe(true);
+    expect(r.url).toBe(gz);
+  });
+
+  test("fetchAsset falls back to the raw asset when the .gz is absent (404)", async () => {
+    const { raw } = assetUrls("v0.1.0", "leettui-linux-x64");
+    stubFetchByUrl({ [raw]: { status: 200, body: "raw" } }); // gz → 404
+    const r = await fetchAsset("v0.1.0", "leettui-linux-x64");
+    expect(r.compressed).toBe(false);
+    expect(r.url).toBe(raw);
+  });
+
+  test("fetchAsset throws when neither the .gz nor the raw asset resolves", async () => {
+    stubFetchByUrl({}); // both → 404
+    expect(fetchAsset("v0.0.0", "leettui-linux-x64")).rejects.toThrow("download failed");
   });
 });
 

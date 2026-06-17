@@ -5,6 +5,7 @@ import { chmod, rename, rm } from "node:fs/promises";
 import { createWriteStream } from "node:fs";
 import { dirname, join } from "node:path";
 import { Readable } from "node:stream";
+import { createGunzip } from "node:zlib";
 
 import { IS_RELEASE, VERSION } from "./version";
 import { brandBanner, startProgress, updateError, updateSuccess } from "./updatePresent";
@@ -170,6 +171,40 @@ export function releaseUrl(tag: string): string {
   return `https://github.com/${REPO}/releases/tag/${tag}`;
 }
 
+/**
+ * The gzip-compressed (`.gz`) and raw download URLs for a release asset (Stage
+ * 19). Pure so the `.gz`-preferred / raw-fallback resolution is unit-testable.
+ */
+export function assetUrls(tag: string, asset: string): { gz: string; raw: string } {
+  const raw = `https://github.com/${REPO}/releases/download/${tag}/${asset}`;
+  return { gz: `${raw}.gz`, raw };
+}
+
+/**
+ * Fetch a release asset, **preferring the gzip sibling** (Stage 19 — ~half the
+ * download bytes) and falling back to the raw binary when the `.gz` is absent
+ * (any non-ok response — e.g. a 404 on a tag published before Stage 19). Returns
+ * the live response plus whether the body still needs gunzip-ing. Throws when
+ * the raw fallback also fails. GitHub serves `.gz` assets as opaque blobs (no
+ * `Content-Encoding: gzip`), so `fetch` won't transparently decompress: the
+ * `content-length` is the compressed size and the body is real gzip bytes.
+ */
+export async function fetchAsset(
+  tag: string,
+  asset: string,
+): Promise<{ res: Response; compressed: boolean; url: string }> {
+  const { gz, raw } = assetUrls(tag, asset);
+  const gzRes = await fetch(gz);
+  if (gzRes.ok && gzRes.body) {
+    return { res: gzRes, compressed: true, url: gz };
+  }
+  const rawRes = await fetch(raw);
+  if (!rawRes.ok || !rawRes.body) {
+    throw new Error(`download failed (${rawRes.status}) from ${raw}`);
+  }
+  return { res: rawRes, compressed: false, url: raw };
+}
+
 export async function runUpdate(opts: { force?: boolean } = {}): Promise<void> {
   process.stdout.write(`${brandBanner()}\n`);
 
@@ -208,17 +243,19 @@ export async function runUpdate(opts: { force?: boolean } = {}): Promise<void> {
 
   const target = process.execPath;
   const tmp = join(dirname(target), ".leettui.update.tmp");
-  const url = `https://github.com/${REPO}/releases/download/${tag}/${asset}`;
 
   const progress = startProgress(`Downloading ${asset} (${tag})`);
   try {
-    const res = await fetch(url);
-    if (!res.ok || !res.body) {
-      throw new Error(`download failed (${res.status}) from ${url}`);
-    }
+    // Prefer the gzip sibling (Stage 19), falling back to the raw asset on an
+    // older tag without one.
+    const { res, compressed } = await fetchAsset(tag, asset);
     // Stream to a temp file in the target's directory so the final rename is
     // atomic on the same filesystem. A `data` listener counts bytes for the
-    // progress bar without disturbing `pipe`'s backpressure handling.
+    // progress bar without disturbing `pipe`'s backpressure handling — counting
+    // on `src` (pre-gunzip) measures the *compressed* bytes against the
+    // compressed `content-length`. A corrupt/truncated gzip stream rejects via
+    // the gunzip `error` event, lands in `catch`, and the temp file is removed
+    // so the running binary is never clobbered.
     const total = Number(res.headers.get("content-length")) || 0;
     let received = 0;
     await new Promise<void>((resolve, reject) => {
@@ -231,7 +268,13 @@ export async function runUpdate(opts: { force?: boolean } = {}): Promise<void> {
         progress.update(received, total);
       });
       src.on("error", reject);
-      src.pipe(out);
+      if (compressed) {
+        const gunzip = createGunzip();
+        gunzip.on("error", reject);
+        src.pipe(gunzip).pipe(out);
+      } else {
+        src.pipe(out);
+      }
     });
 
     await chmod(tmp, 0o755);

@@ -75,6 +75,19 @@ jobs:
           path: dist
           merge-multiple: true
 
+      # Stage 19: ship a gzip sibling of each self-updatable asset so install.sh
+      # + src/core/update.ts can fetch a ~half-size payload. Done here (one
+      # ubuntu runner with GNU gzip) rather than per-build-matrix so there's a
+      # single gzip step and no macOS `gzip -k` portability concern. Purely
+      # additive — the raw binaries stay attached, so pre-Stage-19 clients (whose
+      # update.ts only knows the raw asset name) keep self-updating; the raw
+      # asset can be retired in a later stage once .gz-aware clients dominate.
+      # Windows (.exe) has no install/self-update path, so it stays raw.
+      - name: gzip self-updatable assets
+        run: |
+          gzip -9 -c dist/leettui-linux-x64 > dist/leettui-linux-x64.gz
+          gzip -9 -c dist/leettui-macos-arm64 > dist/leettui-macos-arm64.gz
+
       - uses: softprops/action-gh-release@v2
         with:
           files: dist/*

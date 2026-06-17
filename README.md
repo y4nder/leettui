@@ -63,7 +63,7 @@ This project exists for two reasons:
 curl -fsSL https://raw.githubusercontent.com/y4nder/leettui/main/install.sh | sh
 ```
 
-Downloads the latest release binary for your platform into `~/.local/bin` (override with `LEETTUI_INSTALL_DIR`). No Bun required — the binary is self-contained. Then run `leettui`.
+Downloads the latest release binary for your platform into `~/.local/bin` (override with `LEETTUI_INSTALL_DIR`). The download is a **gzip-compressed asset** (~40 MB on the wire vs. ~111 MB raw) that the installer decompresses locally, so the installed binary is unchanged — it just transfers in roughly a third of the bytes. No Bun required — the binary is self-contained. Then run `leettui`.
 
 **Windows:** download `leettui-windows-x64.exe` from the [Releases page](https://github.com/y4nder/leettui/releases) and run it.
 
@@ -74,7 +74,7 @@ leettui update          # download the latest release and replace the binary in 
 leettui --version       # check the installed version
 ```
 
-`leettui update` checks the latest GitHub release, skips the download if you're already current (pass `--force` to reinstall anyway), and atomically swaps in the new binary — restart to use it. Re-running the `install.sh` curl command above also works, and is the way to update on Windows.
+`leettui update` checks the latest GitHub release, skips the download if you're already current (pass `--force` to reinstall anyway), and atomically swaps in the new binary — restart to use it. Like the installer, it fetches the gzip-compressed asset and decompresses it on the fly, so a self-update transfers ~40 MB instead of ~111 MB. Re-running the `install.sh` curl command above also works, and is the way to update on Windows.
 
 After you update, leettui shows a **"What's new"** popup once on the next launch, with the notes for the version you just installed. (A one-line banner separately tells you when a newer release is available.) Reopen the changelog any time from the command palette (`Ctrl+P` → "What's new"), which shows the latest release; press `o` inside it to open the full release page on GitHub.
 
