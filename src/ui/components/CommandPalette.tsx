@@ -85,9 +85,11 @@ export function CommandPalette() {
       if (ctx.eventType !== "press") return;
       if (useAppStore.getState().mode !== "palette") return;
       const name = ctx.event.name ?? "";
-      if (name.length !== 1) return;
+      // The space key arrives as name "space" (not " "); map it back to a literal space.
+      const char = name === "space" ? " " : name;
+      if (char.length !== 1) return;
       if (ctx.event.ctrl || ctx.event.meta) return;
-      setNeedle((n) => n + name);
+      setNeedle((n) => n + char);
       setSelectedIndex(0);
     });
     return off;

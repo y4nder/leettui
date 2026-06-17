@@ -1033,10 +1033,12 @@ export function installKeymap(keymap: AppKeymap, renderer: CliRenderer): void {
     const s = useAppStore.getState();
     if (s.mode !== "search") return;
     const name = ctx.event.name ?? "";
-    if (name.length !== 1) return;
+    // The space key arrives as name "space" (not " "); map it back to a literal space.
+    const char = name === "space" ? " " : name;
+    if (char.length !== 1) return;
     if (ctx.event.ctrl || ctx.event.meta) return;
     const active = s.focusedPanel === "topics" ? s.topicNeedle : s.searchNeedle;
-    logKey(name, "", s.mode, `updateSearch(+${name})`);
-    s.updateSearch(active + name);
+    logKey(char, "", s.mode, `updateSearch(+${char})`);
+    s.updateSearch(active + char);
   });
 }
