@@ -17,8 +17,19 @@ import { openDatabase } from "../../../db";
 import { syncIfEmpty } from "../../../core/sync";
 import { migrateSolutionsLayout } from "../../../core/migration";
 import { detectSolutionsRelocation, type RelocationPlan } from "../../../core/relocate";
-import { checkForUpdate, setPendingUpdate } from "../../../core/update";
-import { getLastKnownSolutionsDir, setLastKnownSolutionsDir } from "../../../core/session";
+import {
+  checkForUpdate,
+  fetchReleaseByTag,
+  setPendingUpdate,
+  shouldShowChangelog,
+} from "../../../core/update";
+import { IS_RELEASE, VERSION } from "../../../core/version";
+import {
+  getLastKnownSolutionsDir,
+  setLastKnownSolutionsDir,
+  getLastShownChangelogVersion,
+  setLastShownChangelogVersion,
+} from "../../../core/session";
 import { useAppStore } from "../../store";
 
 type Phase = "splash" | "auth" | "solutions" | "loading" | "relocate" | "ready" | "error";
@@ -99,14 +110,39 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
         // resolves and the banner appears reactively. Never gates the ready hand-off.
         checkForUpdate()
           .then((tag) => {
-            if (tag) {
-              useAppStore.getState().setUpdateAvailable(tag);
-              // Also park it for the on-quit reminder, independent of the
-              // banner's session-only dismiss state.
-              setPendingUpdate(tag);
-            }
+            if (!tag) return;
+            useAppStore.getState().setUpdateAvailable(tag);
+            // Also park it for the on-quit reminder, independent of the
+            // banner's session-only dismiss state.
+            setPendingUpdate(tag);
           })
           .catch(() => {});
+        // Post-update "What's new" (Stage 18): on the first launch after an
+        // update, pop the *running* version's release notes once, into a calm
+        // browse view. A fresh install is seeded "caught up" so it doesn't pop on
+        // first launch; recording VERSION unconditionally (below) keeps it
+        // strictly once-per-version. The decision lives in the pure, tested
+        // shouldShowChangelog; this block only owns the IS_RELEASE gate + fetch.
+        if (IS_RELEASE) {
+          const lastShown = getLastShownChangelogVersion();
+          if (shouldShowChangelog(VERSION, lastShown, useAppStore.getState().mode)) {
+            fetchReleaseByTag(VERSION)
+              .then((release) => {
+                // Re-validate mode (the fetch was async) so we don't pop over a
+                // problem/modal the user opened meanwhile.
+                if (useAppStore.getState().mode === "browse") {
+                  useAppStore.getState().showChangelog(release);
+                }
+              })
+              .catch(() => {});
+          }
+          // MUST stay unconditional + outside the branch above: this both seeds a
+          // fresh install ("caught up", undefined → VERSION) and marks an update's
+          // changelog shown. Moving it inside `if (shouldShowChangelog)` would
+          // leave a fresh install's flag undefined forever → the popup could never
+          // fire on a later update (the seeding deadlock).
+          setLastShownChangelogVersion(VERSION);
+        }
         openDatabase(getDbPath());
         // One-time, idempotent migration of any legacy flat solution files into
         // the per-problem / per-language folder layout. Filesystem-only; the

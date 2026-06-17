@@ -25,6 +25,7 @@ import {
 import { runSolution, submitSolution, SolutionError } from "../../core/submission";
 import { copyToClipboard, problemUrl } from "../../core/clipboard";
 import { syncQuestions } from "../../core/sync";
+import { fetchLatestRelease } from "../../core/update";
 import { relocateSolutions, type RelocateResult } from "../../core/relocate";
 import { setLastKnownSolutionsDir } from "../../core/session";
 import { getEditorCommand, getSolutionsDir, persistSolutionsDir } from "../../config";
@@ -67,6 +68,22 @@ function currentQuestion() {
 function currentTopic() {
   const s = useAppStore.getState();
   return s.topics[s.selectedTopicIndex] ?? "all";
+}
+
+// Command-palette "What's new": fetch the **latest** release's notes on demand
+// and open the changelog popup. Un-gated (works on dev/from-source builds too,
+// unlike the boot auto-popup). Deliberately shows the latest — the most useful
+// answer when you're behind — distinct from the post-update auto-popup, which
+// shows the version you just installed. A brief loading result covers the fetch;
+// a failure surfaces a clean error.
+export async function handleViewChangelog(): Promise<void> {
+  const { showResult, showChangelog } = useAppStore.getState();
+  showResult(loading("Fetching what's new…"));
+  try {
+    showChangelog(await fetchLatestRelease());
+  } catch (e) {
+    reportError(showResult, "", "handleViewChangelog", "Couldn't fetch the changelog", e);
+  }
 }
 
 export async function handleViewDailyChallenge(triggerKey: string) {

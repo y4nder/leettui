@@ -49,6 +49,7 @@ This project exists for two reasons:
 - Submit solutions and see runtime/memory percentiles
 - Daily challenge shortcut
 - Command palette (`Ctrl+P`) listing every available action
+- "What's new" changelog popup after you update (reopen any time from the palette)
 - Multiple themes (tokyo-night, catppuccin) via config
 - [Per-language template overrides](docs/template-overrides.md) — custom solution stubs, harnesses, and manifests
 
@@ -74,6 +75,8 @@ leettui --version       # check the installed version
 ```
 
 `leettui update` checks the latest GitHub release, skips the download if you're already current (pass `--force` to reinstall anyway), and atomically swaps in the new binary — restart to use it. Re-running the `install.sh` curl command above also works, and is the way to update on Windows.
+
+After you update, leettui shows a **"What's new"** popup once on the next launch, with the notes for the version you just installed. (A one-line banner separately tells you when a newer release is available.) Reopen the changelog any time from the command palette (`Ctrl+P` → "What's new"), which shows the latest release; press `o` inside it to open the full release page on GitHub.
 
 ### From source
 

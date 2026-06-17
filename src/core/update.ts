@@ -90,27 +90,56 @@ export function isNewerVersion(latest: string, current: string): boolean {
   return aPatch > bPatch;
 }
 
+/** A published release's tag and its (markdown) notes body. */
+export interface ReleaseInfo {
+  tag: string;
+  body: string;
+}
+
 /**
- * Returns the newer release tag to advertise in the in-app banner, or null when
- * there's nothing to show / the check doesn't apply. Fail-silent: any network or
+ * The newer release tag to advertise in the in-app update banner, or null when
+ * there's nothing newer / the check doesn't apply. Fail-silent: any network or
  * parse error resolves to null. Only official release builds check (mirrors
  * runUpdate's IS_RELEASE gate); LEETTUI_FAKE_UPDATE forces a tag for dev preview.
+ * This drives only the "update available" banner — the changelog popup is a
+ * separate, post-update concern (see fetchReleaseByTag / shouldShowChangelog).
  */
 export async function checkForUpdate(): Promise<string | null> {
   const fake = process.env.LEETTUI_FAKE_UPDATE;
   if (fake) return fake;
   if (!IS_RELEASE) return null;
   try {
-    const tag = await fetchLatestTag();
+    const { tag } = await fetchLatestRelease();
     return isNewerVersion(tag, VERSION) ? tag : null;
   } catch {
     return null;
   }
 }
 
-/** Fetch the latest published release tag from the GitHub API. */
-async function fetchLatestTag(): Promise<string> {
-  const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
+/**
+ * Whether to auto-open the "What's new" popup at boot (Stage 18, **post-update**
+ * semantics): show the *running* version's notes once, the first launch after an
+ * update. True only when a previous version was already recorded (so a **fresh
+ * install** doesn't pop — `lastShownVersion === undefined` is the seed case the
+ * caller handles), the running version differs from it, and we're in a calm
+ * browse view (never yank the user out of a problem/modal). Pure so the
+ * once-per-version semantics are unit-tested apart from BootFlow's promise wiring
+ * + IS_RELEASE gate. `mode` is the UI mode string (typed loosely to keep core
+ * free of UI imports).
+ */
+export function shouldShowChangelog(
+  currentVersion: string,
+  lastShownVersion: string | undefined,
+  mode: string,
+): boolean {
+  if (lastShownVersion === undefined) return false; // fresh install → seed, don't pop
+  if (currentVersion === lastShownVersion) return false; // already shown this version
+  return mode === "browse";
+}
+
+/** Shared release fetch from the GitHub API. `pathSuffix` is e.g. "latest" or "tags/v1.2.3". */
+async function fetchRelease(pathSuffix: string): Promise<ReleaseInfo> {
+  const res = await fetch(`https://api.github.com/repos/${REPO}/releases/${pathSuffix}`, {
     headers: {
       "User-Agent": "leettui",
       Accept: "application/vnd.github+json",
@@ -119,11 +148,26 @@ async function fetchLatestTag(): Promise<string> {
   if (!res.ok) {
     throw new Error(`GitHub API returned ${res.status} ${res.statusText}`);
   }
-  const body = (await res.json()) as { tag_name?: string };
-  if (!body.tag_name) {
-    throw new Error("latest release has no tag_name");
+  const json = (await res.json()) as { tag_name?: string; body?: string };
+  if (!json.tag_name) {
+    throw new Error("release has no tag_name");
   }
-  return body.tag_name;
+  return { tag: json.tag_name, body: json.body ?? "" };
+}
+
+/** Fetch the latest published release (tag + notes body). Throws on network/shape error. */
+export function fetchLatestRelease(): Promise<ReleaseInfo> {
+  return fetchRelease("latest");
+}
+
+/** Fetch a specific release by tag — the post-update popup fetches the running VERSION. */
+export function fetchReleaseByTag(tag: string): Promise<ReleaseInfo> {
+  return fetchRelease(`tags/${encodeURIComponent(tag)}`);
+}
+
+/** The GitHub release-page URL for a tag — the changelog popup's "open on GitHub" (`o`). */
+export function releaseUrl(tag: string): string {
+  return `https://github.com/${REPO}/releases/tag/${tag}`;
 }
 
 export async function runUpdate(opts: { force?: boolean } = {}): Promise<void> {
@@ -151,7 +195,7 @@ export async function runUpdate(opts: { force?: boolean } = {}): Promise<void> {
 
   let tag: string;
   try {
-    tag = await fetchLatestTag();
+    ({ tag } = await fetchLatestRelease());
   } catch (err) {
     console.error(updateError(`could not check for updates — ${(err as Error).message}`));
     return;
