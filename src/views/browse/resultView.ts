@@ -46,6 +46,30 @@ export function errorView(title: string, error?: string): ResultView {
   return { kind: "error", title, error };
 }
 
+// The "compiler not on PATH" install hint for a compiled language (the
+// `compile-error` `toolchainMissing` arm). Per-language so a missing `dotnet`
+// doesn't tell the user to install rustup; an unknown compiled language falls
+// back to a generic line.
+function toolchainMissingView(langSlug: string): ResultView {
+  switch (langSlug) {
+    case "rust":
+      return errorView(
+        "✗ Rust toolchain not found",
+        "Install the Rust toolchain via rustup: https://rustup.rs",
+      );
+    case "csharp":
+      return errorView(
+        "✗ .NET SDK not found",
+        "Install the .NET SDK (provides `dotnet`): https://dotnet.microsoft.com/download",
+      );
+    default:
+      return errorView(
+        `✗ Toolchain not found for ${langSlug}`,
+        "The compiler for this language isn't on your PATH — install it to run tests locally.",
+      );
+  }
+}
+
 function pickError(short: string | undefined, full: string | undefined): string {
   return full ?? short ?? "Unknown error";
 }
@@ -201,13 +225,11 @@ export function buildLocalRunView(report: LocalRunReport): ResultView {
     case "no-cases":
       return info("No test cases. Add tests/case-NN.txt (e.g. by recreating the solution).");
     case "compile-error":
-      // A missing toolchain is a setup problem (one install hint); a real compile
-      // failure shows the compiler's diagnostics so the user can fix the code.
+      // A missing toolchain is a setup problem (one install hint, per compiled
+      // language); a real compile failure shows the compiler's diagnostics so the
+      // user can fix the code.
       return report.toolchainMissing
-        ? errorView(
-            "✗ Rust toolchain not found",
-            "Install the Rust toolchain via rustup: https://rustup.rs",
-          )
+        ? toolchainMissingView(report.langSlug)
         : errorView("✗ Compile Error", report.output);
     case "ran": {
       const { cases } = report;

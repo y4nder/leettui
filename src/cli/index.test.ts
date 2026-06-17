@@ -122,6 +122,20 @@ describe("buildLocalRunView (compile-error)", () => {
     expect(view.title).toContain("Compile Error");
     expect(view.error).toContain("error[E0308]");
   });
+
+  test("missing toolchain hint is per-language (csharp → .NET SDK, not rustup)", () => {
+    const view = buildLocalRunView({
+      kind: "compile-error",
+      langSlug: "csharp",
+      toolchainMissing: true,
+      output: "spawn dotnet ENOENT",
+    });
+    expect(view.kind).toBe("error");
+    expect(view.title).toContain(".NET SDK");
+    expect(view.error).toContain("dotnet");
+    expect(view.error).not.toContain("rustup");
+    expect(view.error).not.toContain("ENOENT");
+  });
 });
 
 describe("buildLocalRunView (no-harness)", () => {
