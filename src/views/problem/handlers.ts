@@ -21,6 +21,7 @@ import {
 } from "../../db/questions";
 import {
   createSolutionWithHarness,
+  deleteSolution,
   findExistingSolutions,
   getSolutionPath,
   ensureNotesFile,
@@ -422,4 +423,39 @@ export async function handleEditNotes(_triggerKey: string, renderer: Renderer) {
 
 export function handleCloseNotes() {
   useAppStore.getState().closeNotes();
+}
+
+// Delete the focused solution (Stage 16). Surfaced from the Solutions panel (`d`):
+// `solutionsPanelBindings` mounts even when the list is empty, so guard on a
+// focused langSlug — open the confirm only when there's actually a solution to
+// remove (empty langSlug would be a no-op delete and a modal naming `undefined`).
+export function handleRequestDeleteSolution() {
+  const p = useAppStore.getState().problem;
+  if (!p) return;
+  const langSlug = focusedLangSlug();
+  if (!langSlug) {
+    useAppStore.getState().setProblemResult(info("No solution to delete. Press 'f' to add one."));
+    return;
+  }
+  useAppStore.getState().openDeleteConfirm(langSlug);
+}
+
+// Confirm: remove the captured language folder, then refresh the markers. Uses the
+// langSlug frozen at open time (not focusedLangSlug()) so a focus change behind the
+// modal can't retarget the delete. `refreshProblemSolutions()` (no arg) re-lists and
+// clamps the focused index; `refreshSolutionFiles()` updates the browse "has solution"
+// marker (the id may have just lost its last language).
+export function handleConfirmDeleteSolution() {
+  const p = useAppStore.getState().problem;
+  const langSlug = p?.deleteConfirm?.langSlug;
+  if (!p || !langSlug) return;
+  deleteSolution(p.question.id, p.question.title_slug, langSlug);
+  useAppStore.getState().closeDeleteConfirm();
+  refreshProblemSolutions();
+  useAppStore.getState().refreshSolutionFiles();
+  useAppStore.getState().setProblemResult(info(`Deleted the ${langSlug} solution.`));
+}
+
+export function handleCancelDeleteSolution() {
+  useAppStore.getState().closeDeleteConfirm();
 }

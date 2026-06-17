@@ -321,3 +321,108 @@ describe("resolveProblemPath (Stage 8 cwd-inference)", () => {
     expect(resolveProblemPath(join(root, "scratch", "python3"), root)).toBeNull();
   });
 });
+
+// --- deleteSolution (Stage 16) ---
+//
+// `deleteSolution`/`findExistingSolutions`/`listSolutionQuestionIds` resolve the
+// solutions dir from `os.homedir()` (fixed at launch), so — like the create-flow
+// + Stage 13 tests above — this runs the whole create→delete sequence in one
+// subprocess with a temp $HOME and asserts on a single printed JSON snapshot set.
+
+describe("deleteSolution (Stage 16)", () => {
+  let home: string;
+  let script: string;
+
+  beforeEach(() => {
+    home = join(tmpdir(), `leettui-del-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    mkdirSync(home, { recursive: true });
+    script = join(home, "child.ts");
+    writeFileSync(
+      script,
+      `import { existsSync } from "node:fs";\n` +
+        `import { join } from "node:path";\n` +
+        `const m = await import(${JSON.stringify(SOLUTIONS_MODULE)});\n` +
+        `const META = ${JSON.stringify(TWO_SUM_META)};\n` +
+        // Two languages + the shared problem-level files for question 7.
+        `m.createSolutionWithHarness(7, "reverse-int", "python3", "class Solution: pass", META, ["1"]);\n` +
+        `m.createSolutionWithHarness(7, "reverse-int", "rust", "impl Solution {}", META);\n` +
+        `m.ensureNotesFile(7, "reverse-int", "Reverse Int");\n` +
+        `m.ensureProblemMd(7, "reverse-int", "body", "Reverse Int");\n` +
+        `const notes = m.getNotesPath(7, "reverse-int");\n` +
+        `const problemMd = m.getProblemMdPath(7, "reverse-int");\n` +
+        `const tests = m.getTestsDir(7, "reverse-int");\n` +
+        `const pyDir = join(m.getProblemDir(7, "reverse-int"), "python3");\n` +
+        `const problemDir = m.getProblemDir(7, "reverse-int");\n` +
+        `const before = m.findExistingSolutions(7, "reverse-int");\n` +
+        // Data-loss guard: an empty langSlug must be refused outright — otherwise the
+        // target collapses to the problem dir and the recursive remove wipes the shared
+        // notes/tests. Assert it's a pure no-op (everything still present).
+        `m.deleteSolution(7, "reverse-int", "");\n` +
+        `const afterEmpty = {\n` +
+        `  problemDir: existsSync(problemDir),\n` +
+        `  existing: m.findExistingSolutions(7, "reverse-int"),\n` +
+        `  notes: existsSync(notes),\n` +
+        `  tests: existsSync(tests),\n` +
+        `};\n` +
+        // Delete one language; the other + the shared files must survive.
+        `m.deleteSolution(7, "reverse-int", "python3");\n` +
+        // Idempotent + never-throws on an already-absent folder.
+        `m.deleteSolution(7, "reverse-int", "python3");\n` +
+        `const afterOne = {\n` +
+        `  existing: m.findExistingSolutions(7, "reverse-int"),\n` +
+        `  ids: [...m.listSolutionQuestionIds()],\n` +
+        `  pyDir: existsSync(pyDir),\n` +
+        `  notes: existsSync(notes),\n` +
+        `  problemMd: existsSync(problemMd),\n` +
+        `  tests: existsSync(tests),\n` +
+        `};\n` +
+        // Remove the LAST language: the id drops from the marker set, but the
+        // problem-level notes survive (delete is lang-folder granularity only).
+        `m.deleteSolution(7, "reverse-int", "rust");\n` +
+        `const afterAllLangs = {\n` +
+        `  existing: m.findExistingSolutions(7, "reverse-int"),\n` +
+        `  ids: [...m.listSolutionQuestionIds()],\n` +
+        `  notes: existsSync(notes),\n` +
+        `};\n` +
+        `console.log(JSON.stringify({ before, afterEmpty, afterOne, afterAllLangs }));\n`,
+    );
+  });
+
+  afterEach(() => {
+    rmSync(home, { recursive: true, force: true });
+  });
+
+  test("removes only the lang subfolder; shared files + other langs survive; clears id on last", () => {
+    const res = Bun.spawnSync(["bun", script], {
+      env: { ...process.env, HOME: home, XDG_DATA_HOME: undefined, XDG_CONFIG_HOME: undefined },
+    });
+    if (res.exitCode !== 0) throw new Error(`child failed: ${res.stderr.toString()}`);
+    const lines = res.stdout.toString().trim().split("\n");
+    const out = JSON.parse(lines[lines.length - 1]!);
+
+    expect(out.before.sort()).toEqual(["python3", "rust"]);
+
+    // Empty langSlug is refused: the problem dir + both languages + shared files
+    // all survive (the guard against wiping the problem folder).
+    expect(out.afterEmpty.problemDir).toBe(true);
+    expect(out.afterEmpty.existing.sort()).toEqual(["python3", "rust"]);
+    expect(out.afterEmpty.notes).toBe(true);
+    expect(out.afterEmpty.tests).toBe(true);
+
+    // After deleting python3 (twice — the second is the idempotency probe): only
+    // the rust folder remains, the shared notes/problem.md/tests are untouched,
+    // and the id is still marked (rust still has a solution).
+    expect(out.afterOne.existing).toEqual(["rust"]);
+    expect(out.afterOne.ids).toContain(7);
+    expect(out.afterOne.pyDir).toBe(false);
+    expect(out.afterOne.notes).toBe(true);
+    expect(out.afterOne.problemMd).toBe(true);
+    expect(out.afterOne.tests).toBe(true);
+
+    // After removing the last language the id drops from the marker set, but the
+    // problem-level notes.md still exists (lang-folder granularity).
+    expect(out.afterAllLangs.existing).toEqual([]);
+    expect(out.afterAllLangs.ids).not.toContain(7);
+    expect(out.afterAllLangs.notes).toBe(true);
+  });
+});

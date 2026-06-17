@@ -43,3 +43,5 @@ export {
   ensureProblemMd,
   seedTests,
 } from "./create";
+
+export { deleteSolution } from "./remove";

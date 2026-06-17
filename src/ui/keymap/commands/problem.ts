@@ -23,6 +23,9 @@ import {
   handleProblemRun,
   handleProblemSubmit,
   handleProblemTestLocal,
+  handleRequestDeleteSolution,
+  handleConfirmDeleteSolution,
+  handleCancelDeleteSolution,
 } from "../../../views/problem/handlers";
 import { handleViewDailyChallenge } from "../../../views/browse/handlers";
 
@@ -240,6 +243,27 @@ export const problemCommands: CommandEntry[] = [
     category: "Navigation",
     group: "modal",
     run: () => scrollFocusedProblemPanel(-1),
+  }),
+  makeCommand({
+    name: "problem.deleteSolution",
+    title: "Delete focused solution",
+    category: "Solve",
+    group: "modal",
+    run: () => handleRequestDeleteSolution(),
+  }),
+  makeCommand({
+    name: "solution.deleteConfirm",
+    title: "Confirm delete",
+    category: "Solve",
+    group: "modal",
+    run: () => handleConfirmDeleteSolution(),
+  }),
+  makeCommand({
+    name: "solution.deleteCancel",
+    title: "Cancel delete",
+    category: "Solve",
+    group: "modal",
+    run: () => handleCancelDeleteSolution(),
   }),
   makeCommand({
     name: "problem.solutionNext",

@@ -17,6 +17,7 @@ import { SolutionPickerModal } from "../../ui/components/SolutionPickerModal";
 import { SolutionsPanel } from "../../ui/components/SolutionsPanel";
 import { RelatedPanel } from "../../ui/components/RelatedPanel";
 import { NotesPopup } from "../../ui/components/NotesPopup";
+import { DeleteSolutionPrompt } from "../../ui/components/DeleteSolutionPrompt";
 import { HelpPopup } from "../../ui/components/HelpPopup";
 import {
   problemGlobalBindings,
@@ -144,6 +145,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
     solutionPicker,
     notes,
     help,
+    deleteConfirm,
   } = problem;
   const scrollFocused = focusedPanel === "description" || focusedPanel === "result";
 
@@ -159,12 +161,14 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
 
   return (
     <box flexDirection="column" width="100%" height="100%">
-      {/* Help is a true modal: while open it gates off the global + panel layers so the
-          keys it lists (e/R/s/t…) can't fire behind it — only problemHelpBindings is live. */}
-      {!help && <ProblemGlobalBindings />}
-      {!help && scrollFocused && <ScrollPanelBindings />}
-      {!help && focusedPanel === "solutions" && <SolutionsPanelBindings />}
-      {!help && focusedPanel === "related" && <RelatedPanelBindings />}
+      {/* Help and the delete-confirm prompt are true modals: while either is open it gates
+          off the global + panel layers so the keys they'd shadow (e/R/s/t…, and especially
+          the `d` that opened the prompt) can't fire behind them — only the modal's own layer
+          is live (problemHelpBindings / deletePromptBindings). */}
+      {!help && !deleteConfirm && <ProblemGlobalBindings />}
+      {!help && !deleteConfirm && scrollFocused && <ScrollPanelBindings />}
+      {!help && !deleteConfirm && focusedPanel === "solutions" && <SolutionsPanelBindings />}
+      {!help && !deleteConfirm && focusedPanel === "related" && <RelatedPanelBindings />}
 
       <UpdateBanner />
 
@@ -233,6 +237,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
 
       {solutionPicker && <SolutionPickerModal />}
       {notes && <NotesPopup content={notes.content} />}
+      {deleteConfirm && <DeleteSolutionPrompt langSlug={deleteConfirm.langSlug} />}
       {help && (
         <HelpPopup
           scopes={[

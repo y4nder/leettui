@@ -139,6 +139,10 @@ export const solutionsPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsF
   "problem.solutionNext": ["j", "down"],
   "problem.solutionPrev": ["k", "up"],
   "problem.editorOpen": "return",
+  // `d` deletes the focused solution (Stage 16). Panel-scoped (only the Solutions
+  // panel mounts this layer) + a confirm modal — two deliberate steps for an
+  // irreversible filesystem delete, so it can't mis-fire from another panel.
+  "problem.deleteSolution": "d",
 });
 
 // Mounted only while the Related Questions panel is focused (Stage 12 item 4). j/k move
@@ -165,6 +169,15 @@ export const notesBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "popup.scrollDown": ["j", "down"],
   "popup.scrollUp": ["k", "up"],
   "notes.close": ["escape", "q"],
+});
+
+// Mounted by DeleteSolutionPrompt while open (Stage 16). A true modal like
+// problemHelpBindings: ProblemView gates the global + panel layers off while
+// deleteConfirm is set, so these y/Enter (delete) · n/Esc (cancel) keys are the
+// only live ones — the destructive delete can't fire behind the prompt.
+export const deletePromptBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "solution.deleteConfirm": ["y", "return"],
+  "solution.deleteCancel": ["n", "escape", "q"],
 });
 
 export const pickerBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
