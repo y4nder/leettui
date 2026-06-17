@@ -34,7 +34,7 @@ On first run, leettui runs an auth flow that imports your LeetCode session from 
 These are matched as argv tokens in `src/index.tsx` before the TUI starts:
 
 - `auth` — force the authentication flow.
-- `update` — self-update: download the latest release binary for the platform and atomically replace the running executable (`src/core/update.ts`). Pass `--force` to reinstall even when already current. Refuses unless `IS_RELEASE` (only official release-workflow binaries self-update — a from-source build is never overwritten by an older published release).
+- `update` — self-update: download the latest release binary for the platform and atomically replace the running executable (`src/core/update.ts`). Pass `--force` to reinstall even when already current. Refuses unless `IS_RELEASE` (only official release-workflow binaries self-update — a from-source build is never overwritten by an older published release). **Stage 19:** prefers the gzip-compressed release asset (`{asset}.gz`, ~40 MB on the wire vs. ~111 MB raw — the runtime binary is unchanged, only the download is compressed), decompressing it into the atomic-swap temp file; falls back to the raw asset on a tag published before Stage 19. `install.sh` does the same on first install. **Transition caveat:** releases keep shipping the raw asset alongside the `.gz` so pre-Stage-19 clients (whose `update.ts` only knows the raw asset name) keep self-updating; the raw asset can be retired in a later stage once `.gz`-aware clients dominate. Windows stays a raw manual `.exe` download (no install/self-update path).
 - `--version` / `version` — print the embedded version and exit.
 
 Version metadata lives in `src/core/version.ts`, inlined at build time via `--define`:

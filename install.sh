@@ -73,7 +73,7 @@ render_progress() { # render_progress <received> <total(0=indeterminate)>
   fi
 }
 
-download() { # download <url> <dest>  (curl only; wget keeps its own bar)
+curl_download() { # curl_download <url> <dest>  (curl only; wget keeps its own bar)
   _url=$1; _dest=$2
 
   # No animation when piped to a log/CI — keep the output clean.
@@ -100,6 +100,29 @@ download() { # download <url> <dest>  (curl only; wget keeps its own bar)
   [ "$_status" -eq 0 ] && [ "$_total" -gt 0 ] && render_progress "$_total" "$_total"
   printf '%s\n' "$SHOW_CURSOR"
   return "$_status"
+}
+
+# Fetch <url> to <dest>: curl gets the branded bar, wget keeps its own.
+fetch_to() { # fetch_to <url> <dest>
+  if command -v curl >/dev/null 2>&1; then
+    curl_download "$1" "$2"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q --show-progress -O "$2" "$1"
+  else
+    err "need curl or wget to download"
+  fi
+}
+
+# True when <url> resolves (a 200 after following GitHub's asset redirect) —
+# used to detect whether a release has the Stage 19 .gz sibling before fetching.
+remote_exists() { # remote_exists <url>
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsIL "$1" >/dev/null 2>&1
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q --spider "$1" >/dev/null 2>&1
+  else
+    err "need curl or wget to download"
+  fi
 }
 
 banner() {
@@ -144,13 +167,22 @@ fi
 mkdir -p "$INSTALL_DIR"
 dest="$INSTALL_DIR/leettui"
 
-step "Downloading ${BOLD}$asset${RESET} (${VERSION}) for ${os}/${arch}…"
-if command -v curl >/dev/null 2>&1; then
-  download "$url" "$dest" || err "download failed from $url"
-elif command -v wget >/dev/null 2>&1; then
-  wget -q --show-progress -O "$dest" "$url" || err "download failed from $url"
+# Stage 19: prefer the gzip-compressed asset (~half the bytes) and decompress
+# locally; fall back to the raw binary when the .gz is absent (an older pinned
+# VERSION whose release predates Stage 19) or gunzip isn't available. The
+# branded bar measures the compressed Content-Length on the .gz path.
+if command -v gunzip >/dev/null 2>&1 && remote_exists "$url.gz"; then
+  step "Downloading ${BOLD}$asset.gz${RESET} (${VERSION}) for ${os}/${arch}…"
+  tmp_gz="$dest.download.gz"
+  fetch_to "$url.gz" "$tmp_gz" || err "download failed from $url.gz"
+  # gunzip -c writes partial output before detecting a truncation, so remove
+  # both the archive and any partial binary on failure — never leave a
+  # truncated binary in place.
+  gunzip -c "$tmp_gz" > "$dest" || { rm -f "$tmp_gz" "$dest"; err "decompression failed — the download was corrupt or truncated"; }
+  rm -f "$tmp_gz"
 else
-  err "need curl or wget to download"
+  step "Downloading ${BOLD}$asset${RESET} (${VERSION}) for ${os}/${arch}…"
+  fetch_to "$url" "$dest" || err "download failed from $url"
 fi
 
 chmod +x "$dest"

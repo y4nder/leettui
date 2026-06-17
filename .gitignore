@@ -50,8 +50,9 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# Compiled binary (bun build --compile)
+# Compiled binary (bun build --compile) + any local gzip-asset measurement
 /leettui
+/leettui.gz
 
 # Claude Code skills (local-only, not shared via repo)
 .claude/skills/
