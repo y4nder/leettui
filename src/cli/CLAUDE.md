@@ -69,7 +69,7 @@ verbs so the `index.tsx` seam is wired once — items 3/4 only edit `src/cli/`.
 - `1` — ran, didn't pass. `test`: any case `fail`/`error`/`timeout`, or
   `no-harness` (a started solution with no runnable harness). `run`/`submit`:
   wrong answer or compile/runtime/limit/timeout error (`ResultView.kind` in
-  `{wrong, error, pending}`).
+  `{wrong, error, loading}`).
 - `2` — **couldn't run the verb at all** → message to **stderr**. Target not
   identified (cwd not inside a solution folder, no language subfolder, or unknown
   problem); for API verbs also a missing/expired session (→ `run \`leettui

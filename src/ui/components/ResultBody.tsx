@@ -2,6 +2,7 @@ import { colors } from "../theme";
 import type { ThemeColor } from "../themes";
 import type { ResultView, ResultKind, ResultCase } from "../../views/browse/resultView";
 import type { CaseStatus } from "../../core/testRunner";
+import { Loading } from "./Loading";
 
 interface ResultBodyProps {
   view: ResultView;
@@ -14,7 +15,7 @@ function titleColor(kind: ResultKind): ThemeColor {
     case "wrong":
     case "error":
       return colors.error;
-    case "pending":
+    case "loading":
     case "info":
       return colors.subtle;
   }
@@ -84,6 +85,15 @@ function Section({ label, color, value }: { label: string; color: ThemeColor; va
 }
 
 export function ResultBody({ view }: ResultBodyProps) {
+  // In-flight states carry no body — render just the shared spinner + label.
+  if (view.kind === "loading") {
+    return (
+      <box paddingLeft={1}>
+        <Loading label={view.title} />
+      </box>
+    );
+  }
+
   const headerColor = titleColor(view.kind);
   return (
     <>

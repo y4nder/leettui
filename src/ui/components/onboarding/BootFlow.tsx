@@ -17,7 +17,7 @@ import { openDatabase } from "../../../db";
 import { syncIfEmpty } from "../../../core/sync";
 import { migrateSolutionsLayout } from "../../../core/migration";
 import { detectSolutionsRelocation, type RelocationPlan } from "../../../core/relocate";
-import { checkForUpdate } from "../../../core/update";
+import { checkForUpdate, setPendingUpdate } from "../../../core/update";
 import { getLastKnownSolutionsDir, setLastKnownSolutionsDir } from "../../../core/session";
 import { useAppStore } from "../../store";
 
@@ -99,7 +99,12 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
         // resolves and the banner appears reactively. Never gates the ready hand-off.
         checkForUpdate()
           .then((tag) => {
-            if (tag) useAppStore.getState().setUpdateAvailable(tag);
+            if (tag) {
+              useAppStore.getState().setUpdateAvailable(tag);
+              // Also park it for the on-quit reminder, independent of the
+              // banner's session-only dismiss state.
+              setPendingUpdate(tag);
+            }
           })
           .catch(() => {});
         openDatabase(getDbPath());

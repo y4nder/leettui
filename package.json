@@ -33,6 +33,7 @@
     "@opentui/react": "^0.2.16",
     "drizzle-orm": "0.44.4",
     "node-html-markdown": "^2.0.0",
+    "opentui-spinner": "^0.0.7",
     "react": "^19.2.6",
     "smol-toml": "^1.6.1",
     "zustand": "^5.0.13"

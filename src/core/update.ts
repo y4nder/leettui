@@ -7,8 +7,25 @@ import { dirname, join } from "node:path";
 import { Readable } from "node:stream";
 
 import { IS_RELEASE, VERSION } from "./version";
+import { brandBanner, startProgress, updateError, updateSuccess } from "./updatePresent";
 
 const REPO = "y4nder/leettui";
+
+// The latest newer-release tag discovered this session (set by BootFlow's
+// non-blocking `checkForUpdate`), or null. Tracked separately from the in-app
+// banner's store state so dismissing the banner doesn't suppress the on-quit
+// reminder — the exit hook in `index.tsx` reads this.
+let pendingUpdate: string | null = null;
+
+/** Record (or clear) the newer-release tag to remind the user about on quit. */
+export function setPendingUpdate(tag: string | null): void {
+  pendingUpdate = tag;
+}
+
+/** The newer-release tag to remind the user about on quit, or null. */
+export function getPendingUpdate(): string | null {
+  return pendingUpdate;
+}
 
 // Only the combinations the release workflow actually builds (see
 // .github/workflows/release.yml and install.sh). Intel Macs and other arches
@@ -110,22 +127,24 @@ async function fetchLatestTag(): Promise<string> {
 }
 
 export async function runUpdate(opts: { force?: boolean } = {}): Promise<void> {
+  process.stdout.write(`${brandBanner()}\n`);
+
   // Only official release binaries self-update. A from-source build (or
   // `bun src/index.tsx update`, where process.execPath is bun, not leettui) is
   // typically ahead of the latest release — replacing it with a published
   // binary would be a downgrade, so refuse.
   if (!IS_RELEASE) {
     console.log(
-      `This is not an official release build (version ${VERSION}) — nothing to self-update.\n` +
-        "Update from source with `git pull`, or install a release with:\n" +
-        `  curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | sh`,
+      `  This is not an official release build (version ${VERSION}) — nothing to self-update.\n` +
+        "  Update from source with `git pull`, or install a release with:\n" +
+        `    curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | sh`,
     );
     return;
   }
 
   const resolved = resolveAsset();
   if ("error" in resolved) {
-    console.error(`error: ${resolved.error}`);
+    console.error(updateError(resolved.error));
     return;
   }
   const { asset } = resolved;
@@ -134,12 +153,12 @@ export async function runUpdate(opts: { force?: boolean } = {}): Promise<void> {
   try {
     tag = await fetchLatestTag();
   } catch (err) {
-    console.error(`error: could not check for updates — ${(err as Error).message}`);
+    console.error(updateError(`could not check for updates — ${(err as Error).message}`));
     return;
   }
 
   if (tag === VERSION && !opts.force) {
-    console.log(`Already on the latest version (${VERSION}).`);
+    console.log(`  Already on the latest version (${VERSION}).`);
     return;
   }
 
@@ -147,19 +166,28 @@ export async function runUpdate(opts: { force?: boolean } = {}): Promise<void> {
   const tmp = join(dirname(target), ".leettui.update.tmp");
   const url = `https://github.com/${REPO}/releases/download/${tag}/${asset}`;
 
-  console.log(`Downloading ${asset} (${tag})...`);
+  const progress = startProgress(`Downloading ${asset} (${tag})`);
   try {
     const res = await fetch(url);
     if (!res.ok || !res.body) {
       throw new Error(`download failed (${res.status}) from ${url}`);
     }
     // Stream to a temp file in the target's directory so the final rename is
-    // atomic on the same filesystem.
+    // atomic on the same filesystem. A `data` listener counts bytes for the
+    // progress bar without disturbing `pipe`'s backpressure handling.
+    const total = Number(res.headers.get("content-length")) || 0;
+    let received = 0;
     await new Promise<void>((resolve, reject) => {
       const out = createWriteStream(tmp);
       out.on("error", reject);
       out.on("finish", resolve);
-      Readable.fromWeb(res.body as Parameters<typeof Readable.fromWeb>[0]).pipe(out);
+      const src = Readable.fromWeb(res.body as Parameters<typeof Readable.fromWeb>[0]);
+      src.on("data", (chunk: Buffer) => {
+        received += chunk.length;
+        progress.update(received, total);
+      });
+      src.on("error", reject);
+      src.pipe(out);
     });
 
     await chmod(tmp, 0o755);
@@ -167,10 +195,11 @@ export async function runUpdate(opts: { force?: boolean } = {}): Promise<void> {
     // running process keeps the old inode; the next launch uses the new one.
     await rename(tmp, target);
   } catch (err) {
+    progress.done();
     await rm(tmp, { force: true });
-    console.error(`error: ${(err as Error).message}`);
+    console.error(updateError((err as Error).message));
     return;
   }
 
-  console.log(`Updated leettui ${VERSION} -> ${tag}. Restart to use it.`);
+  progress.done(updateSuccess(VERSION, tag));
 }

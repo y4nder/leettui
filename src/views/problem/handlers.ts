@@ -30,7 +30,7 @@ import { runSolution, submitSolution, SolutionError } from "../../core/submissio
 import { runLocalTests } from "../../core/testRunner";
 import { getEditorCommand } from "../../config";
 import { errMessage, logError } from "../../debug";
-import { buildResultView, buildLocalRunView, info, errorView } from "../browse/resultView";
+import { buildResultView, buildLocalRunView, info, loading, errorView } from "../browse/resultView";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
 
@@ -259,7 +259,7 @@ export async function handleProblemRun(triggerKey: string) {
       .setProblemResult(info("No solution selected. Press 'f' to pick a language."));
     return;
   }
-  useAppStore.getState().setProblemResult(info("Running solution..."));
+  useAppStore.getState().setProblemResult(loading("Running solution..."));
   try {
     const result = await runSolution(p.question, langSlug);
     useAppStore.getState().setProblemResult(buildResultView(result));
@@ -283,7 +283,7 @@ export async function handleProblemTestLocal(triggerKey: string) {
       .setProblemResult(info("No solution selected. Press 'f' to pick a language."));
     return;
   }
-  useAppStore.getState().setProblemResult(info("Running local tests..."));
+  useAppStore.getState().setProblemResult(loading("Running local tests..."));
   try {
     const report = await runLocalTests(p.question, langSlug);
     useAppStore.getState().setProblemResult(buildLocalRunView(report));
@@ -303,7 +303,7 @@ export async function handleProblemSubmit(triggerKey: string) {
       .setProblemResult(info("No solution selected. Press 'f' to pick a language."));
     return;
   }
-  useAppStore.getState().setProblemResult(info("Submitting solution..."));
+  useAppStore.getState().setProblemResult(loading("Submitting solution..."));
   try {
     const result = await submitSolution(p.question, langSlug);
     useAppStore.getState().setProblemResult(buildResultView(result));

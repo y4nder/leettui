@@ -81,7 +81,7 @@ describe("exitCodeForResultView (API verbs)", () => {
   test("info → 0", () => expect(code("info")).toBe(0));
   test("wrong → 1", () => expect(code("wrong")).toBe(1));
   test("error → 1", () => expect(code("error")).toBe(1));
-  test("pending → 1", () => expect(code("pending")).toBe(1));
+  test("loading → 1", () => expect(code("loading")).toBe(1));
 });
 
 describe("bootstrapApiClient", () => {

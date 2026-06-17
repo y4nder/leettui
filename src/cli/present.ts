@@ -52,7 +52,7 @@ function paintTitle(kind: ResultKind, s: string): string {
     case "wrong":
     case "error":
       return c.red(s);
-    case "pending":
+    case "loading":
     case "info":
       return c.dim(s);
   }
@@ -222,7 +222,7 @@ export function exitCodeForLocalRun(report: LocalRunReport): number {
 // Unlike `buildLocalRunView`, `buildResultView` is NOT lossy about failures —
 // nothing maps a real failure to `accepted` (only `run_accepted`/`submit_accepted`
 // do) — so `kind` is an exact verdict here. `accepted` (and the can't-happen-for-API
-// `info`) → 0; `wrong`/`error`/`pending` → 1, matching the `test` verb's
+// `info`) → 0; `wrong`/`error`/`loading` → 1, matching the `test` verb's
 // "any non-pass is 1". A couldn't-run condition (auth) is exit 2, handled by the
 // caller before this is reached — never folded in here.
 export function exitCodeForResultView(view: ResultView): number {
@@ -232,7 +232,7 @@ export function exitCodeForResultView(view: ResultView): number {
       return 0;
     case "wrong":
     case "error":
-    case "pending":
+    case "loading":
       return 1;
   }
 }

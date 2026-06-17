@@ -20,6 +20,9 @@ const debugFlag =
 initDebug(debugFlag);
 import { BootFlow } from "./ui/components/onboarding/BootFlow";
 import { installKeymap } from "./ui/keymap";
+import { getPendingUpdate } from "./core/update";
+import { updateNotice } from "./core/updatePresent";
+import { VERSION } from "./core/version";
 
 loadConfig();
 setTheme(getThemeName());
@@ -27,7 +30,6 @@ setTheme(getThemeName());
 // Subcommands that don't need the TUI. Handle them on the plain terminal and exit
 // before the renderer starts.
 if (process.argv.includes("--version") || process.argv.includes("version")) {
-  const { VERSION } = await import("./core/version");
   console.log(VERSION);
   process.exit(0);
 }
@@ -56,6 +58,14 @@ const force = process.argv.includes("auth");
 const renderer = await createCliRenderer({
   exitOnCtrlC: true,
   screenMode: "alternate-screen",
+});
+
+// On quit (q, Ctrl+C, or any clean exit), remind the user if a newer release was
+// found this session. Runs after the renderer has restored the main screen, so
+// the notice lands in normal scrollback rather than the alternate buffer.
+process.on("exit", () => {
+  const tag = getPendingUpdate();
+  if (tag) process.stdout.write(updateNotice(tag, VERSION));
 });
 
 attachPaletteListener(renderer);
