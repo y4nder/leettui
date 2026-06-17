@@ -61,6 +61,7 @@ export const questionPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFo
   "question.last": "shift+g",
   "problem.enter": "return",
   "problem.openEditor": "e",
+  "browse.openWorkspace": "w",
   "problem.run": "shift+r",
   "problem.submit": "s",
   "question.yankUrl": "y",
@@ -101,6 +102,7 @@ export const problemGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFo
   "problem.runFocused": "shift+r",
   "problem.testLocal": "t",
   "problem.submitFocused": "s",
+  "problem.openWorkspace": "w",
   "problem.notes": "n",
   // Tab/Shift+Tab cycle linearly (wrap); Ctrl+h/j/k/l move spatially across the 2D
   // layout (left/down/up/right, no wrap); [1]/[2]/[3] jump. NOTE: some terminals deliver

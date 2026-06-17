@@ -78,6 +78,12 @@ export function getNotesPath(id: number, titleSlug: string): string {
   return join(getProblemDir(id, titleSlug), "notes.md");
 }
 
+// The shared `problem.md` — the offline problem statement at the problem-folder
+// level (sibling to `notes.md`), created when the workspace is opened (Stage 13).
+export function getProblemMdPath(id: number, titleSlug: string): string {
+  return join(getProblemDir(id, titleSlug), "problem.md");
+}
+
 export function getTestsDir(id: number, titleSlug: string): string {
   return join(getProblemDir(id, titleSlug), "tests");
 }

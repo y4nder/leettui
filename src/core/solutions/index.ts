@@ -15,6 +15,7 @@ export {
   getNotesPath,
   getProblemDir,
   getProblemDirName,
+  getProblemMdPath,
   getSolutionFilename,
   getSolutionPath,
   getTestsDir,
@@ -26,6 +27,7 @@ export {
   findExistingSolutions,
   listSolutionQuestionIds,
   readNotes,
+  readProblemMd,
   readSolutionFile,
   solutionExists,
 } from "./discovery";
@@ -37,5 +39,7 @@ export {
   createSolutionFile,
   createSolutionWithHarness,
   ensureNotesFile,
+  ensureProblemDir,
+  ensureProblemMd,
   seedTests,
 } from "./create";

@@ -77,8 +77,10 @@ Browse uses lazygit-style focusable panels (Stage 11): exactly one panel is focu
 Tab / Shift+Tab: cycle focus | Ctrl+h/Ctrl+l: focus left/right | [1]/[2]: jump to topics/questions panel
 Topics focused — j/k: change topic (live-filters questions) | Enter: focus questions
 Questions focused — j/k or arrows: navigate | gg/G: jump first/last | Enter: view problem
-  e: Open in editor | R: Run | s: Submit | y: Yank URL
+  e: Open in editor (single solution file) | w: Open workspace (whole problem folder) | R: Run | s: Submit | y: Yank URL
 Global (any panel) — d: Daily challenge | D: Cycle difficulty | /: Search | ?: Help | q: Quit
+
+`e` opens the single `solution.{ext}` with cwd = the language folder (so `leettui test` cwd-inference + per-language LSP work); `w` opens the whole problem folder (`$EDITOR {problemDir}`) as a workspace so `problem.md`, `notes.md`, and every language subfolder are in the editor's file tree at once. `w` works in problem view too. Opening a workspace generates `problem.md` (the description, create-if-absent) and `notes.md` if absent.
 
 ### Config file (`~/.config/leettui/config.toml`)
 

@@ -9,6 +9,7 @@ import { makeCommand, type CommandEntry } from "../command";
 import { getRenderer } from "../runtime";
 import {
   handleOpenEditor,
+  handleOpenWorkspace,
   handleRandomQuestion,
   handleRunSolution,
   handleSubmitSolution,
@@ -105,6 +106,16 @@ export const browseSolveCommands: CommandEntry[] = [
     run: () => {
       const r = getRenderer();
       if (r) handleOpenEditor("e", r);
+    },
+  }),
+  makeCommand({
+    name: "browse.openWorkspace",
+    title: "Open problem workspace (whole folder) in editor",
+    category: "Solve",
+    short: "Wkspc",
+    run: () => {
+      const r = getRenderer();
+      if (r) handleOpenWorkspace("w", r);
     },
   }),
   makeCommand({

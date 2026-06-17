@@ -223,6 +223,58 @@ describe("createSolutionWithHarness with template overrides", () => {
   });
 });
 
+// --- problem.md / workspace seam (Stage 13 item 1) ---
+//
+// `findExistingSolutions`/`listSolutionQuestionIds` resolve the solutions dir
+// from `os.homedir()` (fixed at launch), so this runs in a subprocess with a
+// temp $HOME like the create-flow tests above.
+
+describe("ensureProblemMd + workspace seam (Stage 13)", () => {
+  let home: string;
+  let script: string;
+
+  beforeEach(() => {
+    home = join(tmpdir(), `leettui-pmd-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    mkdirSync(home, { recursive: true });
+    script = join(home, "child.ts");
+    writeFileSync(
+      script,
+      `const m = await import(${JSON.stringify(SOLUTIONS_MODULE)});\n` +
+        `m.ensureProblemDir(42, "the-slug");\n` +
+        `m.ensureProblemMd(42, "the-slug", "the description body", "The Title");\n` +
+        `m.ensureNotesFile(42, "the-slug", "The Title");\n` +
+        // Second call must not clobber an existing problem.md.
+        `m.ensureProblemMd(42, "the-slug", "DIFFERENT BODY", "The Title");\n` +
+        `console.log(JSON.stringify({\n` +
+        `  existing: m.findExistingSolutions(42, "the-slug"),\n` +
+        `  ids: [...m.listSolutionQuestionIds()],\n` +
+        `  problemMd: m.readProblemMd(42, "the-slug"),\n` +
+        `}));\n`,
+    );
+  });
+
+  afterEach(() => {
+    rmSync(home, { recursive: true, force: true });
+  });
+
+  test("creating problem.md + notes.md does not flip the 'has solution' marker", () => {
+    const res = Bun.spawnSync(["bun", script], {
+      env: { ...process.env, HOME: home, XDG_DATA_HOME: undefined, XDG_CONFIG_HOME: undefined },
+    });
+    if (res.exitCode !== 0) throw new Error(`child failed: ${res.stderr.toString()}`);
+    // The config bootstrap may print a "Created config…" line; our JSON is last.
+    const lines = res.stdout.toString().trim().split("\n");
+    const out = JSON.parse(lines[lines.length - 1]!);
+
+    // A problem folder holding only problem.md + notes.md is NOT a solution.
+    expect(out.existing).toEqual([]);
+    expect(out.ids).not.toContain(42);
+    // problem.md is heading + the ORIGINAL description (create-if-absent: the
+    // second ensureProblemMd with a different body left it untouched).
+    expect(out.problemMd).toBe("# 42. The Title\n\nthe description body\n");
+  });
+});
+
 describe("resolveProblemPath (Stage 8 cwd-inference)", () => {
   const root = join(tmpdir(), "leettui-solutions-root");
 
