@@ -195,6 +195,15 @@ export function buildLocalRunView(report: LocalRunReport): ResultView {
       );
     case "no-cases":
       return info("No test cases. Add tests/case-NN.txt (e.g. by recreating the solution).");
+    case "compile-error":
+      // A missing toolchain is a setup problem (one install hint); a real compile
+      // failure shows the compiler's diagnostics so the user can fix the code.
+      return report.toolchainMissing
+        ? errorView(
+            "✗ Rust toolchain not found",
+            "Install the Rust toolchain via rustup: https://rustup.rs",
+          )
+        : errorView("✗ Compile Error", report.output);
     case "ran": {
       const { cases } = report;
       const verdicts = cases.filter((c) => c.status === "pass" || c.status === "fail");

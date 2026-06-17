@@ -218,7 +218,8 @@ describe("createSolutionWithHarness with template overrides", () => {
       '[package]\nname = "median-arrays"',
     );
     expect(readFileSync(join(dir, "build.rs"), "utf-8")).toBe("// build");
-    // rust has no harness generator → no main.rs default appears.
+    // No metaData in this spec → the rust generator returns null, so no default
+    // main.rs appears (only the template-supplied files do).
     expect(existsSync(join(dir, "main.rs"))).toBe(false);
   });
 });

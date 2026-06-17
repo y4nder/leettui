@@ -3,18 +3,22 @@
 // `solution.{ext}`, or null when the language is unsupported or the metaData is
 // unusable. Never throws — solution creation must not fail on a bad harness.
 //
-// Supported: `python3` (Stage 7 item 3), `javascript` (item 5), and
-// `typescript`. Adding a language is one `case` below + one `RUNNERS` entry —
-// the item-4 runner stays unchanged.
+// Supported: `python3` (Stage 7 item 3), `javascript` (item 5), `typescript`,
+// and `rust` (Stage 14 — the first compiled language). Adding a language is one
+// `case` below + one `RUNNERS` entry — the item-4 runner stays unchanged.
 
-import { parseMetaData } from "./meta";
+import { type HarnessFile, parseMetaData } from "./meta";
 import { generatePythonHarness } from "./python";
 import { generateJavascriptHarness } from "./javascript";
 import { generateTypescriptHarness } from "./typescript";
+import { generateRustHarness } from "./rust";
 
+// A harness is a *set* of files, because a compiled language needs more than the
+// single interpreter-run script: Rust emits `Cargo.toml` + `.gitignore` +
+// `main.rs`. The interpreted languages return a one-element `files` array, so
+// the create-flow writer (`create.ts`) iterates uniformly.
 export interface GeneratedHarness {
-  filename: string;
-  content: string;
+  files: HarnessFile[];
 }
 
 export function generateHarness(
@@ -27,15 +31,21 @@ export function generateHarness(
     switch (langSlug) {
       case "python3": {
         const meta = parseMetaData(metaDataRaw);
-        return { filename: "main.py", content: generatePythonHarness(meta) };
+        return { files: [{ filename: "main.py", content: generatePythonHarness(meta) }] };
       }
       case "javascript": {
         const meta = parseMetaData(metaDataRaw);
-        return { filename: "main.js", content: generateJavascriptHarness(meta) };
+        return { files: [{ filename: "main.js", content: generateJavascriptHarness(meta) }] };
       }
       case "typescript": {
         const meta = parseMetaData(metaDataRaw);
-        return { filename: "main.ts", content: generateTypescriptHarness(meta) };
+        return { files: [{ filename: "main.ts", content: generateTypescriptHarness(meta) }] };
+      }
+      case "rust": {
+        const meta = parseMetaData(metaDataRaw);
+        const files = generateRustHarness(meta);
+        // null = a deferred/unmappable signature → no harness (blank stub).
+        return files ? { files } : null;
       }
       default:
         return null;
@@ -47,21 +57,39 @@ export function generateHarness(
 }
 
 // How the local test runner (Stage 7 item 4) executes a language's harness:
-// the harness file to invoke and the interpreter argv prefix. The runner spawns
-// `[...command, harnessFilename]` with cwd = the language folder so the harness
-// can `import` the sibling `solution.*`. Keeping this beside `generateHarness`
-// means a new language is one entry here + one `case` above; the runner itself
-// stays unchanged. Each `command` is a toolchain the user must have on PATH
-// (`python3`/`node`/`bun`) — a missing one degrades to a per-case `error`.
+// the harness file to invoke and the interpreter argv prefix. Keeping this beside
+// `generateHarness` means a new language is one entry here + one `case` above; the
+// runner itself stays unchanged. Each `command` (and `compile.command`) is a
+// toolchain the user must have on PATH (`python3`/`node`/`bun`/`cargo`) — a
+// missing interpreter degrades to a per-case `error`, a missing compiler to the
+// runner's one-shot `compile-error` report.
+//
+// Two execution models share this shape:
+//   - **Interpreted** (no `compile`): the runner spawns `[...command,
+//     harnessFilename]` per case, cwd = the language folder so the harness can
+//     `import` the sibling `solution.*`.
+//   - **Compiled** (`compile` present, Stage 14 — rust): the runner runs
+//     `compile.command` **once** in the language folder to produce a binary, then
+//     spawns `[...command]` per case — `command` already *is* the binary path
+//     (`./target/debug/main`), so `harnessFilename` is NOT appended (a trailing
+//     source-file arg would be wrong; the binary reads stdin directly).
+//     `harnessFilename` still anchors the runner's "no harness generated yet"
+//     precheck for both models.
 export interface RunnerSpec {
   harnessFilename: string;
   command: string[];
+  compile?: { command: string[] };
 }
 
 const RUNNERS: Record<string, RunnerSpec> = {
   python3: { harnessFilename: "main.py", command: ["python3"] },
   javascript: { harnessFilename: "main.js", command: ["node"] },
   typescript: { harnessFilename: "main.ts", command: ["bun"] },
+  rust: {
+    harnessFilename: "main.rs",
+    command: ["./target/debug/main"],
+    compile: { command: ["cargo", "build", "--quiet"] },
+  },
 };
 
 export function getRunnerSpec(langSlug: string): RunnerSpec | null {

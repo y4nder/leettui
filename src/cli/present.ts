@@ -199,8 +199,11 @@ export function presentResultView(view: ResultView): string {
 // its "ran" arm only counts pass/fail into the verdict, so `error`/`timeout`
 // cases with no `.out` collapse to kind "info". Deriving the code from the
 // report keeps the done-criterion exact: non-zero on *any* fail/error/timeout.
-//   - ran:        1 if any case failed/errored/timed out, else 0
-//   - no-harness: 1 — a started solution with no runnable harness is a real misconfig
+//   - ran:           1 if any case failed/errored/timed out, else 0
+//   - no-harness:    1 — a started solution with no runnable harness is a real misconfig
+//   - compile-error: 2 — the harness never ran (no binary produced); a "couldn't
+//                    run the verb" outcome, same non-zero family as a target-
+//                    resolution failure, not the ran-but-failed `1`
 //   - unsupported / no-cases: 0 — nothing to run; don't block hooks/quickfix
 export function exitCodeForLocalRun(report: LocalRunReport): number {
   switch (report.kind) {
@@ -212,6 +215,8 @@ export function exitCodeForLocalRun(report: LocalRunReport): number {
         : 0;
     case "no-harness":
       return 1;
+    case "compile-error":
+      return 2;
     case "unsupported":
     case "no-cases":
       return 0;

@@ -72,6 +72,54 @@ describe("exitCodeForLocalRun", () => {
       exitCodeForLocalRun({ kind: "no-harness", langSlug: "python3", harnessFilename: "main.py" }),
     ).toBe(1);
   });
+
+  // A compile failure means the harness never ran → "couldn't run the verb", the
+  // exit-2 family (same as a target-resolution failure), not ran-but-failed (1).
+  test("compile-error → 2 (couldn't run), missing toolchain or not", () => {
+    expect(
+      exitCodeForLocalRun({
+        kind: "compile-error",
+        langSlug: "rust",
+        toolchainMissing: true,
+        output: "spawn cargo ENOENT",
+      }),
+    ).toBe(2);
+    expect(
+      exitCodeForLocalRun({
+        kind: "compile-error",
+        langSlug: "rust",
+        toolchainMissing: false,
+        output: "error[E0308]: mismatched types",
+      }),
+    ).toBe(2);
+  });
+});
+
+describe("buildLocalRunView (compile-error)", () => {
+  test("missing toolchain → an install hint, not the raw spawn error", () => {
+    const view = buildLocalRunView({
+      kind: "compile-error",
+      langSlug: "rust",
+      toolchainMissing: true,
+      output: "spawn cargo ENOENT",
+    });
+    expect(view.kind).toBe("error");
+    expect(view.title).toContain("toolchain not found");
+    expect(view.error).toContain("rustup");
+    expect(view.error).not.toContain("ENOENT");
+  });
+
+  test("real compile failure → the compiler diagnostics", () => {
+    const view = buildLocalRunView({
+      kind: "compile-error",
+      langSlug: "rust",
+      toolchainMissing: false,
+      output: "error[E0308]: mismatched types",
+    });
+    expect(view.kind).toBe("error");
+    expect(view.title).toContain("Compile Error");
+    expect(view.error).toContain("error[E0308]");
+  });
 });
 
 describe("exitCodeForResultView (API verbs)", () => {
@@ -102,8 +150,14 @@ describe("bootstrapApiClient", () => {
   });
 });
 
-// bun's test runner pipes stdout, so STDOUT_COLOR is false here — assertions
-// match the plain (uncolored) text.
+// `present.ts` gates ANSI color on `process.stdout.isTTY` at module load — false
+// when test stdout is piped (CI), true in an interactive terminal. So glyphs like
+// `✓`/`!` may arrive wrapped in color codes (`\x1b[32m✓\x1b[0m`), breaking a
+// contiguous-substring assert. Strip ANSI so these tests check the plain text
+// regardless of where they run.
+// biome-ignore lint/suspicious/noControlCharactersInRegex: matching the ESC (\x1b) of an ANSI SGR sequence is the whole point
+const stripAnsi = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, "");
+
 describe("presentResultView", () => {
   test("renders title, metrics, and per-case verdicts", () => {
     const view = buildLocalRunView(
@@ -112,7 +166,7 @@ describe("presentResultView", () => {
         { name: "case-02", status: "fail", expected: "[0,1]", actual: "[1,0]" },
       ),
     );
-    const out = presentResultView(view);
+    const out = stripAnsi(presentResultView(view));
     expect(out).toContain("Local: 1/2 passed");
     expect(out).toContain("Passed: 1/2");
     expect(out).toContain("✓ case-01");
@@ -123,8 +177,10 @@ describe("presentResultView", () => {
   });
 
   test("shows an errored case with its (error) suffix and message", () => {
-    const out = presentResultView(
-      buildLocalRunView(ran({ name: "case-01", status: "error", actual: "NameError: x" })),
+    const out = stripAnsi(
+      presentResultView(
+        buildLocalRunView(ran({ name: "case-01", status: "error", actual: "NameError: x" })),
+      ),
     );
     expect(out).toContain("! case-01 (error)");
     expect(out).toContain("NameError: x");

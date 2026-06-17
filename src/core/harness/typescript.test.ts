@@ -45,8 +45,9 @@ describe("generateHarness dispatcher (typescript)", () => {
   test("returns main.ts for typescript", () => {
     const out = generateHarness("typescript", TWO_SUM);
     expect(out).not.toBeNull();
-    expect(out!.filename).toBe("main.ts");
-    expect(out!.content).toContain("Bun.Transpiler");
+    expect(out!.files).toHaveLength(1);
+    expect(out!.files[0]!.filename).toBe("main.ts");
+    expect(out!.files[0]!.content).toContain("Bun.Transpiler");
   });
 
   test("registers a bun runner spec for typescript", () => {
@@ -66,7 +67,7 @@ describe("end-to-end execution", () => {
   afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
   test("a typed LeetCode-style solution.ts runs against a stdin case", async () => {
-    const harness = generateHarness("typescript", TWO_SUM)!;
+    const harness = generateHarness("typescript", TWO_SUM)!.files[0]!;
     writeFileSync(join(dir, harness.filename), harness.content);
     writeFileSync(
       join(dir, "solution.ts"),

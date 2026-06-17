@@ -10,6 +10,15 @@ export interface MetaData {
   return: { type: string };
 }
 
+// One file a harness generator emits. Most languages produce a single harness
+// file (`main.py`/`main.js`/`main.ts`); a compiled language like Rust produces
+// several (`Cargo.toml` + `.gitignore` + `main.rs`). Lives here, language-
+// agnostic, so both the dispatcher (`index.ts`) and the generators share it.
+export interface HarnessFile {
+  filename: string;
+  content: string;
+}
+
 // LeetCode types that need real deserialization we don't do yet. Anything else
 // (integer, integer[], integer[][], string, string[], double, boolean,
 // character, ...) round-trips correctly through `JSON.parse` / `json.loads`.
