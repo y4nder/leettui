@@ -24,9 +24,23 @@ import { setLastKnownSolutionsDir } from "../../core/session";
 import { getEditorCommand, getSolutionsDir, persistSolutionsDir } from "../../config";
 import { resolveConfigPath } from "../../config/resolvePath";
 import { errMessage, logError } from "../../debug";
-import { buildResultView, info, loading, errorView } from "./resultView";
+import { buildResultView, info, loading, errorView, type ResultView } from "./resultView";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
+
+// The repeated catch tail: log against the "browse" scope, then surface the
+// failure through the given result-view setter. One place to change the shape of
+// every browse error report.
+function reportError(
+  setResult: (view: ResultView) => void,
+  triggerKey: string,
+  name: string,
+  title: string,
+  e: unknown,
+) {
+  logError(triggerKey, "browse", name, e);
+  setResult(errorView(title, errMessage(e)));
+}
 
 // Run `fn` on the bare terminal (editor, auth prompts, …) with the TUI paused,
 // always resuming afterwards — the shared scaffold behind editor + re-auth.
@@ -63,8 +77,13 @@ export async function handleViewDailyChallenge(triggerKey: string) {
     const md = htmlToMarkdown(html);
     showPopup(`${q.frontendQuestionId}. ${q.title} [${q.difficulty}] — Daily`, md);
   } catch (e) {
-    logError(triggerKey, "browse", "handleViewDailyChallenge", e);
-    showResult(errorView("Error fetching daily challenge", errMessage(e)));
+    reportError(
+      showResult,
+      triggerKey,
+      "handleViewDailyChallenge",
+      "Error fetching daily challenge",
+      e,
+    );
   }
 }
 
@@ -117,8 +136,7 @@ export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
       },
     );
   } catch (e) {
-    logError(triggerKey, "browse", "handleOpenEditor", e);
-    showResult(errorView("Error fetching editor data", errMessage(e)));
+    reportError(showResult, triggerKey, "handleOpenEditor", "Error fetching editor data", e);
   }
 }
 
@@ -148,8 +166,7 @@ async function withChosenSolution(
       try {
         await fn(existing[index]!);
       } catch (e) {
-        logError(triggerKey, "browse", `handle${action}Solution`, e);
-        showResult(errorView(errTitle, errMessage(e)));
+        reportError(showResult, triggerKey, `handle${action}Solution`, errTitle, e);
       }
     });
     return;
@@ -158,8 +175,7 @@ async function withChosenSolution(
   try {
     await fn(existing[0]!);
   } catch (e) {
-    logError(triggerKey, "browse", `handle${action}Solution`, e);
-    showResult(errorView(errTitle, errMessage(e)));
+    reportError(showResult, triggerKey, `handle${action}Solution`, errTitle, e);
   }
 }
 
@@ -232,8 +248,7 @@ export function handleYankUrl(triggerKey: string) {
     copyToClipboard(url);
     showResult(info(`Copied URL: ${url}`));
   } catch (e) {
-    logError(triggerKey, "browse", "handleYankUrl", e);
-    showResult(errorView("Could not copy URL", errMessage(e)));
+    reportError(showResult, triggerKey, "handleYankUrl", "Could not copy URL", e);
   }
 }
 

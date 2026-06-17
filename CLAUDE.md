@@ -60,7 +60,7 @@ Version metadata lives in `src/core/version.ts`, inlined at build time via `--de
 
 - **JSX**: Uses `@opentui/react` intrinsics (`<box>`, `<text>`, `<scrollbox>`, `<markdown>`)
 - **State**: Zustand store split into ui/domain slices (`src/ui/store/`); `mode` field drives conditional rendering of popups, which in turn mount/unmount their `useBindings` layers
-- **Keymap**: `@opentui/keymap` — global command catalog registered at boot in `src/ui/keymap.ts`, per-scope binding-only layers attached via `useBindings` from the components that own each scope
+- **Keymap**: `@opentui/keymap` — global command catalog registered at boot in `src/ui/keymap/` (a barrel module: `command`/`runtime`/`commands/`/`bindings`/`scopes`/`format`), per-scope binding-only layers attached via `useBindings` from the components that own each scope
 - **API auth**: Cookie-based (`LEETCODE_SESSION` + `csrftoken`). Acquired by `src/core/auth/` (Firefox cookie import → guided paste fallback), validated against LeetCode, then persisted to config. Boot validates the saved session and re-prompts on expiry; an in-app "Re-authenticate" command (Ctrl+P) recovers mid-session
 - **DB sync**: Paginated fetch of all LeetCode problems on first run, stored in SQLite
 
