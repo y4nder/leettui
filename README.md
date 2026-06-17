@@ -20,7 +20,11 @@ A snappy terminal UI for LeetCode — browse, solve, run, and submit, all from a
 
 ## Demo
 
-https://github.com/user-attachments/assets/414c0e9d-7504-401c-9c5f-ade426ae5614
+<!--  https://github.com/user-attachments/assets/414c0e9d-7504-401c-9c5f-ade426ae5614 -->
+
+
+https://github.com/user-attachments/assets/19f9c07c-33ab-40b3-9083-53e8ae2dd7c8
+
 
 ---
 
