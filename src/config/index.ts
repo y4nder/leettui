@@ -27,12 +27,11 @@ lc_session = ""
 # name = "tokyo-night"  # available: tokyo-night, catppuccin, system
 
 # [scroll]
-# page_fraction = 0.2  # Ctrl+d/Ctrl+u jump as a fraction of the visible list (0 < x <= 1); 0.5 = half page, 1.0 = full
+# jump_rows = 10  # how many rows Ctrl+d/Ctrl+u jump (a positive integer)
 `;
 
-// Default Ctrl+d/Ctrl+u jump: a fifth of a page — a gentle nudge that keeps
-// context on screen, tunable up to a full page (1.0) via [scroll] page_fraction.
-export const DEFAULT_PAGE_FRACTION = 0.2;
+// Default Ctrl+d/Ctrl+u jump distance, in rows.
+export const DEFAULT_JUMP_ROWS = 10;
 
 let _config: Config | null = null;
 
@@ -84,20 +83,21 @@ export function getThemeName(): string | undefined {
   return config.theme?.name;
 }
 
-// Coerce a raw `[scroll] page_fraction` TOML value into a usable fraction.
-// Anything that isn't a finite number in (0, 1] is rejected: non-positive,
+// Coerce a raw `[scroll] jump_rows` TOML value into a usable row count.
+// Anything that isn't a finite number ≥ 1 is rejected: zero/negative,
 // NaN/Infinity, or a non-number (TOML could yield a string/bool) falls back to
-// the half-page default; a value above 1 is clamped to a full page. Pure so the
-// out-of-range handling is unit-tested without touching the filesystem.
-export function clampPageFraction(raw: unknown): number {
-  if (typeof raw !== "number" || !Number.isFinite(raw) || raw <= 0) {
-    return DEFAULT_PAGE_FRACTION;
+// the default; a fractional value is floored to whole rows. No upper bound — an
+// oversized count just overshoots the list end, which the cursor clamp pins back
+// into range. Pure so the out-of-range handling is unit-tested off the filesystem.
+export function clampJumpRows(raw: unknown): number {
+  if (typeof raw !== "number" || !Number.isFinite(raw) || raw < 1) {
+    return DEFAULT_JUMP_ROWS;
   }
-  return Math.min(raw, 1);
+  return Math.floor(raw);
 }
 
-export function getScrollPageFraction(): number {
-  return clampPageFraction(loadConfig().scroll?.page_fraction);
+export function getScrollJumpRows(): number {
+  return clampJumpRows(loadConfig().scroll?.jump_rows);
 }
 
 // Root of the per-language template-override tree. Users drop files under

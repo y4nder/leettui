@@ -50,11 +50,6 @@ export interface UiSlice {
   // Captured at open time (like the select/changelog payloads), empty when closed.
   // Each carries its `viewedAt` instant so the modal can show when it was opened.
   recents: RecentQuestion[];
-  // Visible row count of the browse list panels (both share `mainHeight`, so one
-  // value covers topics + questions). Pushed from BrowseView on resize so the
-  // Ctrl+d/Ctrl+u half-page jumps can size their delta without re-deriving the
-  // chrome math. Read via getState() (nothing subscribes), so no re-render loop.
-  listViewportRows: number;
   // Per-panel "please glide the next scroll" nonces, bumped by the half-page
   // commands. The list components feed their panel's nonce to useGlide; a bump
   // animates the offset change, an unchanged nonce snaps. Per-panel (not one
@@ -64,7 +59,6 @@ export interface UiSlice {
   questionScrollNonce: number;
 
   bumpThemeVersion: () => void;
-  setListViewportRows: (rows: number) => void;
   requestSmoothScroll: (panel: BrowsePanel) => void;
   setUpdateAvailable: (tag: string | null) => void;
   showChangelog: (release: ReleaseInfo) => void;
@@ -106,12 +100,10 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   updateAvailable: null,
   changelog: null,
   recents: [],
-  listViewportRows: 1,
   topicScrollNonce: 0,
   questionScrollNonce: 0,
 
   bumpThemeVersion: () => set((s) => ({ themeVersion: s.themeVersion + 1 })),
-  setListViewportRows: (rows) => set({ listViewportRows: rows }),
   requestSmoothScroll: (panel) =>
     set((s) =>
       panel === "topics"

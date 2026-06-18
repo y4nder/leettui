@@ -5,7 +5,7 @@
 // them as two arrays lets commands/index.ts reproduce that exact byte order.
 
 import { useAppStore } from "../../store";
-import { currentPageJump } from "../../scrollJump";
+import { getScrollJumpRows } from "../../../config";
 import { makeCommand, type CommandEntry } from "../command";
 import { getRenderer } from "../runtime";
 import {
@@ -79,7 +79,7 @@ export const browseNavCommands: CommandEntry[] = [
     run: () => {
       const s = useAppStore.getState();
       s.requestSmoothScroll("questions");
-      s.moveQuestion(currentPageJump());
+      s.moveQuestion(getScrollJumpRows());
     },
   }),
   makeCommand({
@@ -89,7 +89,7 @@ export const browseNavCommands: CommandEntry[] = [
     run: () => {
       const s = useAppStore.getState();
       s.requestSmoothScroll("questions");
-      s.moveQuestion(-currentPageJump());
+      s.moveQuestion(-getScrollJumpRows());
     },
   }),
   makeCommand({
@@ -99,7 +99,7 @@ export const browseNavCommands: CommandEntry[] = [
     run: () => {
       const s = useAppStore.getState();
       s.requestSmoothScroll("topics");
-      s.moveTopic(currentPageJump());
+      s.moveTopic(getScrollJumpRows());
     },
   }),
   makeCommand({
@@ -109,7 +109,7 @@ export const browseNavCommands: CommandEntry[] = [
     run: () => {
       const s = useAppStore.getState();
       s.requestSmoothScroll("topics");
-      s.moveTopic(-currentPageJump());
+      s.moveTopic(-getScrollJumpRows());
     },
   }),
   makeCommand({
