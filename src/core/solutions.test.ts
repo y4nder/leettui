@@ -22,6 +22,14 @@ const TWO_SUM_META = JSON.stringify({
   return: { type: "integer[]" },
 });
 
+// A deferred-type (ListNode) signature: the rust harness can't map it, so
+// `generateHarness` returns null — no Cargo.toml/main.rs and no feature declared.
+const REVERSE_LIST_META = JSON.stringify({
+  name: "reverseList",
+  params: [{ name: "head", type: "ListNode" }],
+  return: { type: "ListNode" },
+});
+
 describe("renderTemplate", () => {
   test("substitutes functionName and titleSlug (with optional inner spaces)", () => {
     const out = renderTemplate("fn={{functionName}} slug={{ titleSlug }}", {
@@ -220,6 +228,68 @@ describe("createSolutionWithHarness with template overrides", () => {
     expect(readFileSync(join(dir, "build.rs"), "utf-8")).toBe("// build");
     // No metaData in this spec → the rust generator returns null, so no default
     // main.rs appears (only the template-supplied files do).
+    expect(existsSync(join(dir, "main.rs"))).toBe(false);
+  });
+
+  test("mappable rust: solution.rs gets the cfg-gated struct shim alongside the harness", () => {
+    const spec: CreateSpec = {
+      id: 5,
+      slug: "two-sum-rs",
+      lang: "rust",
+      code: "impl Solution {\n    pub fn two_sum() {}\n}",
+      meta: TWO_SUM_META,
+    };
+    runCreate(spec);
+
+    const dir = langDir(spec);
+    const solution = readFileSync(join(dir, "solution.rs"), "utf-8");
+    expect(solution).toContain('#[cfg(feature = "harness")]\npub struct Solution;');
+    expect(solution).toContain("impl Solution {");
+    // The shim coheres only with the harness it travels with.
+    expect(readFileSync(join(dir, "Cargo.toml"), "utf-8")).toContain('default = ["harness"]');
+    expect(readFileSync(join(dir, "main.rs"), "utf-8")).toContain("mod solution;");
+  });
+
+  test("rust solution.rs template wins un-shimmed (Stage 21 caveat): user owns the cfg struct", () => {
+    // Templates win untouched — the cfg-struct shim is only applied to the DEFAULT
+    // snippet, not a user template. Since the generated main.rs no longer defines
+    // `struct Solution;`, a template author must carry their own (documented).
+    writeTemplate("rust", "solution.rs", "// my template\nimpl Solution {}");
+    const spec: CreateSpec = {
+      id: 7,
+      slug: "templated-rs",
+      lang: "rust",
+      code: "impl Solution {}",
+      meta: TWO_SUM_META,
+    };
+    runCreate(spec);
+
+    const dir = langDir(spec);
+    // Verbatim template, NOT shimmed.
+    expect(readFileSync(join(dir, "solution.rs"), "utf-8")).toBe(
+      "// my template\nimpl Solution {}",
+    );
+    // The generated harness still lands (only solution.rs was overridden).
+    expect(readFileSync(join(dir, "main.rs"), "utf-8")).toContain("mod solution;");
+  });
+
+  test("unmappable rust (ListNode): plain snippet, no orphaned cfg shim or manifest", () => {
+    const spec: CreateSpec = {
+      id: 6,
+      slug: "reverse-list-rs",
+      lang: "rust",
+      code: "impl Solution {\n    pub fn reverse_list() {}\n}",
+      meta: REVERSE_LIST_META,
+    };
+    runCreate(spec);
+
+    const dir = langDir(spec);
+    // No harness (deferred type) → no feature is declared anywhere, so the snippet
+    // must NOT carry a feature-gated struct (it'd reference an undeclared feature).
+    expect(readFileSync(join(dir, "solution.rs"), "utf-8")).toBe(
+      "impl Solution {\n    pub fn reverse_list() {}\n}",
+    );
+    expect(existsSync(join(dir, "Cargo.toml"))).toBe(false);
     expect(existsSync(join(dir, "main.rs"))).toBe(false);
   });
 });

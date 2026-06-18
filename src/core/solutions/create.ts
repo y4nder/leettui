@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { getLanguageTemplateDir } from "../../config";
-import { generateHarness } from "../harness";
+import { generateHarness, prepareSolutionSnippet } from "../harness";
 import { parseMetaData } from "../harness/meta";
 import {
   getHarnessPath,
@@ -131,15 +131,24 @@ export function createSolutionWithHarness(
   };
   const applied = overlayTemplates(getLanguageTemplateDir(langSlug), dirname(solutionPath), vars);
 
+  // A harness can be multiple files (Rust: Cargo.toml + .gitignore + main.rs).
+  // Generate it FIRST so the solution-snippet transform can be coupled to its
+  // presence: `prepareSolutionSnippet` only shims rust's `solution.rs` (the
+  // `#[cfg(feature = "harness")] struct Solution;` that makes it a real module
+  // rust-analyzer can complete), and that shim only coheres alongside the
+  // harness's `Cargo.toml` (declaring the feature) + `main.rs` (`mod solution;`).
+  // An unmappable signature yields a null harness — no manifest — so it gets the
+  // plain snippet, never an orphaned feature-gated line.
+  const harness = generateHarness(langSlug, metaDataRaw);
+  const solutionCode = harness ? prepareSolutionSnippet(langSlug, code) : code;
+
   if (!applied.has(getSolutionFilename(langSlug))) {
-    createSolutionFile(id, titleSlug, langSlug, code);
+    createSolutionFile(id, titleSlug, langSlug, solutionCode);
   }
 
-  // A harness can be multiple files (Rust: Cargo.toml + .gitignore + main.rs).
-  // Each is written create-if-absent and skipped if the template overlay already
-  // supplied it, so user/template versions win exactly as for the single-file
-  // languages.
-  const harness = generateHarness(langSlug, metaDataRaw);
+  // Each harness file is written create-if-absent and skipped if the template
+  // overlay already supplied it, so user/template versions win exactly as for the
+  // single-file languages.
   if (harness) {
     for (const file of harness.files) {
       if (!applied.has(file.filename)) {

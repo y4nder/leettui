@@ -75,6 +75,23 @@ function toSnakeCase(name: string): string {
   return name.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`).replace(/^_/, "");
 }
 
+// The cfg-gated `struct Solution;` prepended to the LeetCode snippet so `solution.rs`
+// becomes a *real, self-contained module* on disk — which is what makes rust-analyzer
+// give it completions (an `include!`d file is macro input, not a module, so its
+// completion engine produces nothing; hover/goto work but completion is dead). With
+// its own `struct Solution`, `main.rs` can pull it in via `mod solution;` (a true
+// module) instead of `include!`, and editing `solution.rs` gets the full LSP.
+//
+// It stays **submittable to LeetCode verbatim**: LeetCode pre-defines `struct Solution;`
+// and the `harness` Cargo feature is undefined there, so the `#[cfg(feature = "harness")]`
+// line compiles to nothing — no duplicate definition. Locally the feature is default-on
+// (see `generateRustHarness`'s `Cargo.toml`), so the struct is present and the module
+// is self-contained. `pub` makes the type nameable from `main.rs` across the module
+// boundary (LeetCode snippets already declare the method `pub fn`).
+export function prepareRustSolution(code: string): string {
+  return `#[cfg(feature = "harness")]\npub struct Solution;\n\n${code}`;
+}
+
 // Assembles the full Rust harness file set for a mappable signature, or null
 // when item-1's gate (`isRustMappable`) rejects it (a deferred `ListNode`/
 // `TreeNode` or unknown scalar) — the caller then writes a blank `solution.rs`
@@ -87,10 +104,12 @@ function toSnakeCase(name: string): string {
 //     solutions tree is git-pushable, and `target/` bloat shouldn't ride along);
 //   - `main.rs` — reads stdin lines into `data`, runs item-1's typed
 //     `serde_json::from_str` per arg, calls `Solution::{fn}(...)`, and prints
-//     `serde_json::to_string(&result)`. `struct Solution;` + `include!` pulls in
-//     the un-modified, byte-for-byte-submittable `solution.rs` (the same "load
-//     the solution without touching it" trick as the JS/TS harnesses). A `void`
-//     return maps to `()`, whose JSON is `null` — matching the dynamic harnesses.
+//     `serde_json::to_string(&result)`. `mod solution; use solution::Solution;`
+//     pulls in `solution.rs` as a **real module** (not `include!`) so rust-analyzer
+//     gives it completions; `solution.rs` carries its own `#[cfg(feature = "harness")]
+//     struct Solution;` (see `prepareRustSolution`) to make that module self-contained
+//     locally while staying submittable to LeetCode verbatim. A `void` return maps to
+//     `()`, whose JSON is `null` — matching the dynamic harnesses.
 export function generateRustHarness(meta: MetaData): HarnessFile[] | null {
   const argReads = renderRustArgReads(meta);
   if (argReads === null || !isRustMappable(meta)) return null;
@@ -98,6 +117,14 @@ export function generateRustHarness(meta: MetaData): HarnessFile[] | null {
   const fn = toSnakeCase(meta.name);
   const argList = meta.params.map((p) => p.name).join(", ");
 
+  // The default-on `harness` feature gates the `#[cfg(feature = "harness")] struct
+  // Solution;` in `solution.rs` (see `prepareRustSolution`): on a plain `cargo build`
+  // it's enabled, so the struct exists locally and `mod solution;` resolves; on
+  // LeetCode the feature is undefined, so the struct vanishes and the file stays
+  // submittable. A declared feature (vs a raw `--cfg harness`) is warning-clean —
+  // Cargo auto-adds it to the expected-cfg set, so no `unexpected_cfgs` lint — and
+  // rust-analyzer enables default features automatically, so completion works with
+  // zero per-user editor config.
   const cargoToml = `[package]
 name = "main"
 version = "0.1.0"
@@ -107,6 +134,10 @@ edition = "2021"
 name = "main"
 path = "main.rs"
 
+[features]
+default = ["harness"]
+harness = []
+
 [dependencies]
 serde_json = "1"
 `;
@@ -115,8 +146,8 @@ serde_json = "1"
 
   const mainRs = `use std::io::{self, Read};
 
-struct Solution;
-include!("solution.rs");
+mod solution;
+use solution::Solution;
 
 fn main() {
     let mut input = String::new();

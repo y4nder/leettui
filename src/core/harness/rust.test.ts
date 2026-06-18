@@ -4,10 +4,12 @@ import { parseMetaData } from "./meta";
 import {
   generateRustHarness,
   isRustMappable,
+  prepareRustSolution,
   renderRustArgReads,
   rustReturnType,
   rustType,
 } from "./rust";
+import { prepareSolutionSnippet } from "./index";
 
 const TWO_SUM = JSON.stringify({
   name: "twoSum",
@@ -150,16 +152,26 @@ describe("generateRustHarness", () => {
     expect(cargo).toContain('serde_json = "1"');
   });
 
+  test("Cargo.toml declares a default-on harness feature (gates the LSP shim)", () => {
+    const cargo = generateRustHarness(parseMetaData(TWO_SUM))!.find(
+      (f) => f.filename === "Cargo.toml",
+    )!.content;
+    expect(cargo).toContain('default = ["harness"]');
+    expect(cargo).toContain("harness = []");
+  });
+
   test(".gitignore ignores the build dir", () => {
     const files = generateRustHarness(parseMetaData(TWO_SUM))!;
     expect(files.find((f) => f.filename === ".gitignore")!.content).toBe("/target\n");
   });
 
-  test("main.rs includes the un-touched solution and drives it via serde", () => {
+  test("main.rs pulls in solution.rs as a real module (mod, not include!) and drives it via serde", () => {
     const files = generateRustHarness(parseMetaData(TWO_SUM))!;
     const main = files.find((f) => f.filename === "main.rs")!.content;
-    expect(main).toContain("struct Solution;");
-    expect(main).toContain('include!("solution.rs");');
+    expect(main).toContain("mod solution;");
+    expect(main).toContain("use solution::Solution;");
+    // No `include!` — that's what broke rust-analyzer completion on solution.rs.
+    expect(main).not.toContain("include!");
     expect(main).toContain("let nums: Vec<i32> = serde_json::from_str(data[0]).unwrap();");
     expect(main).toContain("let target: i32 = serde_json::from_str(data[1]).unwrap();");
     expect(main).toContain("serde_json::to_string(&result)");
@@ -187,5 +199,23 @@ describe("generateHarness dispatcher (rust)", () => {
 
   test("returns null for a deferred signature", () => {
     expect(generateHarness("rust", LISTNODE_PARAM)).toBeNull();
+  });
+});
+
+describe("prepareRustSolution / prepareSolutionSnippet", () => {
+  const SNIPPET = "impl Solution {\n    pub fn two_sum() {}\n}";
+
+  test("prepends the cfg-gated struct so solution.rs is a real module", () => {
+    expect(prepareRustSolution(SNIPPET)).toBe(
+      `#[cfg(feature = "harness")]\npub struct Solution;\n\n${SNIPPET}`,
+    );
+  });
+
+  test("prepareSolutionSnippet shims rust but passes other languages through unchanged", () => {
+    expect(prepareSolutionSnippet("rust", SNIPPET)).toBe(prepareRustSolution(SNIPPET));
+    expect(prepareSolutionSnippet("python3", "class Solution: pass")).toBe("class Solution: pass");
+    expect(prepareSolutionSnippet("javascript", "var twoSum = function() {};")).toBe(
+      "var twoSum = function() {};",
+    );
   });
 });
