@@ -76,8 +76,8 @@ Version metadata lives in `src/core/version.ts`, inlined at build time via `--de
 
 Browse uses lazygit-style focusable panels (Stage 11): exactly one panel is focused.
 Tab / Shift+Tab: cycle focus | Ctrl+h/Ctrl+l: focus left/right | [1]/[2]: jump to topics/questions panel
-Topics focused — j/k: change topic (live-filters questions) | gg/G: jump first/last | Enter: focus questions
-Questions focused — j/k or arrows: navigate | gg/G: jump first/last | Enter: view problem
+Topics focused — j/k: change topic (live-filters questions) | gg/G: jump first/last | Ctrl+d/Ctrl+u: half-page jump | Enter: focus questions
+Questions focused — j/k or arrows: navigate | gg/G: jump first/last | Ctrl+d/Ctrl+u: half-page jump | Enter: view problem
   e: Open in editor (single solution file) | w: Open workspace (whole problem folder) | R: Run | s: Submit | y: Yank URL
 Global (any panel) — d: Daily challenge | h: Recently viewed (history modal) | D: Cycle difficulty | /: Search | ?: Help | q: Quit
 

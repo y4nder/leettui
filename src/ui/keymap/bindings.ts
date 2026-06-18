@@ -47,24 +47,29 @@ export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor
 });
 
 // Mounted only while the topics panel is focused. j/k move the topic cursor (which
-// live-filters the question list), gg/G jump to ends; Enter hands focus to the
-// questions panel.
+// live-filters the question list), gg/G jump to ends, Ctrl+d/Ctrl+u jump a half page;
+// Enter hands focus to the questions panel.
 export const topicPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "topic.next": ["j", "down"],
   "topic.prev": ["k", "up"],
   "topic.first": "gg",
   "topic.last": "shift+g",
+  "topic.halfDown": "ctrl+d",
+  "topic.halfUp": "ctrl+u",
   "focus.questions": "return",
 });
 
 // Mounted only while the questions panel is focused. j/k move the question cursor,
-// gg/G jump to ends, Enter opens the problem view, and the question-targeted solve
-// actions (open editor / run / submit / yank URL) act on the selected question.
+// gg/G jump to ends, Ctrl+d/Ctrl+u jump a half page, Enter opens the problem view, and
+// the question-targeted solve actions (open editor / run / submit / yank URL) act on
+// the selected question.
 export const questionPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "question.next": ["j", "down"],
   "question.prev": ["k", "up"],
   "question.first": "gg",
   "question.last": "shift+g",
+  "question.halfDown": "ctrl+d",
+  "question.halfUp": "ctrl+u",
   "problem.enter": "return",
   "problem.openEditor": "e",
   "browse.openWorkspace": "w",

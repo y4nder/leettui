@@ -17,6 +17,14 @@ import {
   handleYankUrl,
 } from "../../../views/browse/handlers";
 
+// Neovim Ctrl+d/Ctrl+u: jump the cursor by half a viewport, letting useScrollOffset
+// scroll the window under it. The page size is the live list viewport (both panels
+// share it), floored to ≥1 so a tiny terminal still moves. Reuses moveQuestion/
+// moveTopic, so clamp + debounced topic-load + session-persist all come for free.
+function halfPage(): number {
+  return Math.max(1, Math.floor(useAppStore.getState().listViewportRows / 2));
+}
+
 export const browseNavCommands: CommandEntry[] = [
   makeCommand({
     name: "question.next",
@@ -70,6 +78,30 @@ export const browseNavCommands: CommandEntry[] = [
     category: "Navigation",
     short: "Recent",
     run: () => handleOpenRecent(),
+  }),
+  makeCommand({
+    name: "question.halfDown",
+    title: "Jump down half a page (questions)",
+    category: "Navigation",
+    run: () => useAppStore.getState().moveQuestion(halfPage()),
+  }),
+  makeCommand({
+    name: "question.halfUp",
+    title: "Jump up half a page (questions)",
+    category: "Navigation",
+    run: () => useAppStore.getState().moveQuestion(-halfPage()),
+  }),
+  makeCommand({
+    name: "topic.halfDown",
+    title: "Jump down half a page (topics)",
+    category: "Navigation",
+    run: () => useAppStore.getState().moveTopic(halfPage()),
+  }),
+  makeCommand({
+    name: "topic.halfUp",
+    title: "Jump up half a page (topics)",
+    category: "Navigation",
+    run: () => useAppStore.getState().moveTopic(-halfPage()),
   }),
   makeCommand({
     name: "question.first",

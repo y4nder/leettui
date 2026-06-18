@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useTerminalDimensions } from "@opentui/react";
 import { useBindings } from "@opentui/keymap/react";
 import type { createCliRenderer } from "@opentui/core";
@@ -83,6 +84,14 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
   const changelog = useAppStore((s) => s.changelog);
 
   const mainHeight = height - (syncProgress ? 2 : 1) - (updateAvailable ? 1 : 0);
+
+  // Mirror the list viewport (same `- 2` border budget the panels use) into the
+  // store so the Ctrl+d/Ctrl+u half-page commands can size their jump. Read-only
+  // for them (getState), so this write never triggers a re-render of a subscriber.
+  const setListViewportRows = useAppStore((s) => s.setListViewportRows);
+  useEffect(() => {
+    setListViewportRows(Math.max(1, mainHeight - 2));
+  }, [mainHeight, setListViewportRows]);
 
   return (
     <box flexDirection="column" width="100%" height="100%">

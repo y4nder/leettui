@@ -50,8 +50,14 @@ export interface UiSlice {
   // Captured at open time (like the select/changelog payloads), empty when closed.
   // Each carries its `viewedAt` instant so the modal can show when it was opened.
   recents: RecentQuestion[];
+  // Visible row count of the browse list panels (both share `mainHeight`, so one
+  // value covers topics + questions). Pushed from BrowseView on resize so the
+  // Ctrl+d/Ctrl+u half-page jumps can size their delta without re-deriving the
+  // chrome math. Read via getState() (nothing subscribes), so no re-render loop.
+  listViewportRows: number;
 
   bumpThemeVersion: () => void;
+  setListViewportRows: (rows: number) => void;
   setUpdateAvailable: (tag: string | null) => void;
   showChangelog: (release: ReleaseInfo) => void;
   hideChangelog: () => void;
@@ -92,8 +98,10 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   updateAvailable: null,
   changelog: null,
   recents: [],
+  listViewportRows: 1,
 
   bumpThemeVersion: () => set((s) => ({ themeVersion: s.themeVersion + 1 })),
+  setListViewportRows: (rows) => set({ listViewportRows: rows }),
   setUpdateAvailable: (tag) => set({ updateAvailable: tag }),
 
   // "What's new" popup (Stage 18). Auto-opened once per new version at boot and
