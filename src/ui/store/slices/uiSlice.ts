@@ -55,9 +55,17 @@ export interface UiSlice {
   // Ctrl+d/Ctrl+u half-page jumps can size their delta without re-deriving the
   // chrome math. Read via getState() (nothing subscribes), so no re-render loop.
   listViewportRows: number;
+  // Per-panel "please glide the next scroll" nonces, bumped by the half-page
+  // commands. The list components feed their panel's nonce to useGlide; a bump
+  // animates the offset change, an unchanged nonce snaps. Per-panel (not one
+  // shared) so a topic jump — which resets the question cursor to 0 — snaps the
+  // question list instead of gliding it alongside.
+  topicScrollNonce: number;
+  questionScrollNonce: number;
 
   bumpThemeVersion: () => void;
   setListViewportRows: (rows: number) => void;
+  requestSmoothScroll: (panel: BrowsePanel) => void;
   setUpdateAvailable: (tag: string | null) => void;
   showChangelog: (release: ReleaseInfo) => void;
   hideChangelog: () => void;
@@ -99,9 +107,17 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   changelog: null,
   recents: [],
   listViewportRows: 1,
+  topicScrollNonce: 0,
+  questionScrollNonce: 0,
 
   bumpThemeVersion: () => set((s) => ({ themeVersion: s.themeVersion + 1 })),
   setListViewportRows: (rows) => set({ listViewportRows: rows }),
+  requestSmoothScroll: (panel) =>
+    set((s) =>
+      panel === "topics"
+        ? { topicScrollNonce: s.topicScrollNonce + 1 }
+        : { questionScrollNonce: s.questionScrollNonce + 1 },
+    ),
   setUpdateAvailable: (tag) => set({ updateAvailable: tag }),
 
   // "What's new" popup (Stage 18). Auto-opened once per new version at boot and

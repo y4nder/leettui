@@ -82,6 +82,8 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
   const syncProgress = useAppStore((s) => s.syncProgress);
   const updateAvailable = useAppStore((s) => s.updateAvailable);
   const changelog = useAppStore((s) => s.changelog);
+  const topicScrollNonce = useAppStore((s) => s.topicScrollNonce);
+  const questionScrollNonce = useAppStore((s) => s.questionScrollNonce);
 
   const mainHeight = height - (syncProgress ? 2 : 1) - (updateAvailable ? 1 : 0);
 
@@ -111,6 +113,7 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
           height={mainHeight}
           focused={focusedPanel === "topics"}
           tag={String(PANEL_ORDER.indexOf("topics") + 1)}
+          smoothNonce={topicScrollNonce}
         />
         <QuestionList
           questions={filteredQuestions}
@@ -120,6 +123,7 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
           solutionFileIds={solutionFileIds}
           focused={focusedPanel === "questions"}
           tag={String(PANEL_ORDER.indexOf("questions") + 1)}
+          smoothNonce={questionScrollNonce}
         />
       </box>
 

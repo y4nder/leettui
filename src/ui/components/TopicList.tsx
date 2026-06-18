@@ -1,5 +1,6 @@
 import { colors } from "../theme";
 import { useScrollOffset } from "../useScrollOffset";
+import { useGlide } from "../useGlide";
 
 interface TopicListProps {
   topics: string[];
@@ -8,11 +9,23 @@ interface TopicListProps {
   focused: boolean;
   // The number key that focuses this panel ([1]/[2]), shown as a tag in the title.
   tag: string;
+  // Bumped by the half-page commands to glide the scroll; unchanged = snap.
+  smoothNonce: number;
 }
 
-export function TopicList({ topics, selectedIndex, height, focused, tag }: TopicListProps) {
+export function TopicList({
+  topics,
+  selectedIndex,
+  height,
+  focused,
+  tag,
+  smoothNonce,
+}: TopicListProps) {
   const visibleCount = Math.max(1, height - 2);
-  const scrollOffset = useScrollOffset(selectedIndex, topics.length, visibleCount);
+  const scrollOffset = useGlide(
+    useScrollOffset(selectedIndex, topics.length, visibleCount),
+    smoothNonce,
+  );
 
   const visible = topics.slice(scrollOffset, scrollOffset + visibleCount);
 

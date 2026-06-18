@@ -83,25 +83,41 @@ export const browseNavCommands: CommandEntry[] = [
     name: "question.halfDown",
     title: "Jump down half a page (questions)",
     category: "Navigation",
-    run: () => useAppStore.getState().moveQuestion(halfPage()),
+    run: () => {
+      const s = useAppStore.getState();
+      s.requestSmoothScroll("questions");
+      s.moveQuestion(halfPage());
+    },
   }),
   makeCommand({
     name: "question.halfUp",
     title: "Jump up half a page (questions)",
     category: "Navigation",
-    run: () => useAppStore.getState().moveQuestion(-halfPage()),
+    run: () => {
+      const s = useAppStore.getState();
+      s.requestSmoothScroll("questions");
+      s.moveQuestion(-halfPage());
+    },
   }),
   makeCommand({
     name: "topic.halfDown",
     title: "Jump down half a page (topics)",
     category: "Navigation",
-    run: () => useAppStore.getState().moveTopic(halfPage()),
+    run: () => {
+      const s = useAppStore.getState();
+      s.requestSmoothScroll("topics");
+      s.moveTopic(halfPage());
+    },
   }),
   makeCommand({
     name: "topic.halfUp",
     title: "Jump up half a page (topics)",
     category: "Navigation",
-    run: () => useAppStore.getState().moveTopic(-halfPage()),
+    run: () => {
+      const s = useAppStore.getState();
+      s.requestSmoothScroll("topics");
+      s.moveTopic(-halfPage());
+    },
   }),
   makeCommand({
     name: "question.first",
