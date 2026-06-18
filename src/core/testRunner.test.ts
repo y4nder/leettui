@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { pairCases, compareOutput } from "./testRunner";
-import { generateHarness, getRunnerSpec } from "./harness";
+import { generateHarness, getRunnerSpec, prepareSolutionSnippet } from "./harness";
 
 describe("pairCases", () => {
   test("pairs inputs with their .out siblings, sorted", () => {
@@ -90,11 +90,16 @@ describe.if(HAS_CARGO)("rust end-to-end execution", () => {
       for (const file of harness.files) {
         writeFileSync(join(dir, file.filename), file.content);
       }
-      // LeetCode's bare `impl Solution` — note the snake_case fn name the harness
-      // call (`Solution::two_sum`) must resolve against.
+      // LeetCode's bare `impl Solution` (snake_case fn the harness call
+      // `Solution::two_sum` resolves against), written through the create-flow's
+      // snippet transform so it carries the `#[cfg(feature = "harness")] struct
+      // Solution;` the new `mod solution; use solution::Solution;` main.rs needs to
+      // resolve. This proves the feature-on local build path compiles + runs.
       writeFileSync(
         join(dir, "solution.rs"),
-        `impl Solution {
+        prepareSolutionSnippet(
+          "rust",
+          `impl Solution {
     pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
         for i in 0..nums.len() {
             for j in (i + 1)..nums.len() {
@@ -106,6 +111,7 @@ describe.if(HAS_CARGO)("rust end-to-end execution", () => {
         vec![]
     }
 }`,
+        ),
       );
 
       const spec = getRunnerSpec("rust")!;

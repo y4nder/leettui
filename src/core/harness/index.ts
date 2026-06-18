@@ -12,7 +12,7 @@ import { type HarnessFile, type MetaData, hasDeferredType, parseMetaData } from 
 import { generatePythonHarness } from "./python";
 import { generateJavascriptHarness } from "./javascript";
 import { generateTypescriptHarness } from "./typescript";
-import { generateRustHarness } from "./rust";
+import { generateRustHarness, prepareRustSolution } from "./rust";
 import { generateCsharpHarness } from "./csharp";
 
 // A harness is a *set* of files, because a compiled language needs more than the
@@ -114,4 +114,19 @@ const RUNNERS: Record<string, RunnerSpec> = {
 
 export function getRunnerSpec(langSlug: string): RunnerSpec | null {
   return RUNNERS[langSlug] ?? null;
+}
+
+// Transforms the LeetCode solution snippet before it's written to `solution.{ext}`,
+// so a language can adapt the on-disk file for its local tooling without touching the
+// submittable shape. Today only **rust** transforms (prepending a `#[cfg]`-gated
+// `struct Solution;` so `solution.rs` is a real module rust-analyzer can complete —
+// see `prepareRustSolution`); every other language returns the snippet unchanged.
+//
+// **Couple it to harness presence at the call site** (`create.ts`): the rust shim only
+// makes sense alongside the `Cargo.toml` (declaring the `harness` feature) + `main.rs`
+// (`mod solution;`) that `generateHarness` carries. An unmappable signature (deferred
+// `ListNode`/`TreeNode`) yields a null harness — no manifest — so it must get the plain
+// snippet, not a feature-gated line with no feature declared anywhere.
+export function prepareSolutionSnippet(langSlug: string, code: string): string {
+  return langSlug === "rust" ? prepareRustSolution(code) : code;
 }
