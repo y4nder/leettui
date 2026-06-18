@@ -1,4 +1,5 @@
 import { colors } from "../theme";
+import { useScrollOffset } from "../useScrollOffset";
 
 interface TopicListProps {
   topics: string[];
@@ -11,10 +12,7 @@ interface TopicListProps {
 
 export function TopicList({ topics, selectedIndex, height, focused, tag }: TopicListProps) {
   const visibleCount = Math.max(1, height - 2);
-  let scrollOffset = 0;
-  if (selectedIndex >= scrollOffset + visibleCount) {
-    scrollOffset = selectedIndex - visibleCount + 1;
-  }
+  const scrollOffset = useScrollOffset(selectedIndex, topics.length, visibleCount);
 
   const visible = topics.slice(scrollOffset, scrollOffset + visibleCount);
 

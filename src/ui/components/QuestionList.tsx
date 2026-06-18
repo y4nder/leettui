@@ -1,5 +1,6 @@
 import type { DbQuestion } from "../../db/questions";
 import { colors, difficultyColor, statusIcon, statusColor } from "../theme";
+import { useScrollOffset } from "../useScrollOffset";
 
 interface QuestionListProps {
   questions: DbQuestion[];
@@ -27,13 +28,7 @@ export function QuestionList({
   tag,
 }: QuestionListProps) {
   const visibleCount = Math.max(1, height - 2);
-  let scrollOffset = 0;
-  if (selectedIndex >= scrollOffset + visibleCount) {
-    scrollOffset = selectedIndex - visibleCount + 1;
-  }
-  if (selectedIndex < scrollOffset) {
-    scrollOffset = selectedIndex;
-  }
+  const scrollOffset = useScrollOffset(selectedIndex, questions.length, visibleCount);
 
   const visible = questions.slice(scrollOffset, scrollOffset + visibleCount);
 
