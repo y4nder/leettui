@@ -14,7 +14,8 @@ import { fetchQuestionContent } from "../../api/queries/question-content";
 import { fetchEditorData } from "../../api/queries/editor-data";
 import { fetchConsolePanelConfig } from "../../api/queries/console-panel-config";
 import { fetchDailyChallenge } from "../../api/queries/daily-challenge";
-import { getQuestionsByTopic } from "../../db/questions";
+import { getQuestionBySlug, getQuestionsByTopic } from "../../db/questions";
+import { getRecents, recordRecent } from "../../db/recents";
 import {
   createSolutionWithHarness,
   ensureNotesFile,
@@ -86,6 +87,12 @@ export async function handleViewChangelog(): Promise<void> {
   }
 }
 
+// `h` history modal (Stage 20): snapshot the recently-viewed questions and open
+// the RecentPopup. Synchronous (getRecents is a local DB read) — no loading state.
+export function handleOpenRecent() {
+  useAppStore.getState().showRecent(getRecents());
+}
+
 export async function handleViewDailyChallenge(triggerKey: string) {
   const { showPopup, showResult } = useAppStore.getState();
   try {
@@ -98,6 +105,11 @@ export async function handleViewDailyChallenge(triggerKey: string) {
       return;
     }
     const md = htmlToMarkdown(html);
+    // Opening the detail popup is a "viewed" moment (Stage 20). The daily question
+    // is keyed by slug here; record it only when it maps to a locally-synced row
+    // (recents references questions.id), otherwise quietly skip.
+    const dbQ = getQuestionBySlug(q.titleSlug);
+    if (dbQ) recordRecent(dbQ.id);
     showPopup(`${q.frontendQuestionId}. ${q.title} [${q.difficulty}] — Daily`, md);
   } catch (e) {
     reportError(

@@ -7,6 +7,7 @@ import type { StateCreator } from "zustand";
 import type { AppStore } from "../index";
 import type { ResultView } from "../../../views/browse/resultView";
 import type { ReleaseInfo } from "../../../core/update";
+import type { RecentQuestion } from "../../../db/recents";
 
 // Which browse-view panel currently holds focus (lazygit-style). Only meaningful
 // while mode === "browse"; panel-relative bindings (j/k, Enter) are mounted per panel.
@@ -28,6 +29,7 @@ export type AppMode =
   | "problem"
   | "relocate"
   | "changelog"
+  | "recent"
   | "easterEgg";
 
 export interface UiSlice {
@@ -44,11 +46,17 @@ export interface UiSlice {
   updateAvailable: string | null;
   // The release whose "What's new" popup is open (tag + notes body), or null.
   changelog: ReleaseInfo | null;
+  // Recently-viewed questions snapshot backing the `h` history modal (Stage 20).
+  // Captured at open time (like the select/changelog payloads), empty when closed.
+  // Each carries its `viewedAt` instant so the modal can show when it was opened.
+  recents: RecentQuestion[];
 
   bumpThemeVersion: () => void;
   setUpdateAvailable: (tag: string | null) => void;
   showChangelog: (release: ReleaseInfo) => void;
   hideChangelog: () => void;
+  showRecent: (items: RecentQuestion[]) => void;
+  hideRecent: () => void;
   setMode: (mode: AppMode) => void;
   setFocusedPanel: (panel: BrowsePanel) => void;
   // dir 1 = next panel, -1 = previous (wraps). Generalizes past two panels.
@@ -83,6 +91,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   resultView: null,
   updateAvailable: null,
   changelog: null,
+  recents: [],
 
   bumpThemeVersion: () => set((s) => ({ themeVersion: s.themeVersion + 1 })),
   setUpdateAvailable: (tag) => set({ updateAvailable: tag }),
@@ -91,6 +100,12 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   // on demand from the command palette; closing returns to browse.
   showChangelog: (release) => set({ mode: "changelog", changelog: release }),
   hideChangelog: () => set({ mode: "browse", changelog: null }),
+
+  // Recently-viewed history modal (Stage 20). Opened with `h` from browse; the
+  // snapshot is read from the DB by the opening handler and passed in, mirroring
+  // showSelect/showChangelog. Closing clears it back to browse.
+  showRecent: (items) => set({ mode: "recent", recents: items }),
+  hideRecent: () => set({ mode: "browse", recents: [] }),
   setMode: (mode) => set({ mode }),
   setFocusedPanel: (panel) => set({ focusedPanel: panel }),
   cycleFocusedPanel: (dir) =>

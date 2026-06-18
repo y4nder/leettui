@@ -16,7 +16,7 @@ export interface DbQuestion {
 
 // Drizzle infers camelCase fields from the schema; the rest of the app consumes
 // the snake_case `DbQuestion` shape, so map at the data-access boundary.
-function toDbQuestion(row: typeof questions.$inferSelect): DbQuestion {
+export function toDbQuestion(row: typeof questions.$inferSelect): DbQuestion {
   return {
     id: row.id,
     title: row.title,

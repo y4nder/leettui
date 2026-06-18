@@ -41,3 +41,10 @@ export function getDb(): Db {
   if (!_db) throw new Error("Database not initialized");
   return _db;
 }
+
+// Drop the singleton so the next `openDatabase` opens a fresh connection. Only
+// used by tests, which open a throwaway DB per case for isolation (the app opens
+// exactly one DB for its lifetime).
+export function closeDatabase(): void {
+  _db = null;
+}

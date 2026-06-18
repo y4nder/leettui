@@ -19,6 +19,7 @@ import {
   getTopicsForQuestion,
   type DbQuestion,
 } from "../../db/questions";
+import { recordRecent } from "../../db/recents";
 import {
   createSolutionWithHarness,
   deleteSolution,
@@ -138,6 +139,9 @@ export async function handleEnterProblemView(question: DbQuestion, triggerKey = 
         dbQuestion: sq.isPaidOnly ? null : getQuestionBySlug(sq.titleSlug),
       }),
     );
+    // Entering ProblemView is one of the two "viewed" moments (Stage 20): record
+    // it so the `h` history modal can recall it (idempotent upsert — bumps to top).
+    recordRecent(question.id);
     useAppStore
       .getState()
       .enterProblemView({ question, description, solutions, topicTags, related });
