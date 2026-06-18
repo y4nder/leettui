@@ -76,8 +76,8 @@ Version metadata lives in `src/core/version.ts`, inlined at build time via `--de
 
 Browse uses lazygit-style focusable panels (Stage 11): exactly one panel is focused.
 Tab / Shift+Tab: cycle focus | Ctrl+h/Ctrl+l: focus left/right | [1]/[2]: jump to topics/questions panel
-Topics focused — j/k: change topic (live-filters questions) | Enter: focus questions
-Questions focused — j/k or arrows: navigate | gg/G: jump first/last | Enter: view problem
+Topics focused — j/k: change topic (live-filters questions) | gg/G: jump first/last | Ctrl+d/Ctrl+u: scroll jump (distance configurable via [scroll] jump_rows) | Enter: focus questions
+Questions focused — j/k or arrows: navigate | gg/G: jump first/last | Ctrl+d/Ctrl+u: scroll jump (distance configurable via [scroll] jump_rows) | Enter: view problem
   e: Open in editor (single solution file) | w: Open workspace (whole problem folder) | R: Run | s: Submit | y: Yank URL
 Global (any panel) — d: Daily challenge | h: Recently viewed (history modal) | D: Cycle difficulty | /: Search | ?: Help | q: Quit
 
@@ -90,3 +90,5 @@ A **"What's new" changelog popup** (Stage 18) auto-appears once on the first lau
 ### Config file (`~/.config/leettui/config.toml`)
 
 `csrftoken` and `lc_session` are normally written by the auth flow (`src/core/auth/`), not by hand — Firefox auto-import or a guided, validated paste. `bun src/index.tsx auth` re-runs it.
+
+`[scroll] jump_rows` (default `10`) sets how many rows `Ctrl+d`/`Ctrl+u` jump. Read via `getScrollJumpRows()`; a below-1/NaN/non-number value falls back to the default and a fractional value is floored. There's no upper bound — an oversized count just overshoots the list end, which the cursor clamp pins back into range.

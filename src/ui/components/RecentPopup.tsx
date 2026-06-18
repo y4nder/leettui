@@ -6,6 +6,7 @@ import { colors, difficultyColor, statusColor, statusIcon } from "../theme";
 import { useAppStore } from "../store";
 import { handleEnterProblemView } from "../../views/problem/handlers";
 import { formatRelative } from "../relativeTime";
+import { useScrollOffset } from "../useScrollOffset";
 
 // "Recently viewed" history modal (Stage 20), opened with `h` from browse. A
 // recency-sorted list of the questions you've opened (detail popup or ProblemView),
@@ -44,9 +45,7 @@ export function RecentPopup() {
   // Window the list like QuestionList so the selection never scrolls out of view.
   // Popup is 60% tall; reserve border (2) + title (1) + footer (1).
   const visibleCount = Math.max(1, Math.floor(height * 0.6) - 4);
-  let scrollOffset = 0;
-  if (selectedIndex >= scrollOffset + visibleCount) scrollOffset = selectedIndex - visibleCount + 1;
-  if (selectedIndex < scrollOffset) scrollOffset = selectedIndex;
+  const scrollOffset = useScrollOffset(selectedIndex, recents.length, visibleCount);
   const visible = recents.slice(scrollOffset, scrollOffset + visibleCount);
 
   return (

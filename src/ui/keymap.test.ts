@@ -10,6 +10,7 @@ import {
   problemHelpBindings,
   problemPanelBindings,
   questionPanelBindings,
+  topicPanelBindings,
 } from "./keymap";
 
 describe("formatKeyToken", () => {
@@ -137,7 +138,12 @@ describe("problem help scope visibility (Stage 12 item 5)", () => {
   // A binding naming a non-existent command is a typo class tsc can't catch (the title
   // falls back to the raw command name). Guard the new problem layers against it.
   test("no dead bindings in the problem global + help layers", () => {
-    for (const scope of [problemGlobalBindings, problemHelpBindings]) {
+    for (const scope of [
+      problemGlobalBindings,
+      problemHelpBindings,
+      topicPanelBindings,
+      questionPanelBindings,
+    ]) {
       for (const b of describeScope(scope)) {
         expect(b.title).not.toBe(b.cmd);
       }

@@ -1,5 +1,7 @@
 import type { DbQuestion } from "../../db/questions";
 import { colors, difficultyColor, statusIcon, statusColor } from "../theme";
+import { useScrollOffset } from "../useScrollOffset";
+import { useGlide } from "../useGlide";
 
 interface QuestionListProps {
   questions: DbQuestion[];
@@ -10,6 +12,8 @@ interface QuestionListProps {
   focused: boolean;
   // The number key that focuses this panel ([1]/[2]), shown as a tag in the title.
   tag: string;
+  // Bumped by the half-page commands to glide the scroll; unchanged = snap.
+  smoothNonce: number;
 }
 
 function formatAcRate(acRate: number | null): string {
@@ -25,15 +29,13 @@ export function QuestionList({
   solutionFileIds,
   focused,
   tag,
+  smoothNonce,
 }: QuestionListProps) {
   const visibleCount = Math.max(1, height - 2);
-  let scrollOffset = 0;
-  if (selectedIndex >= scrollOffset + visibleCount) {
-    scrollOffset = selectedIndex - visibleCount + 1;
-  }
-  if (selectedIndex < scrollOffset) {
-    scrollOffset = selectedIndex;
-  }
+  const scrollOffset = useGlide(
+    useScrollOffset(selectedIndex, questions.length, visibleCount),
+    smoothNonce,
+  );
 
   const visible = questions.slice(scrollOffset, scrollOffset + visibleCount);
 

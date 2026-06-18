@@ -14,4 +14,8 @@ export interface Config {
   theme?: {
     name?: string;
   };
+  scroll?: {
+    // Ctrl+d/Ctrl+u jump distance, in rows (a positive integer). Default 10.
+    jump_rows?: number;
+  };
 }

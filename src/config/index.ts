@@ -25,7 +25,13 @@ lc_session = ""
 
 # [theme]
 # name = "tokyo-night"  # available: tokyo-night, catppuccin, system
+
+# [scroll]
+# jump_rows = 10  # how many rows Ctrl+d/Ctrl+u jump (a positive integer)
 `;
+
+// Default Ctrl+d/Ctrl+u jump distance, in rows.
+export const DEFAULT_JUMP_ROWS = 10;
 
 let _config: Config | null = null;
 
@@ -75,6 +81,23 @@ export function getDefaultLanguage(): string {
 export function getThemeName(): string | undefined {
   const config = loadConfig();
   return config.theme?.name;
+}
+
+// Coerce a raw `[scroll] jump_rows` TOML value into a usable row count.
+// Anything that isn't a finite number ≥ 1 is rejected: zero/negative,
+// NaN/Infinity, or a non-number (TOML could yield a string/bool) falls back to
+// the default; a fractional value is floored to whole rows. No upper bound — an
+// oversized count just overshoots the list end, which the cursor clamp pins back
+// into range. Pure so the out-of-range handling is unit-tested off the filesystem.
+export function clampJumpRows(raw: unknown): number {
+  if (typeof raw !== "number" || !Number.isFinite(raw) || raw < 1) {
+    return DEFAULT_JUMP_ROWS;
+  }
+  return Math.floor(raw);
+}
+
+export function getScrollJumpRows(): number {
+  return clampJumpRows(loadConfig().scroll?.jump_rows);
 }
 
 // Root of the per-language template-override tree. Users drop files under

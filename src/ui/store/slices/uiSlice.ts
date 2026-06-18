@@ -50,8 +50,16 @@ export interface UiSlice {
   // Captured at open time (like the select/changelog payloads), empty when closed.
   // Each carries its `viewedAt` instant so the modal can show when it was opened.
   recents: RecentQuestion[];
+  // Per-panel "please glide the next scroll" nonces, bumped by the half-page
+  // commands. The list components feed their panel's nonce to useGlide; a bump
+  // animates the offset change, an unchanged nonce snaps. Per-panel (not one
+  // shared) so a topic jump — which resets the question cursor to 0 — snaps the
+  // question list instead of gliding it alongside.
+  topicScrollNonce: number;
+  questionScrollNonce: number;
 
   bumpThemeVersion: () => void;
+  requestSmoothScroll: (panel: BrowsePanel) => void;
   setUpdateAvailable: (tag: string | null) => void;
   showChangelog: (release: ReleaseInfo) => void;
   hideChangelog: () => void;
@@ -92,8 +100,16 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   updateAvailable: null,
   changelog: null,
   recents: [],
+  topicScrollNonce: 0,
+  questionScrollNonce: 0,
 
   bumpThemeVersion: () => set((s) => ({ themeVersion: s.themeVersion + 1 })),
+  requestSmoothScroll: (panel) =>
+    set((s) =>
+      panel === "topics"
+        ? { topicScrollNonce: s.topicScrollNonce + 1 }
+        : { questionScrollNonce: s.questionScrollNonce + 1 },
+    ),
   setUpdateAvailable: (tag) => set({ updateAvailable: tag }),
 
   // "What's new" popup (Stage 18). Auto-opened once per new version at boot and

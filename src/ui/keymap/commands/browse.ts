@@ -5,6 +5,7 @@
 // them as two arrays lets commands/index.ts reproduce that exact byte order.
 
 import { useAppStore } from "../../store";
+import { getScrollJumpRows } from "../../../config";
 import { makeCommand, type CommandEntry } from "../command";
 import { getRenderer } from "../runtime";
 import {
@@ -47,6 +48,18 @@ export const browseNavCommands: CommandEntry[] = [
     run: () => useAppStore.getState().moveTopic(-1),
   }),
   makeCommand({
+    name: "topic.first",
+    title: "Jump to first topic",
+    category: "Navigation",
+    run: () => useAppStore.getState().setTopicIndex(0),
+  }),
+  makeCommand({
+    name: "topic.last",
+    title: "Jump to last topic",
+    category: "Navigation",
+    run: () => useAppStore.getState().setTopicIndex(Number.MAX_SAFE_INTEGER),
+  }),
+  makeCommand({
     name: "question.random",
     title: "Jump to random question",
     category: "Navigation",
@@ -58,6 +71,46 @@ export const browseNavCommands: CommandEntry[] = [
     category: "Navigation",
     short: "Recent",
     run: () => handleOpenRecent(),
+  }),
+  makeCommand({
+    name: "question.halfDown",
+    title: "Page down (questions)",
+    category: "Navigation",
+    run: () => {
+      const s = useAppStore.getState();
+      s.requestSmoothScroll("questions");
+      s.moveQuestion(getScrollJumpRows());
+    },
+  }),
+  makeCommand({
+    name: "question.halfUp",
+    title: "Page up (questions)",
+    category: "Navigation",
+    run: () => {
+      const s = useAppStore.getState();
+      s.requestSmoothScroll("questions");
+      s.moveQuestion(-getScrollJumpRows());
+    },
+  }),
+  makeCommand({
+    name: "topic.halfDown",
+    title: "Page down (topics)",
+    category: "Navigation",
+    run: () => {
+      const s = useAppStore.getState();
+      s.requestSmoothScroll("topics");
+      s.moveTopic(getScrollJumpRows());
+    },
+  }),
+  makeCommand({
+    name: "topic.halfUp",
+    title: "Page up (topics)",
+    category: "Navigation",
+    run: () => {
+      const s = useAppStore.getState();
+      s.requestSmoothScroll("topics");
+      s.moveTopic(-getScrollJumpRows());
+    },
   }),
   makeCommand({
     name: "question.first",
