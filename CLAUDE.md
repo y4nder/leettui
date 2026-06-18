@@ -91,4 +91,4 @@ A **"What's new" changelog popup** (Stage 18) auto-appears once on the first lau
 
 `csrftoken` and `lc_session` are normally written by the auth flow (`src/core/auth/`), not by hand — Firefox auto-import or a guided, validated paste. `bun src/index.tsx auth` re-runs it.
 
-`[scroll] page_fraction` (default `0.5`) sets how far `Ctrl+d`/`Ctrl+u` jump, as a fraction of the visible list height (`0.5` = half page, `1.0` = full). Read via `getScrollPageFraction()`; a non-positive/NaN/non-number value falls back to the default and anything above `1` is clamped to a full page.
+`[scroll] page_fraction` (default `0.2`) sets how far `Ctrl+d`/`Ctrl+u` jump, as a fraction of the visible list height (`0.5` = half page, `1.0` = full). Read via `getScrollPageFraction()`; a non-positive/NaN/non-number value falls back to the default and anything above `1` is clamped to a full page.

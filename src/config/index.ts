@@ -27,11 +27,12 @@ lc_session = ""
 # name = "tokyo-night"  # available: tokyo-night, catppuccin, system
 
 # [scroll]
-# page_fraction = 0.5  # Ctrl+d/Ctrl+u jump as a fraction of the visible list (0 < x <= 1); 0.5 = half page
+# page_fraction = 0.2  # Ctrl+d/Ctrl+u jump as a fraction of the visible list (0 < x <= 1); 0.5 = half page, 1.0 = full
 `;
 
-// Default Ctrl+d/Ctrl+u jump: half a page, matching Neovim's scroll default.
-export const DEFAULT_PAGE_FRACTION = 0.5;
+// Default Ctrl+d/Ctrl+u jump: a fifth of a page — a gentle nudge that keeps
+// context on screen, tunable up to a full page (1.0) via [scroll] page_fraction.
+export const DEFAULT_PAGE_FRACTION = 0.2;
 
 let _config: Config | null = null;
 
