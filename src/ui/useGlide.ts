@@ -28,14 +28,17 @@ export function useGlide(target: number, nonce: number): number {
     lastNonce.current = nonce;
 
     if (!bumped) {
-      // The window moved without a glide request. From idle this is a no-op (render
-      // already returned `target`); mid-glide it interrupts — snap and repaint, since
-      // the prior frame painted a mid-glide value.
-      if (animating.current) {
-        animating.current = false;
-        rendered.current = target;
-        force();
-      }
+      // The window moved without a glide request (gg/G, j/k, resize, filter). Always
+      // re-sync `rendered` to the target — even when idle — so the NEXT glide starts
+      // from where the window actually is, not a stale pre-snap offset. (Skipping this
+      // when idle was a bug: scroll down, gg to the top, then Ctrl+d glided from the
+      // old scrolled offset back to 0.) Only repaint if a glide was in flight (an
+      // interrupt); idle navigation already returned `target` from render, so forcing
+      // would just waste a render.
+      const wasAnimating = animating.current;
+      animating.current = false;
+      rendered.current = target;
+      if (wasAnimating) force();
       return;
     }
 
