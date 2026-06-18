@@ -20,7 +20,10 @@ export interface SelectionSlice {
   restoreSession: () => void;
 }
 
-function clamp(index: number, length: number): number {
+// Pin an index into [0, length-1] (0 for an empty list). The single guard that
+// keeps every cursor move — including an oversized Ctrl+d/Ctrl+u page jump — from
+// indexing out of bounds. Exported so that invariant is unit-tested directly.
+export function clamp(index: number, length: number): number {
   if (length === 0) return 0;
   return Math.max(0, Math.min(index, length - 1));
 }

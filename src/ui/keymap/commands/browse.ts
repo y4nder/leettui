@@ -5,6 +5,7 @@
 // them as two arrays lets commands/index.ts reproduce that exact byte order.
 
 import { useAppStore } from "../../store";
+import { currentPageJump } from "../../scrollJump";
 import { makeCommand, type CommandEntry } from "../command";
 import { getRenderer } from "../runtime";
 import {
@@ -16,14 +17,6 @@ import {
   handleSubmitSolution,
   handleYankUrl,
 } from "../../../views/browse/handlers";
-
-// Neovim Ctrl+d/Ctrl+u: jump the cursor by half a viewport, letting useScrollOffset
-// scroll the window under it. The page size is the live list viewport (both panels
-// share it), floored to ≥1 so a tiny terminal still moves. Reuses moveQuestion/
-// moveTopic, so clamp + debounced topic-load + session-persist all come for free.
-function halfPage(): number {
-  return Math.max(1, Math.floor(useAppStore.getState().listViewportRows / 2));
-}
 
 export const browseNavCommands: CommandEntry[] = [
   makeCommand({
@@ -81,42 +74,42 @@ export const browseNavCommands: CommandEntry[] = [
   }),
   makeCommand({
     name: "question.halfDown",
-    title: "Jump down half a page (questions)",
+    title: "Page down (questions)",
     category: "Navigation",
     run: () => {
       const s = useAppStore.getState();
       s.requestSmoothScroll("questions");
-      s.moveQuestion(halfPage());
+      s.moveQuestion(currentPageJump());
     },
   }),
   makeCommand({
     name: "question.halfUp",
-    title: "Jump up half a page (questions)",
+    title: "Page up (questions)",
     category: "Navigation",
     run: () => {
       const s = useAppStore.getState();
       s.requestSmoothScroll("questions");
-      s.moveQuestion(-halfPage());
+      s.moveQuestion(-currentPageJump());
     },
   }),
   makeCommand({
     name: "topic.halfDown",
-    title: "Jump down half a page (topics)",
+    title: "Page down (topics)",
     category: "Navigation",
     run: () => {
       const s = useAppStore.getState();
       s.requestSmoothScroll("topics");
-      s.moveTopic(halfPage());
+      s.moveTopic(currentPageJump());
     },
   }),
   makeCommand({
     name: "topic.halfUp",
-    title: "Jump up half a page (topics)",
+    title: "Page up (topics)",
     category: "Navigation",
     run: () => {
       const s = useAppStore.getState();
       s.requestSmoothScroll("topics");
-      s.moveTopic(-halfPage());
+      s.moveTopic(-currentPageJump());
     },
   }),
   makeCommand({

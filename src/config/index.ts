@@ -25,7 +25,13 @@ lc_session = ""
 
 # [theme]
 # name = "tokyo-night"  # available: tokyo-night, catppuccin, system
+
+# [scroll]
+# page_fraction = 0.5  # Ctrl+d/Ctrl+u jump as a fraction of the visible list (0 < x <= 1); 0.5 = half page
 `;
+
+// Default Ctrl+d/Ctrl+u jump: half a page, matching Neovim's scroll default.
+export const DEFAULT_PAGE_FRACTION = 0.5;
 
 let _config: Config | null = null;
 
@@ -75,6 +81,22 @@ export function getDefaultLanguage(): string {
 export function getThemeName(): string | undefined {
   const config = loadConfig();
   return config.theme?.name;
+}
+
+// Coerce a raw `[scroll] page_fraction` TOML value into a usable fraction.
+// Anything that isn't a finite number in (0, 1] is rejected: non-positive,
+// NaN/Infinity, or a non-number (TOML could yield a string/bool) falls back to
+// the half-page default; a value above 1 is clamped to a full page. Pure so the
+// out-of-range handling is unit-tested without touching the filesystem.
+export function clampPageFraction(raw: unknown): number {
+  if (typeof raw !== "number" || !Number.isFinite(raw) || raw <= 0) {
+    return DEFAULT_PAGE_FRACTION;
+  }
+  return Math.min(raw, 1);
+}
+
+export function getScrollPageFraction(): number {
+  return clampPageFraction(loadConfig().scroll?.page_fraction);
 }
 
 // Root of the per-language template-override tree. Users drop files under
