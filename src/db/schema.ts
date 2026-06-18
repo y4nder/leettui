@@ -32,3 +32,18 @@ export const questionTopics = sqliteTable(
     index("idx_qt_question").on(t.questionId),
   ],
 );
+
+// Recently-viewed questions (Stage 20). One row per question, keyed by its stable
+// PK; re-viewing bumps `viewed_at` (upsert) so the list is recency-ordered and
+// capped (~50, trimmed by the data layer). The `viewed_at` index backs both the
+// newest-first read and the cap trim.
+export const recents = sqliteTable(
+  "recents",
+  {
+    questionId: integer("question_id")
+      .primaryKey()
+      .references(() => questions.id),
+    viewedAt: integer("viewed_at").notNull(),
+  },
+  (t) => [index("idx_recents_viewed_at").on(t.viewedAt)],
+);

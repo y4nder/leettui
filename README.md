@@ -48,6 +48,7 @@ This project exists for two reasons:
 - Run solutions against example test cases
 - Submit solutions and see runtime/memory percentiles
 - Daily challenge shortcut
+- Recently viewed history (`h`) — jump back to a question you just looked at
 - Command palette (`Ctrl+P`) listing every available action
 - "What's new" changelog popup after you update (reopen any time from the palette)
 - Multiple themes (tokyo-night, catppuccin) via config
@@ -117,6 +118,7 @@ Both the browser and the problem view use a **lazygit-style panel layout** — e
 | `Ctrl+h` / `Ctrl+l` | Focus panel left / right |
 | `1` / `2` | Jump to topics / questions panel |
 | `r` | Jump to a random question |
+| `h` | Recently viewed questions (history modal) |
 | `D` | Cycle difficulty filter (Easy → Medium → Hard → All) |
 | `d` | Open today's daily challenge |
 | `/` | Search (scoped to the focused panel) |

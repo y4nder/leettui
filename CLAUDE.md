@@ -79,9 +79,11 @@ Tab / Shift+Tab: cycle focus | Ctrl+h/Ctrl+l: focus left/right | [1]/[2]: jump t
 Topics focused — j/k: change topic (live-filters questions) | Enter: focus questions
 Questions focused — j/k or arrows: navigate | gg/G: jump first/last | Enter: view problem
   e: Open in editor (single solution file) | w: Open workspace (whole problem folder) | R: Run | s: Submit | y: Yank URL
-Global (any panel) — d: Daily challenge | D: Cycle difficulty | /: Search | ?: Help | q: Quit
+Global (any panel) — d: Daily challenge | h: Recently viewed (history modal) | D: Cycle difficulty | /: Search | ?: Help | q: Quit
 
 `e` opens the single `solution.{ext}` with cwd = the language folder (so `leettui test` cwd-inference + per-language LSP work); `w` opens the whole problem folder (`$EDITOR {problemDir}`) as a workspace so `problem.md`, `notes.md`, and every language subfolder are in the editor's file tree at once. `w` works in problem view too. Opening a workspace generates `problem.md` (the description, create-if-absent) and `notes.md` if absent.
+
+A **recently-viewed history modal** (Stage 20) opens with `h` from browse (plain `h` is free — only `Ctrl+h` traverses panels). It lists the questions you've opened, newest first, in a `SelectPopup`-style overlay (`j/k` navigate, `Enter` jumps to the question, `Esc`/`h` close). A question is recorded as "viewed" at the moment of intent — opening the problem detail popup (daily challenge) or entering `ProblemView` — never on cursor scroll. The data lives in a capped (~50) SQLite `recents` table (`src/db/recents.ts`): `recordRecent(id)` upserts-and-bumps so re-viewing moves a row to the top, `getRecents()` joins back to `questions` recency-ordered. The always-visible `[topics][questions][recent]` panel was deliberately deferred — the modal reuses the established popup pattern, and the data layer makes a panel a cheap later re-skin.
 
 A **"What's new" changelog popup** (Stage 18) auto-appears once on the first launch **after you update** — showing the notes of the version you just installed (fetched from that release's GitHub notes). A fresh install doesn't pop (it's seeded "caught up"); only a genuine version change triggers it. Reopen the changelog anytime from the command palette (`Ctrl+P` → "What's new"), which shows the **latest** release; inside the popup `o` opens the full release page on GitHub, `j/k` scroll, `Esc`/`q` close. The palette command works on dev/from-source builds too; the auto-popup only fires on official release builds.
 

@@ -16,6 +16,7 @@ import { UpdateBanner } from "../../ui/components/UpdateBanner";
 import { CommandPalette } from "../../ui/components/CommandPalette";
 import { ChangeLocationPrompt } from "../../ui/components/ChangeLocationPrompt";
 import { ChangelogPopup } from "../../ui/components/ChangelogPopup";
+import { RecentPopup } from "../../ui/components/RecentPopup";
 import { EasterEgg } from "../../ui/components/EasterEgg";
 import { isDebugEnabled, getEntries } from "../../debug";
 import {
@@ -158,6 +159,8 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
       {mode === "changelog" && changelog && (
         <ChangelogPopup tag={changelog.tag} body={changelog.body} />
       )}
+
+      {mode === "recent" && <RecentPopup />}
 
       {mode === "easterEgg" && <EasterEgg />}
     </box>

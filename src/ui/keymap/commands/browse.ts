@@ -9,6 +9,7 @@ import { makeCommand, type CommandEntry } from "../command";
 import { getRenderer } from "../runtime";
 import {
   handleOpenEditor,
+  handleOpenRecent,
   handleOpenWorkspace,
   handleRandomQuestion,
   handleRunSolution,
@@ -50,6 +51,13 @@ export const browseNavCommands: CommandEntry[] = [
     title: "Jump to random question",
     category: "Navigation",
     run: () => handleRandomQuestion(),
+  }),
+  makeCommand({
+    name: "recent.open",
+    title: "Recently viewed questions",
+    category: "Navigation",
+    short: "Recent",
+    run: () => handleOpenRecent(),
   }),
   makeCommand({
     name: "question.first",

@@ -14,9 +14,11 @@ import journal from "../../drizzle/meta/_journal.json";
 //   2. add a `tag -> text` entry to SQL_BY_TAG
 // The journal (imported above) stays the source of truth for ordering/timing.
 import m0000 from "../../drizzle/0000_panoramic_senator_kelly.sql" with { type: "text" };
+import m0001 from "../../drizzle/0001_even_proudstar.sql" with { type: "text" };
 
 const SQL_BY_TAG: Record<string, string> = {
   "0000_panoramic_senator_kelly": m0000,
+  "0001_even_proudstar": m0001,
 };
 
 // Mirror of drizzle's `readMigrationFiles`, but sourced from embedded strings

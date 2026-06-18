@@ -4,8 +4,8 @@ SQLite database layer via [Drizzle ORM](https://orm.drizzle.team/docs/connect-bu
 
 ## Files
 
-- `schema.ts` — Drizzle table definitions (`questions`, `topics`, `question_topics`) using `drizzle-orm/sqlite-core`. TS fields are camelCase mapped to snake_case columns (e.g. `titleSlug: text("title_slug")`). This file is the single source of truth for the schema and the input to `drizzle-kit generate`.
-- `index.ts` — `openDatabase(path)` opens `bun:sqlite` with WAL mode + foreign keys, wraps it with `drizzle(sqlite, { schema })`, then applies **embedded** migrations on startup via `db.dialect.migrate(embeddedMigrations(), db.session)` (auto-applies pending migrations). `getDb()` returns the singleton typed `Db` (`BunSQLiteDatabase<typeof schema>`).
+- `schema.ts` — Drizzle table definitions (`questions`, `topics`, `question_topics`, `recents`) using `drizzle-orm/sqlite-core`. TS fields are camelCase mapped to snake_case columns (e.g. `titleSlug: text("title_slug")`). This file is the single source of truth for the schema and the input to `drizzle-kit generate`.
+- `index.ts` — `openDatabase(path)` opens `bun:sqlite` with WAL mode + foreign keys, wraps it with `drizzle(sqlite, { schema })`, then applies **embedded** migrations on startup via `db.dialect.migrate(embeddedMigrations(), db.session)` (auto-applies pending migrations). `getDb()` returns the singleton typed `Db` (`BunSQLiteDatabase<typeof schema>`). `closeDatabase()` drops the singleton — **test-only** (each test opens a throwaway DB per case; the app opens exactly one for its lifetime).
 - `migrations.ts` — Source of the embedded migration set. The stock `migrate(db, { migrationsFolder })` reads `drizzle/` from disk, which **does not exist in a `bun build --compile` binary**. This module instead imports the journal (JSON) and each `.sql` file as bundled text (`with { type: "text" }`) and rebuilds drizzle's `MigrationMeta[]` in-memory, so migrations travel inside the binary and behave identically in dev and when shipped. See the migration workflow below — keeping `SQL_BY_TAG` current is **mandatory**.
 - `questions.ts` — CRUD for the `questions` table, written with the Drizzle query builder. Rows are mapped back to the snake_case `DbQuestion` shape at the boundary (`toDbQuestion`) so consumers are unchanged. Key exports:
   - `getAllQuestions()`, `getQuestionsByTopic(slug)`, `getQuestionBySlug(slug)`, `getTopicsForQuestion(id)` (topic slugs for a question, via the `idx_qt_question` index — backs the problem-view header tags)
@@ -14,6 +14,7 @@ SQLite database layer via [Drizzle ORM](https://orm.drizzle.team/docs/connect-bu
   - `markAccepted(id)`, `markAttempted(id)` (only sets `notac` when status is null), `getQuestionCount()`
   - `setSubmissionStats(id, runtime, memory)` — stores the latest accepted submission's runtime/memory
 - `topics.ts` — `getAllTopics()`, `getAllTopicsWithAll()` (prepends virtual "all" topic)
+- `recents.ts` — Recently-viewed history (Stage 20), backing the `h` modal. `recordRecent(id, now?, cap?)` upserts a single row keyed by the question PK — re-viewing bumps `viewed_at` (bump-to-top) rather than duplicating — then trims to `cap` (~50, `RECENTS_CAP`) via a `NOT IN` over the top-`cap` subquery. `getRecents()` inner-joins back to `questions` (newest first, so a stale id silently drops), returning `RecentQuestion[]` (a `DbQuestion` plus its `viewedAt` epoch-millis instant so the modal can show *when* it was opened). `now`/`cap` are injectable for deterministic tests (`recents.test.ts`). Reuses `questions.ts`'s exported `toDbQuestion` mapper.
 
 ## Migrations
 
@@ -41,6 +42,7 @@ Applied migrations are tracked in the `__drizzle_migrations` table, so startup i
 questions(id PK, title, title_slug UNIQUE, difficulty, paid_only, status, ac_rate, last_runtime, last_memory)
 topics(slug PK)
 question_topics(question_id, topic_slug) — M:N join, composite PK, indexed on topic_slug and question_id
+recents(question_id PK → questions.id, viewed_at) — recently-viewed history, capped ~50, indexed on viewed_at
 ```
 
 `last_runtime`/`last_memory` are first-class columns in `schema.ts` (the old runtime `ensureColumn` hack is gone — additive columns now flow through generated migrations).

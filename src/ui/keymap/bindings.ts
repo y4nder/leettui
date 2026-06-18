@@ -32,6 +32,9 @@ export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor
   "focus.topics": "1",
   "focus.questions": "2",
   "question.random": "r",
+  // Plain `h` is free in browse (only ctrl+h traverses panels); it opens the
+  // recently-viewed history modal (Stage 20).
+  "recent.open": "h",
   "filter.cycleDifficulty": "shift+d",
   "problem.daily": "d",
   "search.start": "/",
