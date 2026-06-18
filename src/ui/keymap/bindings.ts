@@ -47,10 +47,13 @@ export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor
 });
 
 // Mounted only while the topics panel is focused. j/k move the topic cursor (which
-// live-filters the question list); Enter hands focus to the questions panel.
+// live-filters the question list), gg/G jump to ends; Enter hands focus to the
+// questions panel.
 export const topicPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "topic.next": ["j", "down"],
   "topic.prev": ["k", "up"],
+  "topic.first": "gg",
+  "topic.last": "shift+g",
   "focus.questions": "return",
 });
 

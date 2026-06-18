@@ -47,6 +47,18 @@ export const browseNavCommands: CommandEntry[] = [
     run: () => useAppStore.getState().moveTopic(-1),
   }),
   makeCommand({
+    name: "topic.first",
+    title: "Jump to first topic",
+    category: "Navigation",
+    run: () => useAppStore.getState().setTopicIndex(0),
+  }),
+  makeCommand({
+    name: "topic.last",
+    title: "Jump to last topic",
+    category: "Navigation",
+    run: () => useAppStore.getState().setTopicIndex(Number.MAX_SAFE_INTEGER),
+  }),
+  makeCommand({
     name: "question.random",
     title: "Jump to random question",
     category: "Navigation",
