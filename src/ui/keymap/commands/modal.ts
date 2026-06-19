@@ -8,6 +8,7 @@ import { scrollActivePopup } from "../runtime";
 import { dumpToString } from "../../../debug";
 import { openInBrowser } from "../../../core/auth";
 import { releaseUrl } from "../../../core/update";
+import { handleEnterPopupProblem } from "../../../views/browse/handlers";
 
 export const modalCommands: CommandEntry[] = [
   // Modal-only commands. Hidden from the palette via group: "modal".
@@ -31,6 +32,13 @@ export const modalCommands: CommandEntry[] = [
     category: "View",
     group: "modal",
     run: () => useAppStore.getState().hidePopup(),
+  }),
+  makeCommand({
+    name: "popup.enterProblem",
+    title: "Open problem view",
+    category: "View",
+    group: "modal",
+    run: () => handleEnterPopupProblem(),
   }),
   makeCommand({
     name: "result.close",

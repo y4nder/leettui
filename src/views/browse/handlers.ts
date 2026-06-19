@@ -33,6 +33,7 @@ import { getEditorCommand, getSolutionsDir, persistSolutionsDir } from "../../co
 import { resolveConfigPath } from "../../config/resolvePath";
 import { errMessage, logError } from "../../debug";
 import { buildResultView, info, loading, errorView, type ResultView } from "./resultView";
+import { handleEnterProblemView } from "../problem/handlers";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
 
@@ -110,7 +111,9 @@ export async function handleViewDailyChallenge(triggerKey: string) {
     // (recents references questions.id), otherwise quietly skip.
     const dbQ = getQuestionBySlug(q.titleSlug);
     if (dbQ) recordRecent(dbQ.id);
-    showPopup(`${q.frontendQuestionId}. ${q.title} [${q.difficulty}] — Daily`, md);
+    // Stash the resolved DB row (may be null) so the popup's Enter can open it in
+    // the problem view (handleEnterPopupProblem).
+    showPopup(`${q.frontendQuestionId}. ${q.title} [${q.difficulty}] — Daily`, md, dbQ);
   } catch (e) {
     reportError(
       showResult,
@@ -120,6 +123,20 @@ export async function handleViewDailyChallenge(triggerKey: string) {
       e,
     );
   }
+}
+
+// Enter from inside the daily-challenge popup: open the question in the full
+// problem view (the same path as Enter on the questions list). The popup only
+// stores a DB row when the daily question is locally synced; when it isn't,
+// surface a clear "sync first" message instead of silently doing nothing.
+export function handleEnterPopupProblem() {
+  const { popupQuestion, hidePopup, showResult } = useAppStore.getState();
+  hidePopup();
+  if (!popupQuestion) {
+    showResult(info("This problem isn't in your local DB yet — sync with * first."));
+    return;
+  }
+  void handleEnterProblemView(popupQuestion, "popup-enter");
 }
 
 export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {

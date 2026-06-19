@@ -78,8 +78,11 @@ export const questionPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFo
   "question.yankUrl": "y",
 });
 
+// Daily-challenge popup. Enter opens the problem in the full problem view (mirrors
+// the questions-panel Enter convention); Esc closes. j/k scroll the description.
 export const popupBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
-  "popup.close": ["escape", "return"],
+  "popup.enterProblem": "return",
+  "popup.close": "escape",
   "popup.scrollDown": ["j", "down"],
   "popup.scrollUp": ["k", "up"],
 });

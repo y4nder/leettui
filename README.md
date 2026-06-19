@@ -120,7 +120,7 @@ Both the browser and the problem view use a **lazygit-style panel layout** — e
 | `r` | Jump to a random question |
 | `h` | Recently viewed questions (history modal) |
 | `D` | Cycle difficulty filter (Easy → Medium → Hard → All) |
-| `d` | Open today's daily challenge |
+| `d` | Open today's daily challenge (in the popup, `Enter` opens it in the problem view) |
 | `/` | Search (scoped to the focused panel) |
 | `?` | Help |
 | `Ctrl+P` | Command palette |
