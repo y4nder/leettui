@@ -30,7 +30,7 @@ import {
 } from "../../core/solutions";
 import { runSolution, submitSolution, SolutionError } from "../../core/submission";
 import { runLocalTests } from "../../core/testRunner";
-import { getEditorCommand } from "../../config";
+import { getEditorArgv } from "../../config";
 import { errMessage } from "../../debug";
 import { buildResultView, buildLocalRunView, info, loading, errorView } from "../browse/resultView";
 import { currentTopic, makeReportError, withSuspendedRenderer, type Renderer } from "../shared";
@@ -277,9 +277,9 @@ async function openInEditor(renderer: Renderer, langSlug: string) {
 }
 
 async function openInEditorPath(renderer: Renderer, path: string) {
-  const editor = getEditorCommand();
+  const editor = getEditorArgv();
   await withSuspendedRenderer(renderer, async () => {
-    const proc = Bun.spawn([editor, path], {
+    const proc = Bun.spawn([...editor, path], {
       // cwd = the file's folder (lang folder for solutions, problem folder for
       // notes), so the headless CLI's cwd-inference and per-language LSP work
       // from inside the editor.
@@ -305,9 +305,9 @@ export async function handleOpenProblemWorkspace(triggerKey: string, renderer: R
     ensureProblemMd(p.question.id, p.question.title_slug, p.description, p.question.title);
     ensureNotesFile(p.question.id, p.question.title_slug, p.question.title);
 
-    const editor = getEditorCommand();
+    const editor = getEditorArgv();
     await withSuspendedRenderer(renderer, async () => {
-      const proc = Bun.spawn([editor, problemDir], {
+      const proc = Bun.spawn([...editor, problemDir], {
         cwd: problemDir,
         stdin: "inherit",
         stdout: "inherit",
