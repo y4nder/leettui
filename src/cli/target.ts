@@ -15,6 +15,41 @@ export interface ResolvedTarget {
 
 export type TargetResult = { ok: true; target: ResolvedTarget } | { ok: false; error: string };
 
+export interface ResolvedProblem {
+  question: DbQuestion;
+}
+
+export type ProblemTargetResult =
+  | { ok: true; target: ResolvedProblem }
+  | { ok: false; error: string };
+
+// Problem-level resolution for the `new` verb. Unlike `resolveTarget`, it does
+// NOT require a langSlug: `new` runs from the problem *workspace* dir (cwd = the
+// problem folder, which `resolveProblemFromCwd` resolves with `langSlug: null`),
+// and takes the language as an argument rather than from cwd. Run from inside a
+// language subfolder it still works — that level's langSlug is simply ignored,
+// since the verb's argument is authoritative.
+export function resolveProblemTarget(cwd: string): ProblemTargetResult {
+  const resolved = resolveProblemFromCwd(cwd);
+  if (!resolved) {
+    return {
+      ok: false,
+      error:
+        "Not inside a problem folder. cd into solutions/{id}_{slug}/ (or open the problem workspace) first.",
+    };
+  }
+
+  const question = getQuestionBySlug(resolved.titleSlug);
+  if (!question) {
+    return {
+      ok: false,
+      error: `Unknown problem '${resolved.titleSlug}' (id ${resolved.questionId}). Sync the problem list first.`,
+    };
+  }
+
+  return { ok: true, target: { question } };
+}
+
 export function resolveTarget(cwd: string): TargetResult {
   const resolved = resolveProblemFromCwd(cwd);
   if (!resolved) {

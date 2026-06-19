@@ -8,17 +8,41 @@ Runs the existing UI-free `core/` engine, no renderer mounted.
 ## Dispatch
 
 `src/index.tsx` calls `matchCliVerb(process.argv)` (after the `version`/`update`
-checks, before creating the renderer). On a match it `await runCli(verb)` and
-`process.exit`s with the returned code. The matcher recognizes all three planned
-verbs so the `index.tsx` seam is wired once — items 3/4 only edit `src/cli/`.
+checks, before creating the renderer). On a match it `await runCli(verb,
+process.cwd(), verbArg(argv, verb))` and `process.exit`s with the returned code.
+The matcher recognizes every verb so the `index.tsx` seam is wired once — new
+verbs only edit `src/cli/`. `matchCliVerb` returns the verb appearing **earliest**
+in argv (not first-in-list), so a verb-named positional argument can't shadow the
+real verb (`leettui new run` → `new`, not the later `run`). `verbArg(argv, verb)`
+pulls the first non-flag token after the verb — the `new` verb's language
+argument; the cwd-inferring verbs ignore it.
 
 ## Files
 
-- `index.ts` — `matchCliVerb(argv)` (exact-element argv match, like the other
-  subcommands) + `runCli(verb, cwd?)`. Bootstraps headless (`loadConfig` →
-  `openDatabase`, no TUI), resolves the target, runs the verb, prints, returns
-  an exit code. Verbs: `test` (local, offline), `run` and `submit` (API) — all
-  implemented.
+- `index.ts` — `matchCliVerb(argv)` (earliest-element argv match) + `verbArg(argv,
+  verb)` (the positional language for `new`) + `runCli(verb, cwd?, arg?)`.
+  Bootstraps headless (`loadConfig` → `openDatabase`, no TUI), resolves the
+  target, runs the verb, prints, returns an exit code. Verbs: `test` (local,
+  offline), `run` and `submit` (API), and `new` (scaffold — API) — all implemented.
+  - **`new <language>`** (`runNewVerb`) is the headless analogue of the TUI
+    solution picker's create path (`handlePickerOpenEditor`): from the problem
+    **workspace** dir it scaffolds a solution + harness + seeded `tests/` for a
+    language, then prints the created path — it never opens an editor (the user
+    is already in one). It resolves at the **problem level** via
+    `resolveProblemTarget` (no langSlug from cwd — the language is the argument,
+    so it works from the problem-folder cwd *or* a language subfolder, ignoring
+    that level's langSlug). It's an **API verb** (shares `bootstrapApiClient` +
+    the `AuthError`→exit-2 handling): it fetches the problem's code snippets
+    (`fetchEditorData`) — the **same source the picker lists**, so the valid
+    `<language>`s are exactly what LeetCode offers here, **no local allowlist** —
+    plus `metaData`/`exampleTestcaseList` (`fetchConsolePanelConfig`, best-effort)
+    and calls `createSolutionWithHarness` (create-if-absent; an unsupported
+    signature yields a plain solution file with **no** harness, never an error —
+    the "create the harness *or* solution" contract). **Idempotent**: a
+    pre-existing solution prints `already exists: <path>` and exits 0. No
+    language, or one LeetCode doesn't offer → the available langSlugs to stderr,
+    exit 2. Unlike `run`/`submit` it does **not** seed `problem.md`/`notes.md` —
+    those are the `w` workspace-open's job, already done before `new` runs.
   - **API verbs** share `bootstrapApiClient(config?)` + `runApiVerb(header, status, action)`
     (the "API-from-CLI + auth-expiry pattern"; `submit` reuses them verbatim,
     differing only in the action (`submitSolution`, which already persists
@@ -37,6 +61,10 @@ verbs so the `index.tsx` seam is wired once — items 3/4 only edit `src/cli/`.
   `cwd` to `resolveProblemFromCwd` (the Stage 8 item 1 path parser) then does the
   DB lookup (`getQuestionBySlug`) the resolver leaves to its caller. Three
   distinct errors: not-in-tree / no-langSlug (problem-folder level) / unknown-slug.
+  `resolveProblemTarget(cwd)` → `{ question } | error` is the **langSlug-optional**
+  sibling for `new`: it accepts the problem-folder level (where
+  `resolveProblemFromCwd` returns `langSlug: null`) and ignores any langSlug when
+  run from a language subfolder, since `new` takes its language as an argument.
 - `present.ts` — the stdout parallel to OpenTUI's `ResultBody`, sharing the same
   `ResultView` and the same color *semantics* (success→green, error→red,
   subtle→dim, info→cyan) and glyphs (`✓`/`✗`/`!`/`·`). It can't reuse
@@ -65,17 +93,21 @@ verbs so the `index.tsx` seam is wired once — items 3/4 only edit `src/cli/`.
 
 ## Exit codes
 
-- `0` — `test`: all cases passed, or ran clean. `run`/`submit`: accepted.
+- `0` — `test`: all cases passed, or ran clean. `run`/`submit`: accepted. `new`:
+  the solution was scaffolded (or already existed — both print the path).
 - `1` — ran, didn't pass. `test`: any case `fail`/`error`/`timeout`.
   `run`/`submit`: wrong answer or compile/runtime/limit/timeout error
-  (`ResultView.kind` in `{wrong, error, loading}`).
+  (`ResultView.kind` in `{wrong, error, loading}`). (`new` never returns 1 — it
+  either scaffolds or it couldn't, never "ran but failed".)
 - `2` — **couldn't run the verb at all** → message to **stderr**. Target not
   identified (cwd not inside a solution folder, no language subfolder, or unknown
   problem); `test`: `no-harness` (no harness was generated — since Stage 15 the
   designed fallback for an unsupported type like `ListNode`/`TreeNode`, so a
   `leettui test && …` hook reads it as "couldn't run", not a failed test) or a
   `compile-error`; for API verbs also a missing/expired session (→ `run \`leettui
-  auth\``) or an unreadable solution file.
+  auth\``) or an unreadable solution file; `new`: no language argument, or a
+  language LeetCode doesn't offer for the problem (both list the available
+  langSlugs), plus the same auth-expiry family as the other API verbs.
 
 **The `test` exit code is derived from the raw `LocalRunReport`, not from
 `buildLocalRunView`'s `ResultView.kind`.** The view is lossy: its "ran" arm only
@@ -90,7 +122,9 @@ the exit-code source differs per verb.
 ## Dependencies
 
 `config/` (loadConfig/getDbPath/hasTokens, `Config` type), `db/` (openDatabase,
-getQuestionBySlug), `api/client` (initClient, AuthError), `core/solutions`
-(resolveProblemFromCwd), `core/submission` (runSolution, SolutionError),
-`core/testRunner` (runLocalTests), `views/browse/resultView` (buildLocalRunView,
-buildResultView, ResultView).
+getQuestionBySlug), `api/client` (initClient, AuthError), `api/queries`
+(fetchEditorData, fetchConsolePanelConfig — the `new` verb's snippet/metaData
+fetch), `core/solutions` (resolveProblemFromCwd, plus `createSolutionWithHarness`/
+`getSolutionPath`/`solutionExists` for `new`), `core/submission` (runSolution,
+SolutionError), `core/testRunner` (runLocalTests), `views/browse/resultView`
+(buildLocalRunView, buildResultView, ResultView).

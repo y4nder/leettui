@@ -153,6 +153,19 @@ Both the browser and the problem view use a **lazygit-style panel layout** — e
 
 **Related panel focused** — `j`/`k` move the cursor · `Enter` open the related question
 
+### From your editor
+
+leettui also exposes a few headless verbs that infer the problem from the current directory, so you can drive it from inside `$EDITOR` (e.g. `:!leettui test`) without leaving your solution:
+
+| Command | What it does |
+|---------|--------------|
+| `leettui test` | Run the seeded example cases offline (no LeetCode round-trip) |
+| `leettui run` | Run against LeetCode's example cases |
+| `leettui submit` | Submit to LeetCode |
+| `leettui new <language>` | Scaffold a solution + harness + tests for `<language>` |
+
+`new` is the editor-side companion to the in-app solution picker: open a problem's workspace with `w`, then `:!leettui new rust` (or any language LeetCode offers for the problem) to add that language's `solution.*` + local harness without touching the TUI. It's idempotent — if the solution already exists it just prints the path.
+
 ---
 
 ## Configuration
