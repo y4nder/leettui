@@ -17,6 +17,7 @@ import { CommandPalette } from "../../ui/components/CommandPalette";
 import { ChangeLocationPrompt } from "../../ui/components/ChangeLocationPrompt";
 import { GitInitPrompt } from "../../ui/components/GitInitPrompt";
 import { GitRemotePrompt } from "../../ui/components/GitRemotePrompt";
+import { GitSyncPrompt } from "../../ui/components/GitSyncPrompt";
 import { ChangelogPopup } from "../../ui/components/ChangelogPopup";
 import { RecentPopup } from "../../ui/components/RecentPopup";
 import { EasterEgg } from "../../ui/components/EasterEgg";
@@ -165,6 +166,8 @@ export function BrowseView({ renderer }: BrowseViewProps) {
       {mode === "gitInit" && <GitInitPrompt renderer={renderer} />}
 
       {mode === "gitRemote" && <GitRemotePrompt />}
+
+      {mode === "gitSync" && <GitSyncPrompt />}
 
       {mode === "changelog" && changelog && (
         <ChangelogPopup tag={changelog.tag} body={changelog.body} />

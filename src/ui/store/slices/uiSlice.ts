@@ -33,7 +33,12 @@ export type AppMode =
   | "recent"
   | "gitInit"
   | "gitRemote"
+  | "gitSync"
   | "easterEgg";
+
+// Which remote→local direction the GitSyncPrompt runs: clone a fresh/empty dir, or
+// fast-forward pull an already-tracked one. Decided by handleOpenGitSync's dir probe.
+export type GitSyncMode = "clone" | "pull";
 
 export interface UiSlice {
   mode: AppMode;
@@ -56,6 +61,9 @@ export interface UiSlice {
   // Captured at open time (like the select/changelog payloads), empty when closed.
   // Each carries its `viewedAt` instant so the modal can show when it was opened.
   recents: RecentQuestion[];
+  // Which direction the GitSyncPrompt runs (clone vs fast-forward pull), or null when
+  // closed. Set by handleOpenGitSync's dir probe before opening the wizard (Stage 24).
+  gitSyncMode: GitSyncMode | null;
   // Per-panel "please glide the next scroll" nonces, bumped by the half-page
   // commands. The list components feed their panel's nonce to useGlide; a bump
   // animates the offset change, an unchanged nonce snaps. Per-panel (not one
@@ -93,6 +101,8 @@ export interface UiSlice {
   hideGitInit: () => void;
   showGitRemote: () => void;
   hideGitRemote: () => void;
+  showGitSync: (mode: GitSyncMode) => void;
+  hideGitSync: () => void;
   showEasterEgg: () => void;
   hideEasterEgg: () => void;
 }
@@ -111,6 +121,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   updateAvailable: null,
   changelog: null,
   recents: [],
+  gitSyncMode: null,
   topicScrollNonce: 0,
   questionScrollNonce: 0,
 
@@ -175,6 +186,11 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   hideGitInit: () => set({ mode: "browse" }),
   showGitRemote: () => set({ mode: "gitRemote" }),
   hideGitRemote: () => set({ mode: "browse" }),
+
+  // Sync FROM a remote (Stage 24). Carries the probed direction so GitSyncPrompt can
+  // start at the right phase (clone → input a repo, pull → straight to confirm).
+  showGitSync: (mode) => set({ mode: "gitSync", gitSyncMode: mode }),
+  hideGitSync: () => set({ mode: "browse", gitSyncMode: null }),
 
   // Easter egg: a full-screen ASCII art reveal that lingers until any key is pressed.
   showEasterEgg: () => set({ mode: "easterEgg" }),

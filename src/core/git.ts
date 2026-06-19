@@ -11,7 +11,7 @@
 // *before* anything runs `git add`. The wizard is the only path that pushes, so the
 // gitignore-before-add ordering must never diverge between the two entry points.
 
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { errMessage } from "../debug";
 
@@ -32,11 +32,14 @@ interface RunResult {
 }
 
 // Spawn a command, fully draining stdout/stderr, never throwing. A spawn failure
-// (binary not on PATH) is reported as `spawnFailed`, not an exception.
-async function run(argv: string[], cwd?: string): Promise<RunResult> {
+// (binary not on PATH) is reported as `spawnFailed`, not an exception. `env` is
+// merged over `process.env` (so PATH etc. survive) — used by the network ops to set
+// the non-interactive git vars without disturbing the inherited environment.
+async function run(argv: string[], cwd?: string, env?: Record<string, string>): Promise<RunResult> {
   try {
     const proc = Bun.spawn(argv, {
       cwd,
+      env: env ? { ...process.env, ...env } : undefined,
       stdin: "ignore",
       stdout: "pipe",
       stderr: "pipe",
@@ -196,4 +199,81 @@ export function manualRemoteInstructions(name: string): string {
   git push -u origin main
 
 (create the empty repo on github.com first, then run the commands above.)`;
+}
+
+// --- sync FROM a GitHub remote (Stage 24) ----------------------------------
+//
+// The inverse of the backup wizard: get the solutions tree *down* from GitHub —
+// `cloneGitHubRepo` for a fresh/empty dir (restore on a new machine), `gitPull` for
+// an already-tracked dir (ongoing sync). Clone goes through gh (its own auth, like
+// `createGitHubRepo`); pull is plain git.
+
+// Non-interactive env for the network ops (clone/pull). A private repo can trigger a
+// credential or host-key prompt, and git prompts on /dev/tty **directly** — it does
+// NOT read the `stdin: "ignore"` above — which the live TUI is drawing over, so a
+// prompt would hang or corrupt the screen. These turn a would-be prompt into a clean
+// non-zero exit the wizard surfaces as a `failed` result. Pure upside: the common
+// path (gh-cached HTTPS credential helper) never prompts, so behavior is unchanged
+// there; this only bites the diverged/no-helper case, where a hang becomes a clean
+// error. Matters most for `gitPull` (not gh-mediated).
+const GIT_NONINTERACTIVE_ENV: Record<string, string> = {
+  GIT_TERMINAL_PROMPT: "0",
+  GIT_SSH_COMMAND: "ssh -o BatchMode=yes",
+};
+
+// True when `dir` is absent or holds no entries. The clone target must be empty
+// (git refuses to clone into a non-empty dir), but this is also a **data-safety
+// invariant**: a user who repoints `[paths] solutions` at the parent data dir has
+// `questions.db`/`session.json` there → non-empty → clone refused → never clobbered.
+// Strict emptiness (counts dotfiles): anything present blocks the clone rather than
+// risk an overwrite; an unreadable dir reads as non-empty (refuse), never throws.
+export function isDirEmpty(dir: string): boolean {
+  if (!existsSync(dir)) return true;
+  try {
+    return readdirSync(dir).length === 0;
+  } catch {
+    return false;
+  }
+}
+
+// True when `dir`'s repo has at least one configured remote. Gates the pull path: an
+// already-tracked dir with no remote can't sync (set up backup first / add one in
+// lazygit). Best-effort — a non-repo or git error reads as "no remote".
+export async function hasRemote(dir: string): Promise<boolean> {
+  const r = await run(["git", "remote"], dir);
+  return r.ok && r.stdout.trim().length > 0;
+}
+
+// Pure argv builder for `gh repo clone` — unit-tested without spawning (a live run
+// would hit the network). `repo` is `OWNER/REPO`, a full URL, or a bare name (gh
+// resolves a bare name against your own account, symmetric with the backup wizard's
+// default `leetcode-solutions`); `dir` is the clone target.
+export function ghCloneArgv(repo: string, dir: string): string[] {
+  return ["gh", "repo", "clone", repo, dir];
+}
+
+// Clone `repo` into `dir` via gh (its OWN auth, never the LeetCode session). The
+// caller guarantees `dir` is empty (isDirEmpty) and exists. Uses the non-interactive
+// env so a private-repo auth failure errors cleanly instead of hanging the TUI.
+export async function cloneGitHubRepo(repo: string, dir: string): Promise<GitOpResult> {
+  return toResult(await run(ghCloneArgv(repo, dir), undefined, GIT_NONINTERACTIVE_ENV));
+}
+
+// Fast-forward-only pull of the current branch from its tracked remote. `--ff-only`
+// is the deliberate grain boundary (Stage 23 left pull to lazygit): we promote only
+// the SAFE fast-forward sync; a diverged history fails loudly so the user opens
+// lazygit for the real merge — genuine conflict resolution still delegates. Plain git
+// (not gh), so the non-interactive env is what stops a private-repo credential prompt
+// from hanging the live TUI.
+export async function gitPull(dir: string): Promise<GitOpResult> {
+  return toResult(await run(["git", "pull", "--ff-only"], dir, GIT_NONINTERACTIVE_ENV));
+}
+
+// The printed fallback when `gh` is absent: the exact manual command to clone.
+export function manualCloneInstructions(repo: string, dir: string): string {
+  return `GitHub CLI (gh) isn't installed — clone your solutions by hand:
+
+  git clone git@github.com:<your-username>/${repo}.git "${dir}"
+
+(or install gh: https://cli.github.com)`;
 }

@@ -10,6 +10,7 @@ import { getRenderer } from "../runtime";
 import { cycleTheme, listThemeNames, setTheme } from "../../theme";
 import { isDebugEnabled } from "../../../debug";
 import {
+  handleOpenGitSync,
   handleOpenGitUi,
   handleReauth,
   handleSyncDb,
@@ -96,6 +97,12 @@ export const systemCommands: CommandEntry[] = [
     title: "Back up solutions to GitHub (gh)",
     category: "System",
     run: () => useAppStore.getState().showGitRemote(),
+  }),
+  makeCommand({
+    name: "git.remoteSync",
+    title: "Sync solutions from GitHub (gh)",
+    category: "System",
+    run: () => handleOpenGitSync(),
   }),
   makeCommand({
     name: "palette.open",
