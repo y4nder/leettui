@@ -15,6 +15,8 @@ import { ProgressBar } from "../../ui/components/ProgressBar";
 import { UpdateBanner } from "../../ui/components/UpdateBanner";
 import { CommandPalette } from "../../ui/components/CommandPalette";
 import { ChangeLocationPrompt } from "../../ui/components/ChangeLocationPrompt";
+import { GitInitPrompt } from "../../ui/components/GitInitPrompt";
+import { GitRemotePrompt } from "../../ui/components/GitRemotePrompt";
 import { ChangelogPopup } from "../../ui/components/ChangelogPopup";
 import { RecentPopup } from "../../ui/components/RecentPopup";
 import { EasterEgg } from "../../ui/components/EasterEgg";
@@ -54,7 +56,7 @@ function SearchBindings() {
   return null;
 }
 
-export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
+export function BrowseView({ renderer }: BrowseViewProps) {
   const { height } = useTerminalDimensions();
 
   const topics = useAppStore((s) => s.topics);
@@ -159,6 +161,10 @@ export function BrowseView({ renderer: _renderer }: BrowseViewProps) {
       {mode === "palette" && <CommandPalette />}
 
       {mode === "relocate" && <ChangeLocationPrompt />}
+
+      {mode === "gitInit" && <GitInitPrompt renderer={renderer} />}
+
+      {mode === "gitRemote" && <GitRemotePrompt />}
 
       {mode === "changelog" && changelog && (
         <ChangelogPopup tag={changelog.tag} body={changelog.body} />

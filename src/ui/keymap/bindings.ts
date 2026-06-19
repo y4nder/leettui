@@ -42,6 +42,10 @@ export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor
   "debug.open": "`",
   "db.sync": "*",
   "palette.open": "ctrl+p",
+  // Ctrl+g opens the git UI (lazygit) in the solutions dir — the version-control
+  // escape hatch (Stage 22). Plain `g`/`G` are taken (gg/G jumps); ctrl+g is the
+  // idiomatic lazygit-launch binding.
+  "git.openUi": "ctrl+g",
   "update.dismiss": "x",
   "app.quit": "q",
 });

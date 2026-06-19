@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  browseGlobalBindings,
   describeScope,
   fitFooter,
   footerSegments,
@@ -129,6 +130,14 @@ describe("problem help scope visibility (Stage 12 item 5)", () => {
     expect(cmds).toContain("problem.help");
   });
 
+  // Stage 22: Ctrl+g must resolve to the git.openUi command (a typo'd cmd name
+  // would fall back to the raw string — a class tsc can't catch).
+  test("Ctrl+g resolves to the git.openUi command", () => {
+    const git = describeScope(browseGlobalBindings).find((b) => b.cmd === "git.openUi");
+    expect(git?.keys).toEqual(["ctrl+g"]);
+    expect(git?.title).not.toBe("git.openUi"); // resolved to a real catalog entry
+  });
+
   test("every problem panel's local scope is non-empty", () => {
     for (const panel of ["description", "solutions", "result", "related"] as const) {
       expect(visibleProblem(problemPanelBindings(panel)).length).toBeGreaterThan(0);
@@ -139,6 +148,7 @@ describe("problem help scope visibility (Stage 12 item 5)", () => {
   // falls back to the raw command name). Guard the new problem layers against it.
   test("no dead bindings in the problem global + help layers", () => {
     for (const scope of [
+      browseGlobalBindings,
       problemGlobalBindings,
       problemHelpBindings,
       topicPanelBindings,

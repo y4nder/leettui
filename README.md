@@ -51,6 +51,7 @@ This project exists for two reasons:
 - Recently viewed history (`h`) — jump back to a question you just looked at
 - Command palette (`Ctrl+P`) listing every available action
 - "What's new" changelog popup after you update (reopen any time from the palette)
+- Version-control your solutions — `Ctrl+g` opens lazygit in your solutions dir, with an optional one-step GitHub backup
 - Multiple themes (tokyo-night, catppuccin) via config
 - [Per-language template overrides](docs/template-overrides.md) — custom solution stubs, harnesses, and manifests
 
@@ -124,6 +125,7 @@ Both the browser and the problem view use a **lazygit-style panel layout** — e
 | `/` | Search (scoped to the focused panel) |
 | `?` | Help |
 | `Ctrl+P` | Command palette |
+| `Ctrl+g` | Open git UI (lazygit) in your solutions dir |
 | `q` | Quit |
 
 **Topics panel focused** — `j`/`k` or arrows change topic (live-filters questions) · `Enter` focuses the questions panel
@@ -168,6 +170,17 @@ leettui also exposes a few headless verbs that infer the problem from the curren
 
 ---
 
+## Version control
+
+Your solutions directory is laid out to be git-friendly (one folder per problem, build artifacts already `.gitignore`d), and leettui makes versioning it a one-key affair rather than reimplementing git:
+
+- **`Ctrl+g`** opens [lazygit](https://github.com/jesseduffield/lazygit) in your solutions dir (override the tool with `[git] ui` in your config — any cwd-respecting tool like `gitui`/`tig` works). If the dir isn't a repo yet, leettui offers to `git init` it — with a safe `.gitignore` that keeps local databases/sessions out of version control, plus a first commit — then drops you straight into the git UI. On a genuine first run it offers this right after you pick where solutions live.
+- **Back up to GitHub** from the command palette (`Ctrl+P` → "Back up solutions to GitHub"): name a private repo and leettui runs `gh repo create … --push` for you. This uses the [GitHub CLI](https://cli.github.com/)'s own login (`gh auth login`) — entirely separate from your LeetCode session — and prints the manual `git remote` commands if `gh` isn't installed.
+
+Both lazygit and `gh` are optional: leettui shows an install hint instead of crashing when one isn't on your `PATH`.
+
+---
+
 ## Configuration
 
 `~/.config/leettui/config.toml`
@@ -176,6 +189,9 @@ leettui also exposes a few headless verbs that infer the problem from the curren
 # Auth tokens — normally written by the auth flow, not by hand.
 csrftoken = "..."
 lc_session = "..."
+
+[git]
+ui = "lazygit"         # git UI opened by Ctrl+g (default: lazygit)
 
 [theme]
 name = "tokyo-night"   # or "catppuccin"

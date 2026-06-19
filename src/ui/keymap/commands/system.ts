@@ -9,7 +9,12 @@ import { makeCommand, type CommandEntry } from "../command";
 import { getRenderer } from "../runtime";
 import { cycleTheme, listThemeNames, setTheme } from "../../theme";
 import { isDebugEnabled } from "../../../debug";
-import { handleReauth, handleSyncDb, handleViewChangelog } from "../../../views/browse/handlers";
+import {
+  handleOpenGitUi,
+  handleReauth,
+  handleSyncDb,
+  handleViewChangelog,
+} from "../../../views/browse/handlers";
 
 function prettyThemeName(name: string): string {
   // kebab → Title Case: "tokyo-night" → "Tokyo Night", "system" → "System"
@@ -75,6 +80,22 @@ export const systemCommands: CommandEntry[] = [
     title: "Change solutions directory",
     category: "System",
     run: () => useAppStore.getState().showRelocate(),
+  }),
+  makeCommand({
+    name: "git.openUi",
+    title: "Open git UI (lazygit) in solutions dir",
+    category: "System",
+    short: "Git",
+    run: () => {
+      const r = getRenderer();
+      if (r) handleOpenGitUi(r);
+    },
+  }),
+  makeCommand({
+    name: "git.remoteSetup",
+    title: "Back up solutions to GitHub (gh)",
+    category: "System",
+    run: () => useAppStore.getState().showGitRemote(),
   }),
   makeCommand({
     name: "palette.open",
