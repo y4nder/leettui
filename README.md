@@ -207,6 +207,12 @@ Both lazygit and `gh` are optional: leettui shows an install hint instead of cra
 csrftoken = "..."
 lc_session = "..."
 
+[editor]
+# Editor for `e`/`w`/`W`. Falls back to $EDITOR, then a platform default
+# (vim; on Windows "code --wait" if VS Code is on PATH, else notepad).
+# Arguments are supported — quote a path that has spaces.
+command = "code --wait"
+
 [git]
 ui = "lazygit"         # git UI opened by Ctrl+g (default: lazygit)
 

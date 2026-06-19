@@ -16,7 +16,7 @@ import {
   ensureProblemDir,
   ensureProblemMd,
 } from "../../../core/solutions";
-import { getEditorCommand, getSolutionsDir } from "../../../config";
+import { getEditorArgv, getSolutionsDir } from "../../../config";
 import { info } from "../resultView";
 import { currentQuestion, reportError, withSuspendedRenderer, type Renderer } from "./shared";
 
@@ -52,9 +52,9 @@ export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
           cfg?.question.exampleTestcaseList,
         );
 
-        const editor = getEditorCommand();
+        const editor = getEditorArgv();
         await withSuspendedRenderer(renderer, async () => {
-          const proc = Bun.spawn([editor, path], {
+          const proc = Bun.spawn([...editor, path], {
             // cwd = the language folder, so the headless CLI's cwd-inference
             // (`leettui test`) and per-language LSP work from inside the editor.
             cwd: dirname(path),
@@ -79,9 +79,9 @@ export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
 // the problem dir itself. (cwd = problem dir is also why `leettui test` can't
 // infer a langSlug from a workspace — that path stays on `e`.)
 async function spawnEditorInDir(renderer: Renderer, dir: string) {
-  const editor = getEditorCommand();
+  const editor = getEditorArgv();
   await withSuspendedRenderer(renderer, async () => {
-    const proc = Bun.spawn([editor, dir], {
+    const proc = Bun.spawn([...editor, dir], {
       cwd: dir,
       stdin: "inherit",
       stdout: "inherit",

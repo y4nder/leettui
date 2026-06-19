@@ -13,7 +13,10 @@ csrftoken = ""
 lc_session = ""
 
 # [editor]
-# command = ""  # Falls back to $EDITOR, then vim
+# command = ""  # Falls back to $EDITOR, then a platform default (vim; on Windows,
+#               # "code --wait" if VS Code is on PATH, else notepad). Arguments are
+#               # supported, e.g. "code --wait" or "nvim -p"; quote a full path that
+#               # contains spaces.
 
 # [git]
 # ui = "lazygit"  # git UI launched by Ctrl+g, in the solutions dir (falls back to lazygit)
@@ -71,13 +74,68 @@ export function getSolutionsDir(): string {
   return config.paths?.solutions ? resolveConfigPath(config.paths.solutions) : SOLUTIONS_DIR;
 }
 
-export function getEditorCommand(): string {
+// Split an editor command string into an argv array so a configured command can
+// carry flags (e.g. `code --wait`, `nvim -p`, `emacsclient -nw`) — the spawn
+// sites used to pass the whole string as a single executable, so anything with a
+// space was unrunnable. Whitespace separates tokens; single/double quotes group a
+// token that contains spaces (e.g. a Windows path like
+// `"C:\Program Files\Microsoft VS Code\bin\code.cmd"`). Backslashes are NOT
+// escapes — they're path separators on Windows — so only quotes group. Pure, so
+// the tokenizing is unit-tested off the filesystem.
+export function parseEditorCommand(raw: string): string[] {
+  const tokens: string[] = [];
+  let current = "";
+  let inToken = false;
+  let quote: '"' | "'" | null = null;
+  for (const ch of raw) {
+    if (quote) {
+      if (ch === quote) quote = null;
+      else current += ch;
+    } else if (ch === '"' || ch === "'") {
+      quote = ch;
+      inToken = true;
+    } else if (ch === " " || ch === "\t") {
+      if (inToken) {
+        tokens.push(current);
+        current = "";
+        inToken = false;
+      }
+    } else {
+      current += ch;
+      inToken = true;
+    }
+  }
+  if (inToken) tokens.push(current);
+  return tokens;
+}
+
+// The editor to fall back to when neither `[editor] command` nor $EDITOR is set.
+// Unix keeps `vim`. Windows has no vim by default, so prefer VS Code when its
+// `code` launcher is on PATH — with `--wait` (now expressible thanks to the argv
+// support above; without it `code` forks and returns immediately, collapsing the
+// suspend/edit/resume handover) — else `notepad` (always present, a real .exe that
+// blocks until closed). Caveat: VS Code's `code` is a `code.cmd` shim on Windows;
+// whether Bun.spawn resolves a .cmd via PATHEXT is unverified on a real Windows box.
+function defaultEditorCommand(): string {
+  if (process.platform === "win32") {
+    return Bun.which("code") ? "code --wait" : "notepad";
+  }
+  return "vim";
+}
+
+// The editor to spawn, as an argv prefix the caller appends the path/dir to.
+// Resolves `[editor] command` → $EDITOR → the platform default, then tokenizes so
+// flags survive. Re-falls-back to the platform default if the resolved string
+// tokenizes to nothing (e.g. a whitespace-only $EDITOR).
+export function getEditorArgv(): string[] {
   const config = loadConfig();
-  return config.editor?.command || process.env.EDITOR || "vim";
+  const raw = config.editor?.command || process.env.EDITOR || defaultEditorCommand();
+  const argv = parseEditorCommand(raw);
+  return argv.length > 0 ? argv : parseEditorCommand(defaultEditorCommand());
 }
 
 // The git UI launched in the solutions dir by the `git.openUi` command (Ctrl+g,
-// Stage 22). Mirrors `getEditorCommand`'s shape; defaults to lazygit. Any tool that
+// Stage 22). Defaults to lazygit. Any tool that
 // honors cwd works (gitui/tig/git) since the launcher spawns it with
 // cwd = the solutions dir.
 export function getGitUiCommand(): string {
