@@ -131,7 +131,9 @@ Both the browser and the problem view use a **lazygit-style panel layout** — e
 
 **Topics panel focused** — `j`/`k` or arrows change topic (live-filters questions) · `Enter` focuses the questions panel
 
-**Questions panel focused** — `j`/`k` or arrows navigate · `gg` / `G` jump to first / last · `Enter` open problem view · `e` open in `$EDITOR` · `w` open workspace (whole problem folder) · `R` run · `s` submit · `y` yank URL
+**Questions panel focused** — `j`/`k` or arrows navigate · `gg` / `G` jump to first / last · `Enter` open problem view · `e` open in `$EDITOR` · `w` open workspace (whole problem folder) · `y` yank URL
+
+> Running and submitting solutions live in the **problem view** (press `Enter` on a question) — browse is for finding and opening problems, not solving them.
 
 ### Problem view
 

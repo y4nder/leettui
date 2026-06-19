@@ -1,8 +1,10 @@
 // Browse-mode commands: list/topic navigation, panel focus, the difficulty filter, and the
-// question-targeted solve actions (open editor / run / submit / yank URL on the selected
-// question). Split into two exported runs (`browseNavCommands` and `browseSolveCommands`)
-// because in the flat COMMANDS array the problem-view block sits *between* them — keeping
-// them as two arrays lets commands/index.ts reproduce that exact byte order.
+// question-targeted file actions (open editor / open workspace / yank URL on the selected
+// question). Run/submit are intentionally absent — they belong to the problem view, so
+// browse stays a navigator. Split into two exported runs (`browseNavCommands` and
+// `browseSolveCommands`) because in the flat COMMANDS array the problem-view block sits
+// *between* them — keeping them as two arrays lets commands/index.ts reproduce that exact
+// byte order.
 
 import { useAppStore } from "../../store";
 import { getScrollJumpRows } from "../../../config";
@@ -13,8 +15,6 @@ import {
   handleOpenRecent,
   handleOpenWorkspace,
   handleRandomQuestion,
-  handleRunSolution,
-  handleSubmitSolution,
   handleYankUrl,
 } from "../../../views/browse/handlers";
 
@@ -179,21 +179,6 @@ export const browseSolveCommands: CommandEntry[] = [
       if (r) handleOpenWorkspace("w", r);
     },
   }),
-  makeCommand({
-    name: "problem.run",
-    title: "Run solution against examples",
-    category: "Solve",
-    short: "Run",
-    run: () => handleRunSolution("R"),
-  }),
-  makeCommand({
-    name: "problem.submit",
-    title: "Submit solution",
-    category: "Solve",
-    short: "Submit",
-    run: () => handleSubmitSolution("s"),
-  }),
-
   makeCommand({
     name: "question.yankUrl",
     title: "Yank problem URL to clipboard",

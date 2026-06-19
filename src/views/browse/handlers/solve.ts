@@ -1,17 +1,16 @@
-// Browse list actions against the selected question: run / submit (with a
-// language picker when several solutions exist), manual DB re-sync, yank URL,
-// jump to a random question, and mid-session re-authentication.
+// Browse list actions: manual DB re-sync, yank URL, jump to a random question,
+// and mid-session re-authentication. Run/submit deliberately do NOT live here —
+// those act on a chosen solution and belong to the problem view; browse stays a
+// navigator over the question list.
 
 import { useAppStore } from "../../../ui/store";
 import { initClient } from "../../../api/client";
 import { runAuthFlow } from "../../../core/auth";
 import { getQuestionsByTopic } from "../../../db/questions";
-import { findExistingSolutions } from "../../../core/solutions";
-import { runSolution, submitSolution, SolutionError } from "../../../core/submission";
 import { copyToClipboard, problemUrl } from "../../../core/clipboard";
 import { syncQuestions } from "../../../core/sync";
 import { errMessage, logError } from "../../../debug";
-import { buildResultView, info, loading, errorView } from "../resultView";
+import { info, errorView } from "../resultView";
 import {
   currentQuestion,
   currentTopic,
@@ -19,87 +18,6 @@ import {
   withSuspendedRenderer,
   type Renderer,
 } from "./shared";
-
-async function withChosenSolution(
-  triggerKey: string,
-  action: "run" | "submit",
-  fn: (langSlug: string) => Promise<void>,
-) {
-  const q = currentQuestion();
-  if (!q) return;
-  const { showSelect, hideSelect, showResult } = useAppStore.getState();
-
-  // langSlugs of every solution that exists on disk for this problem.
-  const existing = findExistingSolutions(q.id, q.title_slug);
-  if (existing.length === 0) {
-    showResult(info("No solution file found. Press 'e' to create one."));
-    return;
-  }
-
-  const errTitle = action === "run" ? "Run error" : "Submit error";
-
-  if (existing.length > 1) {
-    const title = action === "run" ? "Select Solution to Run" : "Select Solution to Submit";
-    showSelect(title, existing, async (index) => {
-      hideSelect();
-      if (index === null) return;
-      try {
-        await fn(existing[index]!);
-      } catch (e) {
-        reportError(showResult, triggerKey, `handle${action}Solution`, errTitle, e);
-      }
-    });
-    return;
-  }
-
-  try {
-    await fn(existing[0]!);
-  } catch (e) {
-    reportError(showResult, triggerKey, `handle${action}Solution`, errTitle, e);
-  }
-}
-
-export async function handleRunSolution(triggerKey: string) {
-  const q = currentQuestion();
-  if (!q) return;
-
-  await withChosenSolution(triggerKey, "run", async (langSlug) => {
-    const { showResult, refreshQuestions } = useAppStore.getState();
-    showResult(loading("Running solution..."));
-    try {
-      const result = await runSolution(q, langSlug);
-      showResult(buildResultView(result));
-    } catch (e) {
-      if (e instanceof SolutionError) {
-        showResult(errorView(errMessage(e)));
-        return;
-      }
-      throw e;
-    }
-    refreshQuestions(getQuestionsByTopic(currentTopic()));
-  });
-}
-
-export async function handleSubmitSolution(triggerKey: string) {
-  const q = currentQuestion();
-  if (!q) return;
-
-  await withChosenSolution(triggerKey, "submit", async (langSlug) => {
-    const { showResult, refreshQuestions } = useAppStore.getState();
-    showResult(loading("Submitting solution..."));
-    try {
-      const result = await submitSolution(q, langSlug);
-      showResult(buildResultView(result));
-    } catch (e) {
-      if (e instanceof SolutionError) {
-        showResult(errorView(errMessage(e)));
-        return;
-      }
-      throw e;
-    }
-    refreshQuestions(getQuestionsByTopic(currentTopic()));
-  });
-}
 
 export async function handleSyncDb(triggerKey: string) {
   const { setSyncProgress, clearSyncProgress, refreshQuestions, init, showResult } =

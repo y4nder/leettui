@@ -22,8 +22,8 @@ function bindingsFor(spec: Record<string, KeyLike | KeyLike[]>): Binding<Rendera
 // which panel is focused — only genuinely cross-panel commands live here (focus,
 // search, system overlays, view-wide filters/jumps, and the update-banner dismiss).
 // `r` (random) and `x` (dismiss) stay global deliberately: random is a view-wide jump
-// and dismiss targets the banner chrome, not a panel. Question-targeted actions
-// (e/R/s/y) moved to questionPanelBindings.
+// and dismiss targets the banner chrome, not a panel. Question-targeted file actions
+// (e/w/y) live in questionPanelBindings; run/submit are problem-view only.
 export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   // Tab/Shift+Tab cycle; Ctrl+h/Ctrl+l traverse left/right (same commands —
   // PANEL_ORDER is the spatial left→right order, so Ctrl+l = next, Ctrl+h = prev).
@@ -69,8 +69,9 @@ export const topicPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
 
 // Mounted only while the questions panel is focused. j/k move the question cursor,
 // gg/G jump to ends, Ctrl+d/Ctrl+u jump a half page, Enter opens the problem view, and
-// the question-targeted solve actions (open editor / run / submit / yank URL) act on
-// the selected question.
+// the question-targeted file actions (open editor / open workspace / yank URL) act on
+// the selected question. Run/submit deliberately live *only* in the problem view —
+// browse stays a navigator, not a solver.
 export const questionPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "question.next": ["j", "down"],
   "question.prev": ["k", "up"],
@@ -81,8 +82,6 @@ export const questionPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFo
   "problem.enter": "return",
   "problem.openEditor": "e",
   "browse.openWorkspace": "w",
-  "problem.run": "shift+r",
-  "problem.submit": "s",
   "question.yankUrl": "y",
 });
 

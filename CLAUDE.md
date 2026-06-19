@@ -80,7 +80,8 @@ Browse uses lazygit-style focusable panels (Stage 11): exactly one panel is focu
 Tab / Shift+Tab: cycle focus | Ctrl+h/Ctrl+l: focus left/right | [1]/[2]: jump to topics/questions panel
 Topics focused — j/k: change topic (live-filters questions) | gg/G: jump first/last | Ctrl+d/Ctrl+u: scroll jump (distance configurable via [scroll] jump_rows) | Enter: focus questions
 Questions focused — j/k or arrows: navigate | gg/G: jump first/last | Ctrl+d/Ctrl+u: scroll jump (distance configurable via [scroll] jump_rows) | Enter: view problem
-  e: Open in editor (single solution file) | w: Open workspace (whole problem folder) | R: Run | s: Submit | y: Yank URL
+  e: Open in editor (single solution file) | w: Open workspace (whole problem folder) | y: Yank URL
+  (Run/submit are problem-view only — browse is a navigator, not a solver; press Enter to open a problem.)
 Global (any panel) — d: Daily challenge | h: Recently viewed (history modal) | D: Cycle difficulty | /: Search | Ctrl+g: Git UI (lazygit) in solutions dir | W: Whole solutions dir in $EDITOR | ?: Help | q: Quit
 Daily challenge popup — Enter: open in problem view | j/k: scroll | Esc: close
 
