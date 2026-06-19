@@ -259,6 +259,30 @@ export async function handleOpenWorkspace(triggerKey: string, renderer: Renderer
   }
 }
 
+// Open the *entire solutions directory* as a workspace — the unscoped sibling of
+// `w`/handleOpenWorkspace. Same `$EDITOR {dir}` (cwd = dir) handover, but rooted at
+// the solutions dir so every problem folder is in the editor's file tree at once.
+// mkdir -p first: on a fresh install the dir may not exist yet (no solution created),
+// and spawning `$EDITOR` on a missing path is unfriendly. Not question-targeted, so
+// it's a global binding (browse + problem) rather than a panel one.
+export async function handleOpenSolutionsWorkspace(triggerKey: string, renderer: Renderer) {
+  const { showResult } = useAppStore.getState();
+  try {
+    const dir = getSolutionsDir();
+    mkdirSync(dir, { recursive: true });
+    await spawnEditorInDir(renderer, dir);
+    useAppStore.getState().refreshSolutionFiles();
+  } catch (e) {
+    reportError(
+      showResult,
+      triggerKey,
+      "handleOpenSolutionsWorkspace",
+      "Error opening solutions workspace",
+      e,
+    );
+  }
+}
+
 async function withChosenSolution(
   triggerKey: string,
   action: "run" | "submit",

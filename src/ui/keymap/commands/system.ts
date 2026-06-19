@@ -12,6 +12,7 @@ import { isDebugEnabled } from "../../../debug";
 import {
   handleOpenGitSync,
   handleOpenGitUi,
+  handleOpenSolutionsWorkspace,
   handleReauth,
   handleSyncDb,
   handleViewChangelog,
@@ -81,6 +82,15 @@ export const systemCommands: CommandEntry[] = [
     title: "Change solutions directory",
     category: "System",
     run: () => useAppStore.getState().showRelocate(),
+  }),
+  makeCommand({
+    name: "solutions.openWorkspace",
+    title: "Open solutions dir in editor",
+    category: "System",
+    run: () => {
+      const r = getRenderer();
+      if (r) handleOpenSolutionsWorkspace("W", r);
+    },
   }),
   makeCommand({
     name: "git.openUi",
