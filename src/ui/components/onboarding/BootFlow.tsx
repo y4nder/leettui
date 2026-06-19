@@ -8,6 +8,7 @@ import { AuthWizard } from "./AuthWizard";
 import { SyncStep } from "./SyncStep";
 import { RelocatePrompt } from "./RelocatePrompt";
 import { SolutionsOnboarding } from "./SolutionsOnboarding";
+import { GitInitOnboarding } from "./GitInitOnboarding";
 import { Logo } from "./Logo";
 import { colors } from "../../theme";
 import { loadConfig, hasTokens, getDbPath, getSolutionsDir } from "../../../config";
@@ -32,7 +33,15 @@ import {
 } from "../../../core/session";
 import { useAppStore } from "../../store";
 
-type Phase = "splash" | "auth" | "solutions" | "loading" | "relocate" | "ready" | "error";
+type Phase =
+  | "splash"
+  | "auth"
+  | "solutions"
+  | "gitInit"
+  | "loading"
+  | "relocate"
+  | "ready"
+  | "error";
 
 interface BootFlowProps {
   renderer: Awaited<ReturnType<typeof createCliRenderer>>;
@@ -79,6 +88,11 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
   }, []);
 
   const handleSolutionsChosen = useCallback(() => {
+    // First installs continue to the git-init offer (Stage 22) before loading.
+    setPhase("gitInit");
+  }, []);
+
+  const handleGitInitResolved = useCallback(() => {
     setPhase("loading");
   }, []);
 
@@ -179,6 +193,7 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
     return <AuthWizard onComplete={handleAuthComplete} onAbort={handleAuthAbort} />;
   if (phase === "solutions")
     return <SolutionsOnboarding defaultDir={getSolutionsDir()} onDone={handleSolutionsChosen} />;
+  if (phase === "gitInit") return <GitInitOnboarding onResolved={handleGitInitResolved} />;
   if (phase === "loading") return <SyncStep />;
   if (phase === "relocate" && planRef.current)
     return <RelocatePrompt plan={planRef.current} onResolved={handleRelocationResolved} />;

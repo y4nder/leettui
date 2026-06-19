@@ -15,6 +15,9 @@ lc_session = ""
 # [editor]
 # command = ""  # Falls back to $EDITOR, then vim
 
+# [git]
+# ui = "lazygit"  # git UI launched by Ctrl+g, in the solutions dir (falls back to lazygit)
+
 # [paths]
 # db = ""        # Default: ~/.local/share/leettui/questions.db
 # solutions = "" # Default: ~/.local/share/leettui/solutions/
@@ -71,6 +74,15 @@ export function getSolutionsDir(): string {
 export function getEditorCommand(): string {
   const config = loadConfig();
   return config.editor?.command || process.env.EDITOR || "vim";
+}
+
+// The git UI launched in the solutions dir by the `git.openUi` command (Ctrl+g,
+// Stage 22). Mirrors `getEditorCommand`'s shape; defaults to lazygit. Any tool that
+// honors cwd works (gitui/tig/git) since the launcher spawns it with
+// cwd = the solutions dir.
+export function getGitUiCommand(): string {
+  const config = loadConfig();
+  return config.git?.ui || "lazygit";
 }
 
 export function getDefaultLanguage(): string {

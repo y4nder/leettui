@@ -4,6 +4,9 @@ export interface Config {
   editor?: {
     command?: string;
   };
+  git?: {
+    ui?: string;
+  };
   paths?: {
     db?: string;
     solutions?: string;

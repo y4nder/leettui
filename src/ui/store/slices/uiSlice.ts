@@ -31,6 +31,8 @@ export type AppMode =
   | "relocate"
   | "changelog"
   | "recent"
+  | "gitInit"
+  | "gitRemote"
   | "easterEgg";
 
 export interface UiSlice {
@@ -87,6 +89,10 @@ export interface UiSlice {
   hidePalette: () => void;
   showRelocate: () => void;
   hideRelocate: () => void;
+  showGitInit: () => void;
+  hideGitInit: () => void;
+  showGitRemote: () => void;
+  hideGitRemote: () => void;
   showEasterEgg: () => void;
   hideEasterEgg: () => void;
 }
@@ -161,6 +167,14 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   // toggle — the ChangeLocationPrompt owns its own input/confirm/done sub-state.
   showRelocate: () => set({ mode: "relocate" }),
   hideRelocate: () => set({ mode: "browse" }),
+
+  // Git version control (Stage 22). Both are bare mode toggles like showRelocate —
+  // the GitInitPrompt / GitRemotePrompt own their own confirm/input sub-state and
+  // run with no key-bearing layer mounted (every key falls through to useKeyboard).
+  showGitInit: () => set({ mode: "gitInit" }),
+  hideGitInit: () => set({ mode: "browse" }),
+  showGitRemote: () => set({ mode: "gitRemote" }),
+  hideGitRemote: () => set({ mode: "browse" }),
 
   // Easter egg: a full-screen ASCII art reveal that lingers until any key is pressed.
   showEasterEgg: () => set({ mode: "easterEgg" }),

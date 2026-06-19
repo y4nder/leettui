@@ -28,8 +28,23 @@ import { copyToClipboard, problemUrl } from "../../core/clipboard";
 import { syncQuestions } from "../../core/sync";
 import { fetchLatestRelease } from "../../core/update";
 import { relocateSolutions, type RelocateResult } from "../../core/relocate";
+import {
+  commandExists,
+  createGitHubRepo,
+  ensureSolutionsRepo,
+  ghAvailable,
+  ghAuthed,
+  initialCommit,
+  isGitRepo,
+  manualRemoteInstructions,
+} from "../../core/git";
 import { setLastKnownSolutionsDir } from "../../core/session";
-import { getEditorCommand, getSolutionsDir, persistSolutionsDir } from "../../config";
+import {
+  getEditorCommand,
+  getGitUiCommand,
+  getSolutionsDir,
+  persistSolutionsDir,
+} from "../../config";
 import { resolveConfigPath } from "../../config/resolvePath";
 import { errMessage, logError } from "../../debug";
 import { buildResultView, info, loading, errorView, type ResultView } from "./resultView";
@@ -424,4 +439,96 @@ export function handleRandomQuestion() {
   if (s.filteredQuestions.length === 0) return;
   const randomIndex = Math.floor(Math.random() * s.filteredQuestions.length);
   s.moveQuestion(randomIndex - s.selectedQuestionIndex);
+}
+
+// --- Git version control (Stage 22) ---------------------------------------
+//
+// leettui delegates version control to the user's git UI (lazygit) rather than
+// reimplementing porcelain. The launch reuses the $EDITOR suspend/spawn/resume
+// handover (withSuspendedRenderer); scaffolding (git init + defensive .gitignore +
+// first commit) goes through the single `ensureSolutionsRepo` seam in core/git.
+
+// Launch the configured git UI in the solutions dir. cwd = the solutions root, so
+// the tool is scoped to the whole tree — tool-agnostic (lazygit/gitui/tig/git all
+// honor cwd; no lazygit-only flag is baked in).
+async function launchGitUi(renderer: Renderer) {
+  const gitUi = getGitUiCommand();
+  const dir = getSolutionsDir();
+  await withSuspendedRenderer(renderer, async () => {
+    const proc = Bun.spawn([gitUi], {
+      cwd: dir,
+      stdin: "inherit",
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+    await proc.exited;
+  });
+}
+
+// Ctrl+g / palette: open the git UI in the solutions dir. Degrades cleanly when the
+// tool isn't installed; when the dir isn't a repo yet, routes to the init confirm
+// (which scaffolds then launches — "proceed into the git UI", not back to browse).
+export async function handleOpenGitUi(renderer: Renderer) {
+  const { showResult, showGitInit, refreshSolutionFiles } = useAppStore.getState();
+  const gitUi = getGitUiCommand();
+  if (!commandExists(gitUi)) {
+    showResult(
+      info(
+        `'${gitUi}' isn't installed — install it (e.g. https://github.com/jesseduffield/lazygit) or set [git] ui in your config.`,
+      ),
+    );
+    return;
+  }
+  if (await isGitRepo(getSolutionsDir())) {
+    await launchGitUi(renderer);
+    refreshSolutionFiles();
+    return;
+  }
+  showGitInit();
+}
+
+// The single scaffold seam: ensureSolutionsRepo (init + defensive .gitignore) then
+// an initial commit. Shared by the in-app init confirm and the first-run step.
+export async function scaffoldSolutionsGit() {
+  const dir = getSolutionsDir();
+  const ensured = await ensureSolutionsRepo(dir);
+  if (!ensured.ok) return ensured;
+  return initialCommit(dir, "Initial leettui solutions backup");
+}
+
+// Confirm handler for the in-app init prompt (Ctrl+g on a non-repo dir): scaffold,
+// then launch the git UI. Errors surface through the standard result modal.
+export async function handleConfirmGitInit(renderer: Renderer) {
+  const res = await scaffoldSolutionsGit();
+  const { hideGitInit, showResult, refreshSolutionFiles } = useAppStore.getState();
+  hideGitInit();
+  if (!res.ok) {
+    showResult(errorView("Couldn't initialize git", res.output));
+    return;
+  }
+  await launchGitUi(renderer);
+  refreshSolutionFiles();
+}
+
+export type RemoteSetupResult =
+  | { kind: "ok"; name: string }
+  | { kind: "gh-missing"; instructions: string }
+  | { kind: "not-authed" }
+  | { kind: "error"; message: string };
+
+// Execute the opt-in one-time GitHub backup: ensureSolutionsRepo → initial commit →
+// `gh repo create` (private) + push. ensureSolutionsRepo guarantees the defensive
+// .gitignore exists before the add/commit (the security invariant — the wizard is
+// the only path that pushes). Uses gh's OWN auth, never the LeetCode session.
+export async function runRemoteSetup(name: string): Promise<RemoteSetupResult> {
+  const dir = getSolutionsDir();
+  const ensured = await ensureSolutionsRepo(dir);
+  if (!ensured.ok) return { kind: "error", message: ensured.output };
+  const committed = await initialCommit(dir, "Initial leettui solutions backup");
+  if (!committed.ok) return { kind: "error", message: committed.output };
+  if (!ghAvailable()) return { kind: "gh-missing", instructions: manualRemoteInstructions(name) };
+  if (!(await ghAuthed())) return { kind: "not-authed" };
+  const created = await createGitHubRepo(dir, name, { private: true });
+  if (!created.ok) return { kind: "error", message: created.output };
+  return { kind: "ok", name };
 }
