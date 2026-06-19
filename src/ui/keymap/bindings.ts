@@ -46,6 +46,10 @@ export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor
   // escape hatch (Stage 22). Plain `g`/`G` are taken (gg/G jumps); ctrl+g is the
   // idiomatic lazygit-launch binding.
   "git.openUi": "ctrl+g",
+  // Shift+W opens the *whole* solutions dir in $EDITOR — the unscoped sibling of `w`
+  // (which opens one problem's folder). Global, not panel-scoped: it isn't tied to the
+  // selected question. Distinct key from `w` (like shift+g vs the gg chord).
+  "solutions.openWorkspace": "shift+w",
   "update.dismiss": "x",
   "app.quit": "q",
 });
@@ -131,6 +135,10 @@ export const problemGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFo
   "problem.testLocal": "t",
   "problem.submitFocused": "s",
   "problem.openWorkspace": "w",
+  // Shift+W: open the whole solutions dir in $EDITOR (same global command as browse,
+  // the unscoped sibling of this view's `w` problem-workspace). One command + two
+  // bindings, like update.dismiss — the run grabs the renderer, mode-independent.
+  "solutions.openWorkspace": "shift+w",
   "problem.notes": "n",
   // Tab/Shift+Tab cycle linearly (wrap); Ctrl+h/j/k/l move spatially across the 2D
   // layout (left/down/up/right, no wrap); [1]/[2]/[3] jump. NOTE: some terminals deliver

@@ -126,6 +126,7 @@ Both the browser and the problem view use a **lazygit-style panel layout** — e
 | `?` | Help |
 | `Ctrl+P` | Command palette |
 | `Ctrl+g` | Open git UI (lazygit) in your solutions dir |
+| `W` | Open the whole solutions dir in `$EDITOR` (vs. `w` = one problem's folder) |
 | `q` | Quit |
 
 **Topics panel focused** — `j`/`k` or arrows change topic (live-filters questions) · `Enter` focuses the questions panel
@@ -142,6 +143,7 @@ Both the browser and the problem view use a **lazygit-style panel layout** — e
 | `f` | Solution picker (switch language or start a new one) |
 | `e` | Open active solution in `$EDITOR` |
 | `w` | Open the whole problem folder as a workspace |
+| `W` | Open the whole solutions dir in `$EDITOR` (every problem at once) |
 | `R` | Run against example test cases |
 | `t` | Run against local test cases |
 | `s` | Submit |
