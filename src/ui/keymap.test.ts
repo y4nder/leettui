@@ -54,9 +54,10 @@ describe("footerSegments", () => {
     expect(byLabel.get("Navigate")).toBe("j/k");
     expect(byLabel.get("View")).toBe("Enter");
     expect(byLabel.get("Edit")).toBe("e");
-    expect(byLabel.get("Run")).toBe("R");
-    expect(byLabel.get("Submit")).toBe("s");
     expect(byLabel.get("Yank")).toBe("y");
+    // Run/submit are problem-view only — browse no longer surfaces them.
+    expect(byLabel.get("Run")).toBeUndefined();
+    expect(byLabel.get("Submit")).toBeUndefined();
 
     // global keys present too
     expect(byLabel.get("Focus")).toBe("Tab");

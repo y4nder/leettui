@@ -1,36 +1,10 @@
-import type { ParsedResponse } from "../../api/types";
-import type { LocalRunReport, CaseStatus } from "../../core/testRunner";
+// Constructors that turn API / local-runner responses into the `ResultView`
+// view-model (and the small info/loading/error primitives). Types live in
+// `./types`; both are re-exported from the barrel `./index`.
 
-export type ResultKind = "accepted" | "wrong" | "error" | "info" | "loading";
-
-export interface ResultMetric {
-  label: string;
-  value: string;
-  subtle?: string;
-}
-
-export interface ResultDiff {
-  testcase?: string;
-  expected: string;
-  actual: string;
-}
-
-export interface ResultCase {
-  name: string;
-  status: CaseStatus;
-  expected?: string;
-  actual?: string;
-}
-
-export interface ResultView {
-  kind: ResultKind;
-  title: string;
-  metrics?: ResultMetric[];
-  diff?: ResultDiff;
-  error?: string;
-  outputs?: { label: string; value: string }[];
-  cases?: ResultCase[];
-}
+import type { ParsedResponse } from "../../../api/types";
+import type { LocalRunReport } from "../../../core/testRunner";
+import type { ResultKind, ResultMetric, ResultView } from "./types";
 
 export function info(title: string): ResultView {
   return { kind: "info", title };
