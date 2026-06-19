@@ -5,14 +5,35 @@ import { join } from "node:path";
 import {
   commandExists,
   ensureSolutionsRepo,
+  ghCloneArgv,
   ghCreateArgv,
   gitInit,
+  gitPull,
+  hasRemote,
   initialCommit,
+  isDirEmpty,
   isGitRepo,
+  manualCloneInstructions,
   manualRemoteInstructions,
   ROOT_GITIGNORE,
   writeRootGitignore,
 } from "./git";
+
+// Run a git command synchronously for e2e setup; throws on failure so a botched
+// fixture surfaces loudly rather than as a confusing assertion miss.
+function git(args: string[], cwd: string): void {
+  const r = Bun.spawnSync(["git", ...args], { cwd });
+  if (r.exitCode !== 0) {
+    throw new Error(`git ${args.join(" ")} failed: ${r.stderr.toString()}`);
+  }
+}
+
+// init a repo with a repo-local identity (so commits don't depend on global config).
+function initRepo(dir: string): void {
+  git(["init"], dir);
+  git(["config", "user.email", "t@t.test"], dir);
+  git(["config", "user.name", "Test"], dir);
+}
 
 function freshDir(tag: string): string {
   const dir = join(
@@ -80,6 +101,43 @@ describe("manualRemoteInstructions", () => {
   });
 });
 
+describe("ghCloneArgv", () => {
+  test("builds the clone argv with the repo and target dir", () => {
+    expect(ghCloneArgv("leetcode-solutions", "/home/u/sol")).toEqual([
+      "gh",
+      "repo",
+      "clone",
+      "leetcode-solutions",
+      "/home/u/sol",
+    ]);
+  });
+});
+
+describe("manualCloneInstructions", () => {
+  test("embeds the repo name, the target dir, and a git clone command", () => {
+    const out = manualCloneInstructions("leetcode-solutions", "/home/u/sol");
+    expect(out).toContain("leetcode-solutions");
+    expect(out).toContain("/home/u/sol");
+    expect(out).toContain("git clone");
+  });
+});
+
+describe("isDirEmpty", () => {
+  let dir: string;
+  beforeEach(() => {
+    dir = freshDir("empty");
+  });
+  afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+  test("true for an absent dir and an empty dir; false once any (even hidden) entry exists", () => {
+    expect(isDirEmpty(join(dir, "does-not-exist"))).toBe(true);
+    expect(isDirEmpty(dir)).toBe(true);
+    // A dotfile counts — the clone target must be strictly empty (data-safety guard).
+    writeFileSync(join(dir, ".hidden"), "x");
+    expect(isDirEmpty(dir)).toBe(false);
+  });
+});
+
 describe("commandExists", () => {
   test("true for a ubiquitous binary, false for a nonsense one", () => {
     expect(commandExists("git")).toBe(true);
@@ -141,5 +199,69 @@ describe.skipIf(!HAS_GIT)("git e2e", () => {
 
     const log = Bun.spawnSync(["git", "log", "--oneline"], { cwd: dir });
     expect(log.stdout.toString().trim().split("\n").length).toBe(1);
+  });
+
+  test("hasRemote: false on a fresh repo, true once a remote is added", async () => {
+    await gitInit(dir);
+    expect(await hasRemote(dir)).toBe(false);
+    git(["remote", "add", "origin", "https://example.com/x.git"], dir);
+    expect(await hasRemote(dir)).toBe(true);
+  });
+
+  test("gitPull --ff-only fast-forwards from the tracked remote", async () => {
+    const src = freshDir("pull-src");
+    const clone = freshDir("pull-clone");
+    try {
+      initRepo(src);
+      writeFileSync(join(src, "a.txt"), "one\n");
+      git(["add", "-A"], src);
+      git(["commit", "-m", "first"], src);
+
+      // Clone into the existing, empty dir (the exact case the feature relies on);
+      // the clone tracks src as origin.
+      git(["clone", src, clone], tmpdir());
+
+      // A new upstream commit → the ff pull brings it in.
+      writeFileSync(join(src, "a.txt"), "two\n");
+      git(["add", "-A"], src);
+      git(["commit", "-m", "second"], src);
+
+      const res = await gitPull(clone);
+      expect(res.ok).toBe(true);
+      expect(readFileSync(join(clone, "a.txt"), "utf-8")).toBe("two\n");
+    } finally {
+      rmSync(src, { recursive: true, force: true });
+      rmSync(clone, { recursive: true, force: true });
+    }
+  });
+
+  test("gitPull --ff-only refuses a diverged history (delegates the merge to lazygit)", async () => {
+    const src = freshDir("div-src");
+    const clone = freshDir("div-clone");
+    try {
+      initRepo(src);
+      writeFileSync(join(src, "a.txt"), "one\n");
+      git(["add", "-A"], src);
+      git(["commit", "-m", "first"], src);
+
+      git(["clone", src, clone], tmpdir());
+      git(["config", "user.email", "t@t.test"], clone);
+      git(["config", "user.name", "Test"], clone);
+
+      // A local commit on the clone…
+      writeFileSync(join(clone, "local.txt"), "local\n");
+      git(["add", "-A"], clone);
+      git(["commit", "-m", "local"], clone);
+
+      // …and a different upstream commit → histories diverge → ff-only refuses.
+      writeFileSync(join(src, "a.txt"), "remote\n");
+      git(["add", "-A"], src);
+      git(["commit", "-m", "remote"], src);
+
+      expect((await gitPull(clone)).ok).toBe(false);
+    } finally {
+      rmSync(src, { recursive: true, force: true });
+      rmSync(clone, { recursive: true, force: true });
+    }
   });
 });

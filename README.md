@@ -51,7 +51,7 @@ This project exists for two reasons:
 - Recently viewed history (`h`) — jump back to a question you just looked at
 - Command palette (`Ctrl+P`) listing every available action
 - "What's new" changelog popup after you update (reopen any time from the palette)
-- Version-control your solutions — `Ctrl+g` opens lazygit in your solutions dir, with an optional one-step GitHub backup
+- Version-control your solutions — `Ctrl+g` opens lazygit in your solutions dir, with optional one-step GitHub backup and sync/restore
 - Multiple themes (tokyo-night, catppuccin) via config
 - [Per-language template overrides](docs/template-overrides.md) — custom solution stubs, harnesses, and manifests
 
@@ -174,8 +174,9 @@ leettui also exposes a few headless verbs that infer the problem from the curren
 
 Your solutions directory is laid out to be git-friendly (one folder per problem, build artifacts already `.gitignore`d), and leettui makes versioning it a one-key affair rather than reimplementing git:
 
-- **`Ctrl+g`** opens [lazygit](https://github.com/jesseduffield/lazygit) in your solutions dir (override the tool with `[git] ui` in your config — any cwd-respecting tool like `gitui`/`tig` works). If the dir isn't a repo yet, leettui offers to `git init` it — with a safe `.gitignore` that keeps local databases/sessions out of version control, plus a first commit — then drops you straight into the git UI. On a genuine first run it offers this right after you pick where solutions live.
+- **`Ctrl+g`** opens [lazygit](https://github.com/jesseduffield/lazygit) in your solutions dir (override the tool with `[git] ui` in your config — any cwd-respecting tool like `gitui`/`tig` works). If the dir isn't a repo yet, leettui offers to `git init` it — with a safe `.gitignore` that keeps local databases/sessions out of version control, plus a first commit — then drops you straight into the git UI. On a genuine first run, right after you pick where solutions live, leettui offers a choice: **start a new repo, clone an existing GitHub backup (restore from another machine), or skip.**
 - **Back up to GitHub** from the command palette (`Ctrl+P` → "Back up solutions to GitHub"): name a private repo and leettui runs `gh repo create … --push` for you. This uses the [GitHub CLI](https://cli.github.com/)'s own login (`gh auth login`) — entirely separate from your LeetCode session — and prints the manual `git remote` commands if `gh` isn't installed.
+- **Sync from GitHub** from the command palette (`Ctrl+P` → "Sync solutions from GitHub") — the inverse of backup. **On a new machine** the simplest path is the first-run prompt above (pick "clone an existing GitHub backup"); anytime after, point `[paths] solutions` at an empty directory and run this command — leettui `gh repo clone`s your backup into it, restoring every solution. On an **already-tracked** dir it instead fast-forward-pulls the latest (`git pull --ff-only`). A diverged history is never force-merged: leettui surfaces the error and tells you to open lazygit (`Ctrl+g`) to resolve it. Clone uses `gh`'s login; pull is plain git.
 
 Both lazygit and `gh` are optional: leettui shows an install hint instead of crashing when one isn't on your `PATH`.
 
