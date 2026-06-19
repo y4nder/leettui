@@ -8,6 +8,7 @@ import type { AppStore } from "../index";
 import type { ResultView } from "../../../views/browse/resultView";
 import type { ReleaseInfo } from "../../../core/update";
 import type { RecentQuestion } from "../../../db/recents";
+import type { DbQuestion } from "../../../db/questions";
 
 // Which browse-view panel currently holds focus (lazygit-style). Only meaningful
 // while mode === "browse"; panel-relative bindings (j/k, Enter) are mounted per panel.
@@ -38,6 +39,9 @@ export interface UiSlice {
   themeVersion: number;
   popupTitle: string;
   popupContent: string;
+  // The locally-synced question backing the open popup (daily challenge), or null
+  // when it isn't in the DB. Lets the popup's Enter open it in the problem view.
+  popupQuestion: DbQuestion | null;
   selectTitle: string;
   selectItems: string[];
   selectResolve: ((index: number | null) => void) | null;
@@ -69,7 +73,7 @@ export interface UiSlice {
   setFocusedPanel: (panel: BrowsePanel) => void;
   // dir 1 = next panel, -1 = previous (wraps). Generalizes past two panels.
   cycleFocusedPanel: (dir: 1 | -1) => void;
-  showPopup: (title: string, content: string) => void;
+  showPopup: (title: string, content: string, question?: DbQuestion | null) => void;
   hidePopup: () => void;
   showSelect: (title: string, items: string[], resolve: (index: number | null) => void) => void;
   hideSelect: () => void;
@@ -93,6 +97,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   themeVersion: 0,
   popupTitle: "",
   popupContent: "",
+  popupQuestion: null,
   selectTitle: "",
   selectItems: [],
   selectResolve: null,
@@ -132,8 +137,9 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
       return { focusedPanel: next };
     }),
 
-  showPopup: (title, content) => set({ mode: "popup", popupTitle: title, popupContent: content }),
-  hidePopup: () => set({ mode: "browse", popupTitle: "", popupContent: "" }),
+  showPopup: (title, content, question = null) =>
+    set({ mode: "popup", popupTitle: title, popupContent: content, popupQuestion: question }),
+  hidePopup: () => set({ mode: "browse", popupTitle: "", popupContent: "", popupQuestion: null }),
 
   showSelect: (title, items, resolve) =>
     set({ mode: "select", selectTitle: title, selectItems: items, selectResolve: resolve }),

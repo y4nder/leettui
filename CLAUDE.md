@@ -80,6 +80,7 @@ Topics focused — j/k: change topic (live-filters questions) | gg/G: jump first
 Questions focused — j/k or arrows: navigate | gg/G: jump first/last | Ctrl+d/Ctrl+u: scroll jump (distance configurable via [scroll] jump_rows) | Enter: view problem
   e: Open in editor (single solution file) | w: Open workspace (whole problem folder) | R: Run | s: Submit | y: Yank URL
 Global (any panel) — d: Daily challenge | h: Recently viewed (history modal) | D: Cycle difficulty | /: Search | ?: Help | q: Quit
+Daily challenge popup — Enter: open in problem view | j/k: scroll | Esc: close
 
 `e` opens the single `solution.{ext}` with cwd = the language folder (so `leettui test` cwd-inference + per-language LSP work); `w` opens the whole problem folder (`$EDITOR {problemDir}`) as a workspace so `problem.md`, `notes.md`, and every language subfolder are in the editor's file tree at once. `w` works in problem view too. Opening a workspace generates `problem.md` (the description, create-if-absent) and `notes.md` if absent.
 

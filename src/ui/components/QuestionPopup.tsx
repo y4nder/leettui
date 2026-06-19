@@ -35,7 +35,7 @@ export function QuestionPopup({ title, content }: QuestionPopupProps) {
       <scrollbox ref={registerPopupScroller} flexGrow={1} paddingLeft={1} paddingRight={1}>
         <markdown content={content} syntaxStyle={syntaxStyle} />
       </scrollbox>
-      <text fg={colors.fgDim}> j/k:Scroll Esc/Enter:Close </text>
+      <text fg={colors.fgDim}> j/k:Scroll Enter:Open Esc:Close </text>
     </box>
   );
 }
