@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { matchCliVerb, bootstrapApiClient, AUTH_HINT } from "./index";
+import { matchCliVerb, verbArg, bootstrapApiClient, AUTH_HINT } from "./index";
 import {
   presentResultView,
   exitCodeForLocalRun,
@@ -18,6 +18,7 @@ describe("matchCliVerb", () => {
     expect(matchCliVerb(["bun", "src/index.tsx", "test"])).toBe("test");
     expect(matchCliVerb(["bun", "src/index.tsx", "run"])).toBe("run");
     expect(matchCliVerb(["bun", "src/index.tsx", "submit"])).toBe("submit");
+    expect(matchCliVerb(["bun", "src/index.tsx", "new", "rust"])).toBe("new");
   });
 
   test("returns null with no verb", () => {
@@ -28,6 +29,28 @@ describe("matchCliVerb", () => {
   test("does not match a substring inside a path element", () => {
     // A binary living in a `leettui-test/` dir must not trip the `test` verb.
     expect(matchCliVerb(["/home/u/leettui-test/leettui"])).toBeNull();
+  });
+
+  test("returns the earliest verb so a verb-named argument can't shadow it", () => {
+    // `new`'s language argument happening to equal another verb token must not
+    // win — the verb is whichever recognized token comes *first* in argv.
+    expect(matchCliVerb(["bun", "src/index.tsx", "new", "run"])).toBe("new");
+    expect(matchCliVerb(["bun", "src/index.tsx", "new", "submit"])).toBe("new");
+  });
+});
+
+describe("verbArg", () => {
+  test("returns the positional token after the verb", () => {
+    expect(verbArg(["bun", "src/index.tsx", "new", "rust"], "new")).toBe("rust");
+  });
+
+  test("undefined when the verb has no following token", () => {
+    expect(verbArg(["bun", "src/index.tsx", "new"], "new")).toBeUndefined();
+    expect(verbArg(["bun", "src/index.tsx", "test"], "test")).toBeUndefined();
+  });
+
+  test("skips leading flags to the first real token", () => {
+    expect(verbArg(["bun", "src/index.tsx", "new", "--debug", "python3"], "new")).toBe("python3");
   });
 });
 
