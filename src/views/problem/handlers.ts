@@ -4,8 +4,6 @@
 
 import { dirname } from "node:path";
 
-import type { createCliRenderer } from "@opentui/core";
-
 import { useAppStore } from "../../ui/store";
 import type { RelatedQuestion } from "../../ui/store";
 import { htmlToMarkdown } from "../../core/markdown";
@@ -33,42 +31,18 @@ import {
 import { runSolution, submitSolution, SolutionError } from "../../core/submission";
 import { runLocalTests } from "../../core/testRunner";
 import { getEditorCommand } from "../../config";
-import { errMessage, logError } from "../../debug";
-import {
-  buildResultView,
-  buildLocalRunView,
-  info,
-  loading,
-  errorView,
-  type ResultView,
-} from "../browse/resultView";
+import { errMessage } from "../../debug";
+import { buildResultView, buildLocalRunView, info, loading, errorView } from "../browse/resultView";
+import { currentTopic, makeReportError, withSuspendedRenderer, type Renderer } from "../shared";
 
-type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
-
-function currentTopic() {
-  const s = useAppStore.getState();
-  return s.topics[s.selectedTopicIndex] ?? "all";
-}
+// Problem-view error reports log against the "problem" scope.
+const reportError = makeReportError("problem");
 
 // The focused solution's langSlug (its identity), or null if none exist.
 function focusedLangSlug(): string | null {
   const p = useAppStore.getState().problem;
   if (!p || p.solutions.length === 0) return null;
   return p.solutions[p.focusedSolutionIndex] ?? null;
-}
-
-// The repeated catch tail: log against the "problem" scope, then surface the
-// failure through the given result-view setter (`setProblemResult` for in-view
-// results, `showResult` for the modal popup). One place to change the shape.
-function reportError(
-  setResult: (view: ResultView) => void,
-  triggerKey: string,
-  name: string,
-  title: string,
-  e: unknown,
-) {
-  logError(triggerKey, "problem", name, e);
-  setResult(errorView(title, errMessage(e)));
 }
 
 // Shared scaffold for the focused-solution actions (run / submit / test-local /
@@ -304,8 +278,7 @@ async function openInEditor(renderer: Renderer, langSlug: string) {
 
 async function openInEditorPath(renderer: Renderer, path: string) {
   const editor = getEditorCommand();
-  renderer.suspend();
-  try {
+  await withSuspendedRenderer(renderer, async () => {
     const proc = Bun.spawn([editor, path], {
       // cwd = the file's folder (lang folder for solutions, problem folder for
       // notes), so the headless CLI's cwd-inference and per-language LSP work
@@ -316,9 +289,7 @@ async function openInEditorPath(renderer: Renderer, path: string) {
       stderr: "inherit",
     });
     await proc.exited;
-  } finally {
-    renderer.resume();
-  }
+  });
 }
 
 // Open the whole problem folder as a workspace (Stage 13). Reuses the already-
@@ -335,8 +306,7 @@ export async function handleOpenProblemWorkspace(triggerKey: string, renderer: R
     ensureNotesFile(p.question.id, p.question.title_slug, p.question.title);
 
     const editor = getEditorCommand();
-    renderer.suspend();
-    try {
+    await withSuspendedRenderer(renderer, async () => {
       const proc = Bun.spawn([editor, problemDir], {
         cwd: problemDir,
         stdin: "inherit",
@@ -344,9 +314,7 @@ export async function handleOpenProblemWorkspace(triggerKey: string, renderer: R
         stderr: "inherit",
       });
       await proc.exited;
-    } finally {
-      renderer.resume();
-    }
+    });
     refreshProblemSolutions();
   } catch (e) {
     reportError(
