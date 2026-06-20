@@ -60,6 +60,14 @@ const force = process.argv.includes("auth");
 const renderer = await createCliRenderer({
   exitOnCtrlC: true,
   screenMode: "alternate-screen",
+  // OpenTUI's native threaded writer (the default on every platform except Linux,
+  // which it forces off internally) doesn't reliably flush the *final* frame on
+  // Windows once the continuous render loop stops. The animated onboarding screens
+  // (splash/spinner/input-cursor) keep that loop running, but the static browse view
+  // has no live renderable — so its single on-demand frame is left in the writer and
+  // the screen stays black until a keypress forces another frame. Take Windows off
+  // the threaded writer too (macOS is unaffected and keeps the default).
+  ...(process.platform === "win32" ? { useThread: false } : {}),
 });
 
 // On quit (q, Ctrl+C, or any clean exit), remind the user if a newer release was
