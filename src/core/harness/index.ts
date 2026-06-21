@@ -14,6 +14,7 @@ import { generateJavascriptHarness } from "./javascript";
 import { generateTypescriptHarness } from "./typescript";
 import { generateRustHarness, prepareRustSolution } from "./rust";
 import { generateCsharpHarness } from "./csharp";
+import { generateJavaHarness, prepareJavaSolution } from "./java";
 
 // A harness is a *set* of files, because a compiled language needs more than the
 // single interpreter-run script: Rust emits `Cargo.toml` + `.gitignore` +
@@ -59,6 +60,11 @@ export function generateHarness(
     }
     case "csharp": {
       const files = generateCsharpHarness(meta);
+      // null = a deferred/unmappable signature → no harness (blank stub).
+      return files ? { files } : null;
+    }
+    case "java": {
+      const files = generateJavaHarness(meta);
       // null = a deferred/unmappable signature → no harness (blank stub).
       return files ? { files } : null;
     }
@@ -110,6 +116,18 @@ const RUNNERS: Record<string, RunnerSpec> = {
     command: ["./out/main"],
     compile: { command: ["dotnet", "build", "-o", "out", "--nologo", "-v", "q"] },
   },
+  // Java (Stage 25): `javac solution.java main.java` compiles both sources (no
+  // build manifest — the JDK compiles directly) into `Solution.class`/`Main.class`
+  // in the cwd; `java -cp . Main` then runs the package-private `Main` per case,
+  // reading stdin (so `harnessFilename` isn't appended — same as rust/csharp). The
+  // explicit `-cp .` survives an exported `CLASSPATH` (which would otherwise drop
+  // the implicit current-dir entry and fail to find `Main`). `javac` is listed
+  // with explicit filenames since `Bun.spawn` doesn't glob `*.java`.
+  java: {
+    harnessFilename: "main.java",
+    command: ["java", "-cp", ".", "Main"],
+    compile: { command: ["javac", "solution.java", "main.java"] },
+  },
 };
 
 export function getRunnerSpec(langSlug: string): RunnerSpec | null {
@@ -118,9 +136,12 @@ export function getRunnerSpec(langSlug: string): RunnerSpec | null {
 
 // Transforms the LeetCode solution snippet before it's written to `solution.{ext}`,
 // so a language can adapt the on-disk file for its local tooling without touching the
-// submittable shape. Today only **rust** transforms (prepending a `#[cfg]`-gated
-// `struct Solution;` so `solution.rs` is a real module rust-analyzer can complete —
-// see `prepareRustSolution`); every other language returns the snippet unchanged.
+// submittable shape. Two languages transform: **rust** prepends a `#[cfg]`-gated
+// `struct Solution;` so `solution.rs` is a real module rust-analyzer can complete
+// (see `prepareRustSolution`), and **java** prepends `import java.util.*;` so a bare
+// snippet using `HashMap`/`List` compiles under local `javac` (LeetCode's judge
+// auto-imports `java.util`; see `prepareJavaSolution`). Both stay submittable; every
+// other language returns the snippet unchanged.
 //
 // **Couple it to harness presence at the call site** (`create.ts`): the rust shim only
 // makes sense alongside the `Cargo.toml` (declaring the `harness` feature) + `main.rs`
@@ -128,5 +149,7 @@ export function getRunnerSpec(langSlug: string): RunnerSpec | null {
 // `ListNode`/`TreeNode`) yields a null harness — no manifest — so it must get the plain
 // snippet, not a feature-gated line with no feature declared anywhere.
 export function prepareSolutionSnippet(langSlug: string, code: string): string {
-  return langSlug === "rust" ? prepareRustSolution(code) : code;
+  if (langSlug === "rust") return prepareRustSolution(code);
+  if (langSlug === "java") return prepareJavaSolution(code);
+  return code;
 }

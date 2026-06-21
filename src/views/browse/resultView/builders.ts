@@ -36,6 +36,11 @@ function toolchainMissingView(langSlug: string): ResultView {
         "✗ .NET SDK not found",
         "Install the .NET SDK (provides `dotnet`): https://dotnet.microsoft.com/download",
       );
+    case "java":
+      return errorView(
+        "✗ JDK not found",
+        "Install a JDK (provides `javac`/`java`): https://adoptium.net",
+      );
     default:
       return errorView(
         `✗ Toolchain not found for ${langSlug}`,
