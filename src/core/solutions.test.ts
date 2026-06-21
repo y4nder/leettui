@@ -292,6 +292,42 @@ describe("createSolutionWithHarness with template overrides", () => {
     expect(existsSync(join(dir, "Cargo.toml"))).toBe(false);
     expect(existsSync(join(dir, "main.rs"))).toBe(false);
   });
+
+  test("mappable java: solution.java gets the java.util import prepend alongside the harness", () => {
+    const spec: CreateSpec = {
+      id: 8,
+      slug: "two-sum-java",
+      lang: "java",
+      code: "class Solution {\n    public int[] twoSum(int[] nums, int target) { return new int[0]; }\n}",
+      meta: TWO_SUM_META,
+    };
+    runCreate(spec);
+
+    const dir = langDir(spec);
+    const solution = readFileSync(join(dir, "solution.java"), "utf-8");
+    // The import prepend rides the same `prepareSolutionSnippet` seam as rust's shim.
+    expect(solution).toBe(`import java.util.*;\n\n${spec.code}`);
+    // The two-file harness lands beside it (no build manifest).
+    expect(readFileSync(join(dir, "main.java"), "utf-8")).toContain("class Main {");
+    expect(readFileSync(join(dir, ".gitignore"), "utf-8")).toBe("*.class\n");
+  });
+
+  test("unmappable java (ListNode): plain snippet, no import prepend or harness", () => {
+    const spec: CreateSpec = {
+      id: 9,
+      slug: "reverse-list-java",
+      lang: "java",
+      code: "class Solution {\n    public ListNode reverseList(ListNode head) { return head; }\n}",
+      meta: REVERSE_LIST_META,
+    };
+    runCreate(spec);
+
+    const dir = langDir(spec);
+    // No harness (deferred type) → the snippet must NOT carry the prepend either
+    // (the prepend is coupled to harness presence, like rust's cfg shim).
+    expect(readFileSync(join(dir, "solution.java"), "utf-8")).toBe(spec.code);
+    expect(existsSync(join(dir, "main.java"))).toBe(false);
+  });
 });
 
 // --- problem.md / workspace seam (Stage 13 item 1) ---
