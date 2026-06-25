@@ -32,9 +32,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: Submissions schema + migration + CRUD module — table in `questions.db` keyed by `submissionId` PK, `(questionId, submittedAt)` + `submittedAt` indexes, `submissionsFetchedAt` resume cursor on `questions`; embed migration in `migrations.ts` (DATA-01)
-- [ ] 01-02: `submissionList` GraphQL query + never-throws resumable backfill service — offset/limit pagination, inter-page delay + 429 backoff, AuthError handling; includes a live spike validating the real rate-limit threshold and the field set/pagination at scale (DATA-02, DATA-03, DATA-04, DATA-05)
-- [ ] 01-03: Append-on-submit + palette trigger + syncSlice-style progress bar — upsert from CheckResponse on run/submit, backfill command, non-blocking in-TUI progress (DATA-06, DATA-07)
+- [ ] 01-01-PLAN.md — Submissions schema + embedded migration + CRUD module — table in `questions.db` keyed by `submissionId` PK, `(questionId, submittedAt)` + `submittedAt` indexes, `submissionsFetchedAt` cursor on `questions` (DATA-01)
+- [ ] 01-02-PLAN.md — `submissionList` GraphQL query + never-throws resumable backfill service — offset/limit pagination, inter-page delay + 429 backoff, AuthError handling; includes a live spike validating the real rate-limit threshold and the field set/pagination at scale (DATA-02, DATA-03, DATA-04, DATA-05)
+- [ ] 01-03-PLAN.md — Append-on-submit + palette trigger + first-run nudge + syncSlice progress bar — upsert from CheckResponse on submit, backfill command, cancelable non-blocking in-TUI progress (DATA-06, DATA-07)
 
 ### Phase 2: Per-Problem History & Browse Badge
 **Goal**: Users see their full attempt history for a problem the moment they open it, and the browse list flags problems they have worked on before.
