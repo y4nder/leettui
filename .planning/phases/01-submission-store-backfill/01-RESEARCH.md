@@ -832,27 +832,31 @@ This is a greenfield extension (new table, new column). No rename/refactor invol
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Global vs. per-question pagination strategy**
    - What we know: Per-question (`questionSlug`) approach aligns with D-07 cursor semantics and bounds API calls to the user's attempted question count. Global approach (no `questionSlug`) has unclear scope and would require a different cursor model.
    - What's unclear: Does the global `submissionList` (no `questionSlug`) work for authenticated users? Is there a performance advantage at scale?
    - Recommendation: Start with per-question approach in plan 01-02 spike. Validate global as a fallback only if per-question is impractical.
+   - RESOLVED: 01-02 Task 3 uses the per-question strategy (the `questionSlug` filter, D-07 cursor); the spike (Task 1/2) probes the global no-`questionSlug` call only as a fallback observation.
 
 2. **`syncSlice` reuse vs. `backfillSlice` creation**
    - What we know: `syncSlice` is already wired to `<ProgressBar>` in both views. Reusing it means the backfill progress renders for free with zero new components.
    - What's unclear: Does reusing `syncSlice` cause confusion if a DB re-sync and backfill run close together? (They won't: backfill is on-demand, DB sync is first-run-only.)
    - Recommendation: Reuse `syncSlice`. If concerns arise, the slice can be split later without breaking the progress bar component.
+   - RESOLVED: 01-03 Task 2 reuses `syncSlice` (no new `backfillSlice`); the backfill progress renders through the existing `<ProgressBar>` wiring.
 
 3. **Cancel keybinding scope**
    - What we know: D-05 requires a cancel action. The existing binding system uses `useBindings` per scope.
    - What's unclear: Should cancel be a global binding (available anywhere) or a contextual one (only when backfill is in progress)?
    - Recommendation: A global `submissions.cancelBackfill` command that is a no-op when no backfill is running (mirrors `update.dismiss` which is no-op when no banner). Bind to Esc only when the progress bar is showing (contextual activation).
+   - RESOLVED: 01-03 Task 2 specifies the no-op-when-idle cancel command (mirrors `update.dismiss`), and 01-02 Task 3 makes cancel preserve partial data (`cancelRef.cancelled` between pages → reason:'cancelled', already-written rows kept).
 
 4. **`statusDisplay` source for append-on-submit**
    - What we know: `CheckResponse.status_code` is a number; `CheckResponse` type in `types.ts` does not include a `status_msg` field but it may be present in the raw response.
    - What's unclear: Is `status_msg` reliably present in the raw JSON? If not, we need a `statusMsgFromCode(code)` mapper.
    - Recommendation: In the plan 01-02 spike, log the full `CheckResponse` raw JSON for a submit to check if `status_msg` is present. If yes, use it directly. If not, build the mapper.
+   - RESOLVED: 01-02 Task 2 checkpoint validates `CheckResponse.status_msg` presence during the live spike (use it directly if present; otherwise build the `statusDisplayFromCode` mapper consumed in 01-03).
 
 ---
 
