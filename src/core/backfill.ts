@@ -73,6 +73,13 @@ function mapSubmission(sub: ApiSubmission): DbSubmission | null {
   if (sub.isPending !== "Not Pending") return null;
   const submissionId = parseInt(sub.id, 10);
   if (Number.isNaN(submissionId)) return null;
+  // API timestamp is unix SECONDS — confirmed against the live API by the
+  // 01-02 Task 2 spike (scripts/spike-submission-list.ts). Guarded the same
+  // way as submissionId: an unparseable timestamp skips just this row rather
+  // than throwing a NOT NULL constraint failure inside insertSubmissions'
+  // transaction (which would otherwise abort the entire backfill run).
+  const submittedAtSeconds = parseInt(sub.timestamp, 10);
+  if (Number.isNaN(submittedAtSeconds)) return null;
   const question = getQuestionBySlug(sub.titleSlug);
   if (!question) return null;
 
@@ -84,9 +91,7 @@ function mapSubmission(sub: ApiSubmission): DbSubmission | null {
     statusDisplay: sub.statusDisplay,
     runtime: sub.runtime ?? null,
     memory: sub.memory ?? null,
-    // API timestamp is unix SECONDS — confirmed against the live API by the
-    // 01-02 Task 2 spike (scripts/spike-submission-list.ts).
-    submittedAt: parseInt(sub.timestamp, 10) * 1000,
+    submittedAt: submittedAtSeconds * 1000,
     runtimePercentile: null, // only ever present via a live submit CheckResponse (01-03)
     memoryPercentile: null,
   };
