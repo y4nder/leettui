@@ -14,7 +14,7 @@ This milestone adds a submission history & analytics layer to leettui across thr
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Submission Store & Backfill** - Resumable, idempotent import of LeetCode history into the local store, plus append-on-submit (all 3 plans complete, Task 4 human-verify checkpoint approved 2026-07-01)
-- [ ] **Phase 2: Per-Problem History & Browse Badge** - Attempt history surfaced in ProblemView and a "worked-on-before" badge in the browse list
+- [x] **Phase 2: Per-Problem History & Browse Badge** - Attempt history surfaced in ProblemView and a "worked-on-before" badge in the browse list (completed 2026-07-01)
 - [ ] **Phase 3: Progress Dashboard** - A new full-screen view: streak, recent counts, difficulty breakdown, consistency score, heatmap, and trend
 
 ## Phase Details
@@ -61,13 +61,13 @@ Plans:
   3. Per-attempt runtime/memory percentile appears inline in a history row when available — shown subtly, never as a headline (and cleanly absent for historical rows).
   4. The browse question list shows an attempt-count badge on problems the user has submitted before, richer than LeetCode's binary solved/attempted mark.
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans complete
 
 Plans:
 **Wave 1** *(both plans independent — zero file overlap, run in parallel)*
 
 - [x] 02-01-PLAN.md — Per-problem History panel: verdict/runtime utils (`verdict.ts`) → `submissionsSlice` + `HistoryPanel` + ProblemView 4th-panel placement → focus/keymap wiring (navigate-only, Enter reserved) (HIST-01, HIST-02, HIST-03)
-- [ ] 02-02-PLAN.md — Browse attempt-count badge: `getSubmissionCountsByQuestion` aggregate → `attemptCounts` map + `QuestionList` `×N` badge in the ◆ slot → backfill-completion refresh (BROWSE-01)
+- [x] 02-02-PLAN.md — Browse attempt-count badge: `getSubmissionCountsByQuestion` aggregate → `attemptCounts` map + `QuestionList` `×N` badge in the ◆ slot → backfill-completion refresh (BROWSE-01)
 
 **UI hint**: yes
 
@@ -102,5 +102,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Submission Store & Backfill | 3/3 | Complete    | 2026-07-01 |
-| 2. Per-Problem History & Browse Badge | 1/2 | In Progress|  |
+| 2. Per-Problem History & Browse Badge | 2/2 | Complete   | 2026-07-01 |
 | 3. Progress Dashboard | 0/3 | Not started | - |

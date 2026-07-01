@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 02
 current_phase_name: per-problem-history-browse-badge
-status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-07-01T03:04:26.214Z"
+status: verifying
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-07-01T03:10:53.856Z"
 last_activity: 2026-07-01
 last_activity_desc: Phase 02 execution started
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
-  percent: 33
+  completed_plans: 5
+  percent: 67
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-26)
 
 Phase: 02 (per-problem-history-browse-badge) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-01 — Phase 02 execution started
 
 Progress: [███░░░░░░░] 33%
@@ -59,6 +59,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 01 P02 | 20min | 3 tasks | 4 files |
 | Phase 01 P03 | 20min | 3 tasks | 11 files |
 | Phase 02 P01 | 15min | 3 tasks | 13 files |
+| Phase 02 P02 | 3min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,8 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-03: Tasks 1-3 (append-on-submit, backfill palette command, first-run nudge) committed and TDD-verified; Task 4's blocking human-verify checkpoint (real LeetCode account, live TUI) run and approved 2026-07-01 — DATA-06/DATA-07 marked complete in REQUIREMENTS.md; all 3 Phase 1 plans now done
 - [Phase 02]: 02-01: verdictColor/parseRuntimeMs use substring match (not exact ===) with a safe fallback since statusDisplay comes from two independently reverse-engineered LeetCode API surfaces (live submit vs. backfill)
 - [Phase 02]: 02-01: summarizeAcRuntime's best excludes the latest AC (prior-best vs latest) so the improved/regressed arrow is always meaningful; submissionsSlice stays domain-only, focusedHistoryIndex stays in problemSlice (UI/domain split)
+- [Phase 02]: 02-02: attemptCounts lives on questionsSlice (domain), not submissionsSlice, since it is a per-question browse-list aggregate rather than per-problem detail rows
+- [Phase 02]: 02-02: refreshSolutionFiles() also recomputes attemptCounts so the two markers sharing the same ◆ render slot never drift out of sync
 
 ### Pending Todos
 
@@ -100,6 +103,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-01T03:04:26.208Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-07-01T03:10:53.849Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None

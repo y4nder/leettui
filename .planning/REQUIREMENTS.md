@@ -35,7 +35,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Browse Integration
 
-- [ ] **BROWSE-01**: The browse question list shows a "solved/attempted before" badge (attempt count) derived from submission history, richer than LeetCode's binary solved/attempted
+- [x] **BROWSE-01**: The browse question list shows a "solved/attempted before" badge (attempt count) derived from submission history, richer than LeetCode's binary solved/attempted
 
 ## v2 Requirements
 
@@ -88,7 +88,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-05 | Phase 3 | Pending |
 | DASH-06 | Phase 3 | Pending |
 | DASH-07 | Phase 3 | Pending |
-| BROWSE-01 | Phase 2 | Pending |
+| BROWSE-01 | Phase 2 | Complete |
 
 **Coverage:**
 
