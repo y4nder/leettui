@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 2.1
-current_phase_name: Local Test-Case Output Management
+current_phase_name: Local Test-Case Output Management, INSERTED
 status: "Phase 02 shipped (PR #55); QoL phases 2.1/2.2 inserted ahead of Phase 3 on branch feat/test-case-management"
-stopped_at: Promoted backlog → Phase 2.1/2.2 (needs planning)
-last_updated: "2026-07-01T04:46:08.116Z"
+stopped_at: Phase 2.1 context gathered
+last_updated: "2026-07-01T07:48:03.198Z"
 last_activity: 2026-07-01
 progress:
   total_phases: 5
@@ -106,6 +106,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-01T04:30:33.073Z
-Stopped at: Completed 02-03-PLAN.md
-Resume file: None
+Last session: 2026-07-01T07:48:03.185Z
+Stopped at: Phase 2.1 context gathered
+Resume file: .planning/phases/02.1-manage-local-test-case-expected-outputs-golden-snapshot-work/02.1-CONTEXT.md
