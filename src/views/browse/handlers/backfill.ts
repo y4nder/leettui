@@ -19,7 +19,8 @@ let cancelRef: CancelRef | null = null;
 // Palette "submissions.backfill". A second invocation while one is already
 // running is a no-op info message rather than a second concurrent run.
 export async function handleStartBackfill(): Promise<void> {
-  const { showResult, setSyncProgress, clearSyncProgress } = useAppStore.getState();
+  const { showResult, setSyncProgress, clearSyncProgress, refreshAttemptCounts } =
+    useAppStore.getState();
 
   if (cancelRef) {
     showResult(info("A submission import is already running."));
@@ -80,6 +81,11 @@ export async function handleStartBackfill(): Promise<void> {
     // Clears the progress bar on EVERY exit path — success, error, AND cancel
     // (Pitfall 6) — so it can never freeze/stick regardless of how the run ends.
     clearSyncProgress();
+    // Refreshes the browse attempt-count badges on EVERY exit path too
+    // (RESEARCH Pitfall 4) — a partial/cancelled/rate-limited run may still
+    // have imported rows, so a targeted recompute (no question re-fetch) keeps
+    // the badge from going stale until an app restart.
+    refreshAttemptCounts();
     cancelRef = null;
     releaseSync();
   }
