@@ -1,19 +1,20 @@
 import { gqlQuery } from "../graphql";
 
-// [ASSUMED] — field names, types, and units reverse-engineered from the
-// JacobLinCool/LeetCode-Query community library (RESEARCH.md §Pattern 3).
-// Every field here is pending live-spike validation (plan 01-02 Task 2) before
-// the backfill service (Task 3) is built against it.
+// Field names, types, and units below were reverse-engineered from the
+// JacobLinCool/LeetCode-Query community library (RESEARCH.md §Pattern 3) and
+// then CONFIRMED against the live API by the plan 01-02 Task 2 spike
+// (`scripts/spike-submission-list.ts`, run against a real 40+ submission
+// account). See the plan's SUMMARY "Live Spike Findings" for the raw evidence.
 export interface ApiSubmission {
-  id: string; // [ASSUMED] string; parseInt at insert; validate it matches CheckResponse.submission_id
-  lang: string; // langSlug e.g. "python3"
-  timestamp: string; // [ASSUMED] unix epoch SECONDS as string; multiply * 1000 for ms at insert
+  id: string; // Confirmed: numeric string, e.g. "2040787397". parseInt at insert.
+  lang: string; // langSlug e.g. "python3", "rust", "typescript"
+  timestamp: string; // Confirmed: unix epoch SECONDS as a string. Multiply * 1000 for ms at insert.
   statusDisplay: string; // e.g. "Accepted", "Wrong Answer"
-  runtime: string; // [ASSUMED] display string e.g. "52 ms"
-  memory: string; // [ASSUMED] display string e.g. "16.4 MB"
+  runtime: string; // Confirmed: display string, e.g. "2 ms"
+  memory: string; // Confirmed: display string, e.g. "46.9 MB"
   title: string;
   titleSlug: string;
-  isPending: string; // [ASSUMED] "Not Pending" when complete
+  isPending: string; // Confirmed: "Not Pending" for completed submissions; skip any other value at insert (A9).
   url: string;
 }
 
@@ -24,8 +25,8 @@ export interface SubmissionListData {
   };
 }
 
-// [ASSUMED] — query name + variable names (offset/limit/questionSlug) reverse-
-// engineered; not yet confirmed against the live API.
+// Confirmed against the live API: query name `submissionList`, variables
+// offset/limit/questionSlug (the `slug` GraphQL variable maps to `questionSlug`).
 const QUERY = `
 query submissionList($offset: Int!, $limit: Int!, $slug: String) {
     submissionList(offset: $offset, limit: $limit, questionSlug: $slug) {
@@ -45,7 +46,7 @@ query submissionList($offset: Int!, $limit: Int!, $slug: String) {
     }
 }`;
 
-const PAGE_SIZE = 20; // [ASSUMED] — validate in spike
+const PAGE_SIZE = 20; // Confirmed: the live API returned exactly 20 rows per page.
 
 export async function fetchSubmissionList(
   questionSlug: string,
