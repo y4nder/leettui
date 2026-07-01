@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 01
-current_phase_name: submission-store-backfill
-status: ready for verification
-stopped_at: 01-03 complete (Task 4 checkpoint approved) — all 3 Phase 1 plans done
-last_updated: "2026-07-01T01:01:19.606Z"
+current_phase: 2
+current_phase_name: Per-Problem History & Browse Badge
+status: verifying
+stopped_at: 01-03 complete — Task 4 checkpoint approved; all 3 Phase 1 plans done
+last_updated: "2026-07-01T01:29:57.990Z"
 last_activity: 2026-07-01
-last_activity_desc: 01-03 Task 4 checkpoint approved; all 3 Phase 1 plans complete
+last_activity_desc: Phase 01 complete, transitioned to Phase 2
 progress:
   total_phases: 3
   completed_phases: 1
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-06-26)
 
 ## Current Position
 
-Phase: 01 (submission-store-backfill) — all 3 plans complete
-Plan: 3 of 3 (Tasks 1-4 done; Task 4 human-verify checkpoint approved 2026-07-01)
+Phase: 2 — Per-Problem History & Browse Badge
+Plan: Not started
 Status: Phase 1 plans complete — ready for phase-level verification/transition (handled separately)
-Last activity: 2026-07-01 — 01-03 Task 4 checkpoint approved; DATA-06/DATA-07 marked complete
+Last activity: 2026-07-01 — Phase 01 complete, transitioned to Phase 2
 
 Progress: [███░░░░░░░] 33%
 
@@ -39,7 +39,7 @@ Progress: [███░░░░░░░] 33%
 
 **Velocity:**
 
-- Total plans completed: 0
+- Total plans completed: 3
 - Average duration: — min
 - Total execution time: 0.0 hours
 
@@ -47,7 +47,7 @@ Progress: [███░░░░░░░] 33%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01 | 3 | - | - |
 
 **Recent Trend:**
 

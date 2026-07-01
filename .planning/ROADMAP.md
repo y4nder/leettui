@@ -100,6 +100,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Submission Store & Backfill | 3/3 | Complete | 2026-07-01 |
+| 1. Submission Store & Backfill | 3/3 | Complete    | 2026-07-01 |
 | 2. Per-Problem History & Browse Badge | 0/2 | Not started | - |
 | 3. Progress Dashboard | 0/3 | Not started | - |
