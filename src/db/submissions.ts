@@ -25,8 +25,11 @@ export function insertSubmission(row: DbSubmission): void {
   getDb().insert(submissions).values(row).onConflictDoNothing().run();
 }
 
-// Idempotent batch insert, transactional (WAL throughput + atomicity) — never
-// a bare loop. Mirrors `core/sync.ts`'s `persistPage` pattern.
+// Idempotent multi-row insert, wrapped in a single transaction (WAL
+// throughput + atomicity) — never a bare loop outside a transaction. Mirrors
+// `core/sync.ts`'s `persistPage` pattern. Despite the name, each row is still
+// its own `INSERT` statement rather than one batched multi-row `VALUES (...),
+// (...), ...` — the transaction wrapping is what makes the whole call atomic.
 export function insertSubmissions(rows: DbSubmission[]): void {
   getDb().transaction(() => {
     for (const row of rows) {
