@@ -4,6 +4,8 @@
 
 This milestone adds a submission history & analytics layer to leettui across three phases, each a vertical slice that builds strictly on the prior one. **Phase 1** lays the irreducible data foundation: a `submissions` table inside the existing `questions.db`, a resumable/idempotent backfill of the user's LeetCode history, and automatic append-on-submit — all defensive, polite, and on-demand. **Phase 2** surfaces that data where the user already works: a per-problem submission-history panel in ProblemView and an attempt-count badge in the browse list. **Phase 3** aggregates everything into a new full-screen progress dashboard — streak, recent counts, difficulty breakdown, consistency score, activity heatmap, and trend sparkline — answering the core question "am I improving and keeping it up?". The strict build order is non-negotiable: the submission store must exist before anything can read it, so Phase 1 is the foundation every later phase depends on.
 
+**Inserted before Phase 3 (2026-07-01):** two QoL phases for the offline test harness — **Phase 2.1** (manage local `case-NN.out` expected outputs so `leettui test` grades pass/fail) and **Phase 2.2** (auto-capture wrong-answer run/submit cases into offline regression tests, feeding 2.1's grading). These were promoted from the backlog and deliberately sequenced **ahead of** the Progress Dashboard, which is deferred behind them. Revised execution order: 1 → 2 → 2.1 → 2.2 → 3.
+
 ## Phases
 
 **Phase Numbering:**
@@ -15,7 +17,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Submission Store & Backfill** - Resumable, idempotent import of LeetCode history into the local store, plus append-on-submit (all 3 plans complete, Task 4 human-verify checkpoint approved 2026-07-01)
 - [x] **Phase 2: Per-Problem History & Browse Badge** - Attempt history surfaced in ProblemView and a "worked-on-before" badge in the browse list (completed 2026-07-01)
-- [ ] **Phase 3: Progress Dashboard** - A new full-screen view: streak, recent counts, difficulty breakdown, consistency score, heatmap, and trend
+- [ ] **Phase 2.1: Local Test-Case Output Management** *(INSERTED 2026-07-01)* - Populate/edit `case-NN.out` (accept-current-output / add-case) so local `leettui test` actually grades pass/fail — via a CLI verb and/or a ProblemView surface
+- [ ] **Phase 2.2: Auto-Capture Failing Cases** *(INSERTED 2026-07-01)* - On a wrong-answer run/submit, auto-write the failing LeetCode input + expected output into `tests/` as a reproducible offline regression case (feeds 2.1's grading)
+- [ ] **Phase 3: Progress Dashboard** *(deferred behind 2.1/2.2)* - A new full-screen view: streak, recent counts, difficulty breakdown, consistency score, heatmap, and trend
 
 ## Phase Details
 
@@ -75,6 +79,48 @@ Plans:
 
 **UI hint**: yes
 
+### Phase 2.1: Local Test-Case Output Management *(INSERTED)*
+
+**Goal**: The user can populate and edit a case's expected output (`case-NN.out`) without hand-writing files, so local `leettui test` grades real pass/fail instead of the verdict-less `ran`. Closes the gap that seeded `tests/case-NN.txt` ship inputs only.
+**Mode:** mvp
+**Depends on**: Existing offline test harness (`src/core/testRunner.ts`, `src/core/solutions/`, `src/cli/`) — pre-milestone; no dependency on Phase 1/2 data.
+**Requirements**: TBD (define in discuss/plan) — provisional TCASE-01..03
+**Success Criteria** (what must be TRUE):
+
+  1. From the editor inner-loop (`:!leettui …`), the user can snapshot the current run's stdout into `case-NN.out` (a golden/accept-output workflow) so the next `leettui test` grades that case pass/fail.
+  2. The user can add a brand-new local case (input + expected-output pair) without hand-creating files, and it is picked up by `discoverCases`/`pairCases` on the next run.
+  3. The case-writing path reuses the existing `tests/` layout and `compareOutput` grading (JSON-normalized), and is safe/idempotent (never clobbers an unrelated case).
+  4. (If a TUI surface is chosen) a ProblemView action lets the user add/edit a case and "accept current output as expected" without leaving the TUI.
+
+**Plans**: 0 plans (not yet planned)
+
+Plans:
+- [ ] TBD — run `/gsd-discuss-phase 2.1` then `/gsd-plan-phase 2.1`
+
+**Design note**: CLI-verb surface vs. TUI surface is deliberately undecided — resolve in discuss/plan (they are not mutually exclusive). Candidate seams: `leettui test --save`/`leettui accept` in `src/cli/`, plus tests-dir write helpers alongside `seedTests` in `src/core/solutions/`.
+
+**UI hint**: yes *(only if the ProblemView surface is chosen; the CLI-only path is non-UI)*
+
+### Phase 2.2: Auto-Capture Failing Cases *(INSERTED)*
+
+**Goal**: When a `run`/`submit` comes back wrong-answer, leettui auto-captures the failing input and expected output from LeetCode's `CheckResponse` into a new local `tests/case-NN.txt` + `case-NN.out`, turning any online failure into a permanent, reproducible **offline** regression case runnable via `leettui test`.
+**Mode:** mvp
+**Depends on**: Phase 2.1 (reuses its case-writing/`.out` helpers) — and the existing `CheckResponse` parsing in `src/core/submission.ts`.
+**Requirements**: TBD (define in discuss/plan) — provisional TCASE-04..05
+**Success Criteria** (what must be TRUE):
+
+  1. A wrong-answer verdict from `run`/`submit` writes the failing LeetCode input as a new `tests/case-NN.txt` and its `expected_output` as the sibling `case-NN.out`, using 2.1's case-writing seam.
+  2. Capture is non-destructive and de-duplicated (an identical failing case is not written twice; existing cases are never overwritten).
+  3. The captured case is immediately gradeable offline — `leettui test` runs it and reports pass once the solution is fixed — closing the online→offline debug loop.
+  4. Capture never destabilizes the run/submit path: a parse/write failure degrades cleanly (the submit result still renders), consistent with the never-throws contract of the surrounding services.
+
+**Plans**: 0 plans (not yet planned)
+
+Plans:
+- [ ] TBD — run `/gsd-discuss-phase 2.2` then `/gsd-plan-phase 2.2`
+
+**Design note**: The failing-case fields (`last_testcase`/`input`, `expected_output`, `code_output`) live in the `CheckResponse` already parsed by `src/core/submission.ts`; the write path is the same tests-dir seam introduced in 2.1. Touches the run/submit handlers in `views/problem`.
+
 ### Phase 3: Progress Dashboard
 
 **Goal**: Users can open one full-screen dashboard and instantly read whether they are improving and keeping it up — streak, recent counts, difficulty breakdown, and a consistency heatmap.
@@ -101,53 +147,12 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3
+Phases execute in numeric order: 1 → 2 → 2.1 → 2.2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Submission Store & Backfill | 3/3 | Complete    | 2026-07-01 |
 | 2. Per-Problem History & Browse Badge | 3/3 | Complete    | 2026-07-01 |
-| 3. Progress Dashboard | 0/3 | Not started | - |
-
-## Backlog
-
-Unsequenced ideas parked outside the active phase sequence (999.x). Promote to the active
-milestone with `/gsd-review-backlog`. **Theme: Local test-case output management** — a QoL
-slice for the offline test harness the user wants to land *before* Phase 3 (Progress
-Dashboard). Both items close the same gap: seeded `tests/case-NN.txt` ship inputs only, so
-the sibling `case-NN.out` (expected output) must be hand-written today; without it a case
-runs as `ran` with no pass/fail verdict (`src/core/testRunner.ts`). Item 999.2 is the
-upstream feeder for 999.1's local grading. Phasing (one combined QoL phase vs. two) is
-intentionally left open pending `/gsd-review-backlog`.
-
-### Phase 999.1: Manage local test-case expected outputs (golden/snapshot workflow) (BACKLOG)
-
-**Goal:** [Captured for future planning] Give the user a way to populate/edit `case-NN.out`
-without hand-writing files, so local `leettui test` actually grades pass/fail. Candidate
-surfaces (decide during planning, not mutually exclusive): (1) a **CLI verb** in `src/cli/`
-— e.g. `leettui test --save` / `leettui accept` that snapshots the current run's stdout into
-`case-NN.out`, plus a verb to add a brand-new case (input + expected pair); fits the existing
-editor `:!leettui test` inner-loop. (2) a **TUI enhancement** in ProblemView — a panel/modal
-to add/edit cases and "accept current output as expected." Touches `src/core/testRunner.ts`
-(`discoverCases`/`pairCases`/`compareOutput`), `src/core/solutions/` (tests helpers,
-`seedTests`), `src/cli/`.
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
-
-### Phase 999.2: Auto-capture failing cases from run/submit into offline regression tests (BACKLOG)
-
-**Goal:** [Captured for future planning] When `run`/`submit` returns a wrong-answer verdict,
-LeetCode's `CheckResponse` carries the failing input + `expected_output` + `code_output`.
-Auto-write that failing input as a new `tests/case-NN.txt` plus its `case-NN.out`, turning the
-failure into a permanent, reproducible **offline** regression case runnable via `leettui test`
-— the upstream feeder for 999.1's local grading. Touches `src/core/submission.ts`
-(`runSolution`/`submitSolution`, where `CheckResponse` is parsed), the run/submit handlers in
-`views/problem`, and `src/core/solutions` tests helpers.
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
+| 2.1 Local Test-Case Output Management | 0/0 | Not started (INSERTED) | - |
+| 2.2 Auto-Capture Failing Cases | 0/0 | Not started (INSERTED) | - |
+| 3. Progress Dashboard | 0/3 | Deferred behind 2.1/2.2 | - |

@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 3
-current_phase_name: Progress Dashboard
-status: "Phase 02 shipped — PR #55"
-stopped_at: Completed 02-03-PLAN.md
+current_phase: 2.1
+current_phase_name: Local Test-Case Output Management
+status: "Phase 02 shipped (PR #55); QoL phases 2.1/2.2 inserted ahead of Phase 3 on branch feat/test-case-management"
+stopped_at: Promoted backlog → Phase 2.1/2.2 (needs planning)
 last_updated: "2026-07-01T04:46:08.116Z"
 last_activity: 2026-07-01
 progress:
-  total_phases: 3
+  total_phases: 5
   completed_phases: 2
   total_plans: 6
   completed_plans: 6
-  percent: 67
+  percent: 40
 ---
 
 # Project State
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-26)
 
 **Core value:** A LeetCode user grinding in the terminal can open one view and instantly see whether they're improving and keeping it up — solve streak, recent counts, and breakdown by difficulty/topic — backed by their real submission history, owned locally.
-**Current focus:** Phase 3 — Progress Dashboard
+**Current focus:** Phase 2.1 — Local Test-Case Output Management (QoL, inserted ahead of Phase 3)
 
 ## Current Position
 
-Phase: 3 of 3 (Progress Dashboard)
-Plan: Not started
-Status: Phase 02 shipped — PR #55
+Phase: 2.1 of 5 (Local Test-Case Output Management, INSERTED)
+Plan: Not started (needs `/gsd-discuss-phase 2.1` → `/gsd-plan-phase 2.1`)
+Status: QoL phases 2.1/2.2 promoted from backlog, inserted before Phase 3 (deferred); work lives on branch feat/test-case-management
 Last activity: 2026-07-01
 
-Progress: [██████░░░░] 67%
+Progress: [████░░░░░░] 40%
 
 ## Performance Metrics
 
