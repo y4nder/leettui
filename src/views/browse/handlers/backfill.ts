@@ -9,6 +9,7 @@
 import { useAppStore } from "../../../ui/store";
 import { backfillSubmissions, type CancelRef } from "../../../core/backfill";
 import { errorView, info } from "../resultView";
+import { releaseSync, tryAcquireSync } from "./shared";
 
 // Module-level so handleCancelBackfill can reach the in-flight run without any
 // component needing to hold a ref; null when idle (also the no-op guard both for
@@ -22,6 +23,10 @@ export async function handleStartBackfill(): Promise<void> {
 
   if (cancelRef) {
     showResult(info("A submission import is already running."));
+    return;
+  }
+  if (!tryAcquireSync("backfill")) {
+    showResult(info("A database sync is already running — try again once it finishes."));
     return;
   }
 
@@ -76,6 +81,7 @@ export async function handleStartBackfill(): Promise<void> {
     // (Pitfall 6) — so it can never freeze/stick regardless of how the run ends.
     clearSyncProgress();
     cancelRef = null;
+    releaseSync();
   }
 }
 
