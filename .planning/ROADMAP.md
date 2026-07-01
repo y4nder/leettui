@@ -64,9 +64,10 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
+**Wave 1** *(both plans independent — zero file overlap, run in parallel)*
 
-- [ ] 02-01: `submissionsSlice` per-problem reads + `problemSlice` history-panel state + `HistoryPanel` component wired into ProblemView (mirrors RelatedPanel) (HIST-01, HIST-02, HIST-03)
-- [ ] 02-02: Browse attempt-count badge derived from submission history (BROWSE-01)
+- [ ] 02-01-PLAN.md — Per-problem History panel: verdict/runtime utils (`verdict.ts`) → `submissionsSlice` + `HistoryPanel` + ProblemView 4th-panel placement → focus/keymap wiring (navigate-only, Enter reserved) (HIST-01, HIST-02, HIST-03)
+- [ ] 02-02-PLAN.md — Browse attempt-count badge: `getSubmissionCountsByQuestion` aggregate → `attemptCounts` map + `QuestionList` `×N` badge in the ◆ slot → backfill-completion refresh (BROWSE-01)
 
 **UI hint**: yes
 
