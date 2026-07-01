@@ -19,6 +19,7 @@ const PROBLEM_PANEL_LABEL: Record<ProblemPanel, string> = {
   solutions: "Solutions",
   result: "Result",
   related: "Related",
+  history: "History",
 };
 const PROBLEM_HINTS =
   "Tab:Focus j/k:Nav f:Solutions e:Edit d:Delete w:Wkspc R:Run t:Test s:Submit n:Notes ?:Help Esc/q:Back";

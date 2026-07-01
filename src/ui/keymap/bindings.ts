@@ -153,6 +153,7 @@ export const problemGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFo
   "problem.focusSolutions": "2",
   "problem.focusResult": "3",
   "problem.focusRelated": "4",
+  "problem.focusHistory": "5",
   "problem.help": "?",
   "update.dismiss": "x",
   "problem.escape": ["escape", "q"],
@@ -188,6 +189,14 @@ export const relatedPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor
   "problem.relatedNext": ["j", "down"],
   "problem.relatedPrev": ["k", "up"],
   "problem.relatedEnter": "return",
+});
+
+// Mounted only while the History panel is focused (Phase 2). j/k move the row cursor —
+// deliberately NO Enter/return binding (D-10 reserves it for a future submission-detail
+// view; do not add a problem.historyEnter command/binding here).
+export const historyPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "problem.historyNext": ["j", "down"],
+  "problem.historyPrev": ["k", "up"],
 });
 
 // Mounted by the ProblemView HelpPopup while open (Stage 12 item 5). Esc/Enter/q all

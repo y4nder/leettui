@@ -203,6 +203,13 @@ export const problemCommands: CommandEntry[] = [
     run: () => useAppStore.getState().setProblemFocusedPanel("related"),
   }),
   makeCommand({
+    name: "problem.focusHistory",
+    title: "Focus history panel",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().setProblemFocusedPanel("history"),
+  }),
+  makeCommand({
     name: "problem.focusLeft",
     title: "Focus panel left",
     category: "Navigation",
@@ -299,6 +306,20 @@ export const problemCommands: CommandEntry[] = [
     category: "View",
     group: "modal",
     run: () => handleEnterRelated("return"),
+  }),
+  makeCommand({
+    name: "problem.historyNext",
+    title: "Next history row",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().moveFocusedHistory(1),
+  }),
+  makeCommand({
+    name: "problem.historyPrev",
+    title: "Previous history row",
+    category: "Navigation",
+    group: "modal",
+    run: () => useAppStore.getState().moveFocusedHistory(-1),
   }),
   makeCommand({
     name: "picker.next",

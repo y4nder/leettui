@@ -34,6 +34,7 @@ export type AppMode =
   | "gitInit"
   | "gitRemote"
   | "gitSync"
+  | "backfillNudge"
   | "easterEgg";
 
 // Which remote→local direction the GitSyncPrompt runs: clone a fresh/empty dir, or
@@ -103,6 +104,8 @@ export interface UiSlice {
   hideGitRemote: () => void;
   showGitSync: (mode: GitSyncMode) => void;
   hideGitSync: () => void;
+  showBackfillNudge: () => void;
+  hideBackfillNudge: () => void;
   showEasterEgg: () => void;
   hideEasterEgg: () => void;
 }
@@ -191,6 +194,12 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   // start at the right phase (clone → input a repo, pull → straight to confirm).
   showGitSync: (mode) => set({ mode: "gitSync", gitSyncMode: mode }),
   hideGitSync: () => set({ mode: "browse", gitSyncMode: null }),
+
+  // One-time first-run backfill nudge (D-01/D-02/D-03). A bare mode toggle like
+  // showGitInit/showGitRemote — BackfillNudge owns its own confirm/dismiss keys
+  // via a plain useKeyboard layer (no key-bearing binding layer mounted).
+  showBackfillNudge: () => set({ mode: "backfillNudge" }),
+  hideBackfillNudge: () => set({ mode: "browse" }),
 
   // Easter egg: a full-screen ASCII art reveal that lingers until any key is pressed.
   showEasterEgg: () => set({ mode: "easterEgg" }),

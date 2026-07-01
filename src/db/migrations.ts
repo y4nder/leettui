@@ -15,10 +15,12 @@ import journal from "../../drizzle/meta/_journal.json";
 // The journal (imported above) stays the source of truth for ordering/timing.
 import m0000 from "../../drizzle/0000_panoramic_senator_kelly.sql" with { type: "text" };
 import m0001 from "../../drizzle/0001_even_proudstar.sql" with { type: "text" };
+import m0002 from "../../drizzle/0002_marvelous_maverick.sql" with { type: "text" };
 
 const SQL_BY_TAG: Record<string, string> = {
   "0000_panoramic_senator_kelly": m0000,
   "0001_even_proudstar": m0001,
+  "0002_marvelous_maverick": m0002,
 };
 
 // Mirror of drizzle's `readMigrationFiles`, but sourced from embedded strings

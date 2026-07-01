@@ -14,7 +14,9 @@ import { info, errorView } from "../resultView";
 import {
   currentQuestion,
   currentTopic,
+  releaseSync,
   reportError,
+  tryAcquireSync,
   withSuspendedRenderer,
   type Renderer,
 } from "./shared";
@@ -22,6 +24,12 @@ import {
 export async function handleSyncDb(triggerKey: string) {
   const { setSyncProgress, clearSyncProgress, refreshQuestions, init, showResult } =
     useAppStore.getState();
+
+  if (!tryAcquireSync("db-sync")) {
+    showResult(info("A submission import is already running — try again once it finishes."));
+    return;
+  }
+
   setSyncProgress(0, 0);
   try {
     await syncQuestions((current, total) => {
@@ -34,6 +42,8 @@ export async function handleSyncDb(triggerKey: string) {
     logError(triggerKey, "browse", "handleSyncDb", e);
     clearSyncProgress();
     showResult(errorView("Sync error", errMessage(e)));
+  } finally {
+    releaseSync();
   }
 }
 

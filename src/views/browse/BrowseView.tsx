@@ -20,6 +20,7 @@ import { GitRemotePrompt } from "../../ui/components/GitRemotePrompt";
 import { GitSyncPrompt } from "../../ui/components/GitSyncPrompt";
 import { ChangelogPopup } from "../../ui/components/ChangelogPopup";
 import { RecentPopup } from "../../ui/components/RecentPopup";
+import { BackfillNudge } from "../../ui/components/BackfillNudge";
 import { EasterEgg } from "../../ui/components/EasterEgg";
 import { isDebugEnabled, getEntries } from "../../debug";
 import {
@@ -71,6 +72,7 @@ export function BrowseView({ renderer }: BrowseViewProps) {
   const stats = useAppStore((s) => s.stats);
   const difficultyFilter = useAppStore((s) => s.difficultyFilter);
   const solutionFileIds = useAppStore((s) => s.solutionFileIds);
+  const attemptCounts = useAppStore((s) => s.attemptCounts);
 
   const mode = useAppStore((s) => s.mode);
   const focusedPanel = useAppStore((s) => s.focusedPanel);
@@ -115,6 +117,7 @@ export function BrowseView({ renderer }: BrowseViewProps) {
           height={mainHeight}
           topic={currentTopic}
           solutionFileIds={solutionFileIds}
+          attemptCounts={attemptCounts}
           focused={focusedPanel === "questions"}
           tag={String(PANEL_ORDER.indexOf("questions") + 1)}
           smoothNonce={questionScrollNonce}
@@ -174,6 +177,8 @@ export function BrowseView({ renderer }: BrowseViewProps) {
       )}
 
       {mode === "recent" && <RecentPopup />}
+
+      {mode === "backfillNudge" && <BackfillNudge />}
 
       {mode === "easterEgg" && <EasterEgg />}
     </box>

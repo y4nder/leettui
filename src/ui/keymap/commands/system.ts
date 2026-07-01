@@ -10,10 +10,12 @@ import { getRenderer } from "../runtime";
 import { cycleTheme, listThemeNames, setTheme } from "../../theme";
 import { isDebugEnabled } from "../../../debug";
 import {
+  handleCancelBackfill,
   handleOpenGitSync,
   handleOpenGitUi,
   handleOpenSolutionsWorkspace,
   handleReauth,
+  handleStartBackfill,
   handleSyncDb,
   handleViewChangelog,
 } from "../../../views/browse/handlers";
@@ -113,6 +115,19 @@ export const systemCommands: CommandEntry[] = [
     title: "Sync solutions from GitHub (gh)",
     category: "System",
     run: () => handleOpenGitSync(),
+  }),
+  makeCommand({
+    name: "submissions.backfill",
+    title: "Import submission history from LeetCode",
+    category: "System",
+    run: () => handleStartBackfill(),
+  }),
+  makeCommand({
+    name: "submissions.cancelBackfill",
+    title: "Cancel submission import",
+    category: "System",
+    // No-op when no backfill is running (mirrors update.dismiss, lines above).
+    run: () => handleCancelBackfill(),
   }),
   makeCommand({
     name: "palette.open",

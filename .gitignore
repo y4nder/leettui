@@ -56,3 +56,6 @@ Thumbs.db
 
 # Claude Code skills (local-only, not shared via repo)
 .claude/skills/
+
+# Machine-specific Claude/GSD local settings (hardcoded paths; regenerated per machine)
+.claude/settings.local.json

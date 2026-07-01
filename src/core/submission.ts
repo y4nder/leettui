@@ -7,12 +7,67 @@ import { runCode } from "../api/rest/run";
 import { submitCode } from "../api/rest/submit";
 import { pollResult } from "../api/rest/check";
 import { readSolutionFile } from "./solutions";
+import { insertSubmission } from "../db/submissions";
 
 export class SolutionError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "SolutionError";
   }
+}
+
+// Maps a CheckResponse status_code to its display string — the fallback used
+// when a submit result's `status_msg` isn't present (D-08: every verdict, not
+// just accepted, gets a display string). Codes per src/api/CLAUDE.md.
+export function statusDisplayFromCode(code: number): string {
+  switch (code) {
+    case 10:
+      return "Accepted";
+    case 11:
+      return "Wrong Answer";
+    case 12:
+      return "Memory Limit Exceeded";
+    case 13:
+      return "Output Limit Exceeded";
+    case 14:
+      return "Time Limit Exceeded";
+    case 15:
+      return "Runtime Error";
+    case 20:
+      return "Compile Error";
+    case 30:
+      return "Timeout";
+    default:
+      return "Unknown";
+  }
+}
+
+// Builds + inserts a `submissions` row for a submit result carrying a
+// `submission_id` (D-08 — every verdict, not just accepted, is stored — WA/
+// TLE/CE/RE/MLE included, not just Accepted). No-op for a result with none: a
+// run's `interpret_id` never reaches this call site (only submitSolution
+// calls it), and pending/timeout/unknown carry no `data.submission_id`.
+export function appendSubmissionRecord(
+  question: DbQuestion,
+  langSlug: string,
+  result: ParsedResponse,
+): void {
+  if (!("data" in result)) return; // pending/timeout/unknown/internal_error — no CheckResponse
+  const data = result.data;
+  if (!data.submission_id) return; // defensive: only submits carry a submission_id
+
+  insertSubmission({
+    submissionId: parseInt(data.submission_id, 10),
+    questionId: question.id,
+    titleSlug: question.title_slug,
+    lang: langSlug,
+    statusDisplay: data.status_msg ?? statusDisplayFromCode(data.status_code ?? 0),
+    runtime: data.status_runtime ?? null,
+    memory: data.status_memory ?? null,
+    submittedAt: Date.now(), // CheckResponse has no timestamp field
+    runtimePercentile: data.runtime_percentile ?? null,
+    memoryPercentile: data.memory_percentile ?? null,
+  });
 }
 
 function loadCode(question: DbQuestion, langSlug: string): string {
@@ -59,6 +114,7 @@ export async function submitSolution(
   );
 
   const result = await pollResult(submitResponse.submission_id);
+  appendSubmissionRecord(question, langSlug, result);
   if (result.type === "submit_accepted") {
     markAccepted(question.id);
     setSubmissionStats(

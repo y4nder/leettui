@@ -119,6 +119,9 @@ export async function handleEnterProblemView(question: DbQuestion, triggerKey = 
     useAppStore
       .getState()
       .enterProblemView({ question, description, solutions, topicTags, related });
+    // Submissions are a synchronous local DB read (not a fetch) — populate outside the
+    // Promise.all above. Also refreshes on a Related-panel navigate-replace re-entry.
+    useAppStore.getState().loadProblemSubmissions(question.id);
   } catch (e) {
     reportError(
       useAppStore.getState().showResult,
@@ -160,8 +163,9 @@ export function handleEnterRelated(triggerKey: string) {
 }
 
 export function handleExitProblemView() {
-  const { refreshQuestions, exitProblemView } = useAppStore.getState();
+  const { refreshQuestions, exitProblemView, clearProblemSubmissions } = useAppStore.getState();
   refreshQuestions(getQuestionsByTopic(currentTopic()));
+  clearProblemSubmissions();
   exitProblemView();
 }
 
@@ -361,6 +365,7 @@ export async function handleProblemSubmit(triggerKey: string) {
     "handleProblemSubmit",
     async (p, langSlug) => {
       const result = await submitSolution(p.question, langSlug);
+      useAppStore.getState().loadProblemSubmissions(p.question.id);
       useAppStore.getState().setProblemResult(buildResultView(result));
     },
     {

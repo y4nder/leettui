@@ -12,21 +12,22 @@ import type { CodeSnippet } from "../../../api/types";
 
 // Which ProblemView panel currently holds focus (lazygit-style, Stage 12). Only
 // meaningful while mode === "problem". Description (left) is full-height; Solutions,
-// Result, and Related are stacked top-to-bottom on the right.
-export type ProblemPanel = "description" | "solutions" | "result" | "related";
+// Result, Related, and History are stacked top-to-bottom on the right.
+export type ProblemPanel = "description" | "solutions" | "result" | "related" | "history";
 
 // Focus-cycle order for ProblemView, matching the layout (description full-height
-// left; Solutions then Result then Related stacked right). Tab walks forward,
-// Shift+Tab back (both wrap); [1]/[2]/[3]/[4] map to positions.
+// left; Solutions then Result then Related then History stacked right). Tab walks
+// forward, Shift+Tab back (both wrap); [1]/[2]/[3]/[4]/[5] map to positions.
 export const PROBLEM_PANEL_ORDER: ProblemPanel[] = [
   "description",
   "solutions",
   "result",
   "related",
+  "history",
 ];
 
 // Spatial focus directions for ProblemView's 2D layout (description full-height left;
-// Solutions over Result over Related on the right), driven by Ctrl+h/j/k/l.
+// Solutions over Result over Related over History on the right), driven by Ctrl+h/j/k/l.
 export type FocusDirection = "left" | "right" | "up" | "down";
 
 // Per-panel directional neighbors. An absent direction is an edge — focus stays put
@@ -39,7 +40,8 @@ const PROBLEM_PANEL_NEIGHBORS: Record<
   description: { right: "solutions" },
   solutions: { left: "description", down: "result" },
   result: { left: "description", up: "solutions", down: "related" },
-  related: { left: "description", up: "result" },
+  related: { left: "description", up: "result", down: "history" },
+  history: { left: "description", up: "related" },
 };
 
 export interface SolutionPickerState {
@@ -73,6 +75,10 @@ export interface ProblemViewState {
   // Enter navigates-replace to (when navigable).
   related: RelatedQuestion[];
   focusedRelatedIndex: number;
+  // Cursor over the History panel's rows (submissionsSlice.problemSubmissions — a
+  // sibling domain slice, per the UI/domain split). Driven by j/k while History is
+  // focused; clamped in moveFocusedHistory against the live row count.
+  focusedHistoryIndex: number;
   // Which panel holds focus (lazygit-style, Stage 12) — drives panel-relative
   // bindings, the accent border, and the j/k target (scroll for description/result,
   // active-solution cycle for solutions). Defaults to "description".
@@ -111,6 +117,10 @@ export interface ProblemSlice {
   // Driven by j/k while the Related panel is focused. The cursor moves freely over
   // non-navigable entries; Enter is what gates on navigability.
   moveFocusedRelated: (delta: number) => void;
+  // Move the cursor within the History panel's rows (clamped against the live
+  // submissionsSlice row count, no-op when empty). Driven by j/k while History is
+  // focused (D-10 — navigate-only, Enter deliberately unbound).
+  moveFocusedHistory: (delta: number) => void;
   setProblemResult: (view: ResultView | null) => void;
   setProblemFocusedPanel: (panel: ProblemPanel) => void;
   // dir 1 = next panel, -1 = previous (wraps). Generalizes past two panels.
@@ -150,6 +160,7 @@ export const createProblemSlice: StateCreator<AppStore, [], [], ProblemSlice> = 
         focusedSolutionIndex: 0,
         related,
         focusedRelatedIndex: 0,
+        focusedHistoryIndex: 0,
         focusedPanel: "description",
         result: null,
         solutionPicker: null,
@@ -191,6 +202,17 @@ export const createProblemSlice: StateCreator<AppStore, [], [], ProblemSlice> = 
       if (n === 0) return {};
       const next = Math.max(0, Math.min(n - 1, state.problem.focusedRelatedIndex + delta));
       return { problem: { ...state.problem, focusedRelatedIndex: next } };
+    }),
+
+  moveFocusedHistory: (delta) =>
+    set((state) => {
+      if (!state.problem) return {};
+      // Row count lives on the sibling submissionsSlice (per the UI/domain split) —
+      // `set`'s state callback sees the whole AppStore, so no `get` is needed.
+      const n = state.problemSubmissions.length;
+      if (n === 0) return {};
+      const next = Math.max(0, Math.min(n - 1, state.problem.focusedHistoryIndex + delta));
+      return { problem: { ...state.problem, focusedHistoryIndex: next } };
     }),
 
   setProblemResult: (view) =>

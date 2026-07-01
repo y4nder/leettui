@@ -34,6 +34,7 @@ export {
   debugBindings,
   deletePromptBindings,
   helpBindings,
+  historyPanelBindings,
   notesBindings,
   pickerBindings,
   popupBindings,

@@ -10,6 +10,7 @@ import { afterEach, beforeAll, afterAll, beforeEach, describe, expect, test } fr
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { shouldShowBackfillNudge } from "./session";
 
 const SESSION_MODULE = join(import.meta.dir, "session.ts");
 let childScript: string;
@@ -26,6 +27,7 @@ beforeAll(() => {
       `  if (op.op === "save") session.saveSession(op.state);\n` +
       `  else if (op.op === "setDir") session.setLastKnownSolutionsDir(op.dir);\n` +
       `  else if (op.op === "setChangelog") session.setLastShownChangelogVersion(op.tag);\n` +
+      `  else if (op.op === "setNudgeShown") session.setBackfillNudgeShown();\n` +
       `  else if (op.op === "flush") await new Promise((r) => setTimeout(r, 500));\n` +
       `}\n` +
       `process.stdout.write(JSON.stringify(session.loadSession()));\n`,
@@ -58,6 +60,7 @@ describe("session merge", () => {
     questionId?: number;
     solutionsDir?: string;
     lastShownChangelogVersion?: string;
+    backfillNudgeShown?: boolean;
   } {
     const res = Bun.spawnSync(["bun", childScript, JSON.stringify(ops)], {
       env: { ...process.env, HOME: home, XDG_DATA_HOME: undefined, XDG_CONFIG_HOME: undefined },
@@ -100,6 +103,26 @@ describe("session merge", () => {
     });
   });
 
+  test("backfillNudgeShown is undefined before anything is recorded", () => {
+    expect(run([]).backfillNudgeShown).toBeUndefined();
+  });
+
+  test("recording the backfill nudge shown flag coexists with position + solutions dir + changelog version", () => {
+    run([{ op: "save", state: { topicSlug: "heap", questionId: 23 } }, { op: "flush" }]);
+    run([{ op: "setDir", dir: "/sol2" }]);
+    run([{ op: "setChangelog", tag: "v0.6.0" }]);
+    run([{ op: "setNudgeShown" }]);
+
+    const final = run([]);
+    expect(final).toEqual({
+      solutionsDir: "/sol2",
+      topicSlug: "heap",
+      questionId: 23,
+      lastShownChangelogVersion: "v0.6.0",
+      backfillNudgeShown: true,
+    });
+  });
+
   test("a sync setDir between a scheduled debounce and its fire is not clobbered", () => {
     // In one process: save() schedules the debounced write; setDir() writes
     // synchronously; flush waits for the debounce to fire. The debounce must
@@ -113,5 +136,25 @@ describe("session merge", () => {
 
     const final = run([]);
     expect(final).toEqual({ solutionsDir: "/race/solutions", topicSlug: "dp", questionId: 70 });
+  });
+});
+
+// shouldShowBackfillNudge is a pure function (no fs I/O), so it's tested directly
+// in-process rather than via the subprocess harness above.
+describe("shouldShowBackfillNudge", () => {
+  test("false once already shown, regardless of data/mode", () => {
+    expect(shouldShowBackfillNudge(true, false, "browse")).toBe(false);
+  });
+
+  test("false when submissions data already exists", () => {
+    expect(shouldShowBackfillNudge(false, true, "browse")).toBe(false);
+  });
+
+  test("true only when not shown, no data, and mode is browse", () => {
+    expect(shouldShowBackfillNudge(false, false, "browse")).toBe(true);
+  });
+
+  test("false when not currently in browse mode", () => {
+    expect(shouldShowBackfillNudge(false, false, "problem")).toBe(false);
   });
 });
