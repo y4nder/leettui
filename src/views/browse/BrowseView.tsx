@@ -72,6 +72,7 @@ export function BrowseView({ renderer }: BrowseViewProps) {
   const stats = useAppStore((s) => s.stats);
   const difficultyFilter = useAppStore((s) => s.difficultyFilter);
   const solutionFileIds = useAppStore((s) => s.solutionFileIds);
+  const attemptCounts = useAppStore((s) => s.attemptCounts);
 
   const mode = useAppStore((s) => s.mode);
   const focusedPanel = useAppStore((s) => s.focusedPanel);
@@ -116,6 +117,7 @@ export function BrowseView({ renderer }: BrowseViewProps) {
           height={mainHeight}
           topic={currentTopic}
           solutionFileIds={solutionFileIds}
+          attemptCounts={attemptCounts}
           focused={focusedPanel === "questions"}
           tag={String(PANEL_ORDER.indexOf("questions") + 1)}
           smoothNonce={questionScrollNonce}

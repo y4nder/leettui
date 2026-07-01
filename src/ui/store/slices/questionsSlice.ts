@@ -7,6 +7,7 @@ import type { StateCreator } from "zustand";
 import type { DbQuestion, StatusCounts } from "../../../db/questions";
 import { getQuestionsByTopic, getStatusCounts } from "../../../db/questions";
 import { getAllTopicsWithAll } from "../../../db/topics";
+import { getSubmissionCountsByQuestion } from "../../../db/submissions";
 import { filterQuestions, filterTopics } from "../../../core/search";
 import { listSolutionQuestionIds } from "../../../core/solutions";
 import { scheduleTopicLoad, cancelTopicLoad } from "../topicLoad";
@@ -22,10 +23,14 @@ export interface QuestionsSlice {
   filteredQuestions: DbQuestion[];
   stats: StatusCounts;
   solutionFileIds: Set<number>;
+  // Browse attempt-count badge (BROWSE-01): questionId -> total submission
+  // count across every verdict. A missing key means zero attempts (D-11).
+  attemptCounts: Map<number, number>;
 
   init: () => void;
   refreshQuestions: (questions: DbQuestion[]) => void;
   refreshSolutionFiles: () => void;
+  refreshAttemptCounts: () => void;
   loadTopic: (topic: string) => void;
   applySearch: (needle: string) => void;
   applyTopicSearch: (needle: string) => void;
@@ -48,6 +53,7 @@ export const createQuestionsSlice: StateCreator<AppStore, [], [], QuestionsSlice
   filteredQuestions: [],
   stats: { solved: 0, attempted: 0, total: 0 },
   solutionFileIds: new Set(),
+  attemptCounts: new Map(),
 
   init: () => {
     const topics = getAllTopicsWithAll();
@@ -59,6 +65,7 @@ export const createQuestionsSlice: StateCreator<AppStore, [], [], QuestionsSlice
       filteredQuestions: project(questions, get().searchNeedle, get().difficultyFilter),
       stats: getStatusCounts(),
       solutionFileIds: listSolutionQuestionIds(),
+      attemptCounts: getSubmissionCountsByQuestion(),
     });
   },
 
@@ -68,11 +75,19 @@ export const createQuestionsSlice: StateCreator<AppStore, [], [], QuestionsSlice
       filteredQuestions: project(questions, get().searchNeedle, get().difficultyFilter),
       stats: getStatusCounts(),
       solutionFileIds: listSolutionQuestionIds(),
+      attemptCounts: getSubmissionCountsByQuestion(),
     });
   },
 
   refreshSolutionFiles: () => {
-    set({ solutionFileIds: listSolutionQuestionIds() });
+    set({
+      solutionFileIds: listSolutionQuestionIds(),
+      attemptCounts: getSubmissionCountsByQuestion(),
+    });
+  },
+
+  refreshAttemptCounts: () => {
+    set({ attemptCounts: getSubmissionCountsByQuestion() });
   },
 
   loadTopic: (topic) => {

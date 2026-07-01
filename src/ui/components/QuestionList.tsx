@@ -9,6 +9,7 @@ interface QuestionListProps {
   height: number;
   topic: string;
   solutionFileIds: Set<number>;
+  attemptCounts: Map<number, number>;
   focused: boolean;
   // The number key that focuses this panel ([1]/[2]), shown as a tag in the title.
   tag: string;
@@ -27,6 +28,7 @@ export function QuestionList({
   height,
   topic,
   solutionFileIds,
+  attemptCounts,
   focused,
   tag,
   smoothNonce,
@@ -71,6 +73,7 @@ export function QuestionList({
           const sColor = statusColor(q.status);
           const paidStr = q.paid_only ? " 🔒" : "";
           const hasSolution = solutionFileIds.has(q.id);
+          const attemptCount = attemptCounts.get(q.id) ?? 0;
           const acStr = formatAcRate(q.ac_rate).padStart(6, " ");
           const runtimeStr = (q.last_runtime ?? "").padStart(8, " ");
 
@@ -82,7 +85,9 @@ export function QuestionList({
               width="100%"
             >
               <text fg={sColor}> {icon} </text>
-              <text fg={colors.accent}>{hasSolution ? "◆" : " "}</text>
+              <text fg={colors.accent}>
+                {attemptCount > 0 ? `×${attemptCount}` : hasSolution ? "◆" : " "}
+              </text>
               <text fg={colors.fgDim}> {idStr} </text>
               <text fg={isSelected ? selectedFg : colors.fg} flexGrow={1}>
                 {q.title}
