@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import { getDb } from "./index";
 import { questions, submissions } from "./schema";
 
@@ -65,4 +65,19 @@ export function setSubmissionsFetchedAt(questionId: number, now: number = Date.n
     .set({ submissionsFetchedAt: now })
     .where(eq(questions.id, questionId))
     .run();
+}
+
+// Browse attempt-count badge (BROWSE-01, D-12): a per-question total across
+// EVERY stored verdict (AC/WA/TLE/...) — a plain GROUP BY count, no WHERE on
+// statusDisplay. Hits the existing idx_sub_question_time index (leading
+// column questionId). A never-submitted question is simply absent from the
+// Map (not present with value 0) — the render layer treats a missing key as
+// 0, powering D-11's "no ×0".
+export function getSubmissionCountsByQuestion(): Map<number, number> {
+  const rows = getDb()
+    .select({ questionId: submissions.questionId, n: count() })
+    .from(submissions)
+    .groupBy(submissions.questionId)
+    .all();
+  return new Map(rows.map((r) => [r.questionId, r.n]));
 }

@@ -7,6 +7,7 @@ import { closeDatabase, getDb, openDatabase } from "./index";
 import { upsertQuestion } from "./questions";
 import {
   type DbSubmission,
+  getSubmissionCountsByQuestion,
   getSubmissionsForQuestion,
   hasAnySubmissions,
   insertSubmission,
@@ -154,5 +155,31 @@ describe("submissions CRUD", () => {
     expect(hasAnySubmissions()).toBe(false);
     insertSubmission(makeSubmission({ submissionId: 1, questionId: 1 }));
     expect(hasAnySubmissions()).toBe(true);
+  });
+});
+
+describe("getSubmissionCountsByQuestion", () => {
+  test("counts every verdict per question, omits never-submitted questions, empty table -> empty Map", () => {
+    seedQuestion(1);
+    seedQuestion(2);
+    seedQuestion(3); // never submitted — must be ABSENT from the Map (D-11).
+
+    expect(getSubmissionCountsByQuestion()).toEqual(new Map());
+
+    insertSubmissions([
+      makeSubmission({ submissionId: 1, questionId: 1, statusDisplay: "Accepted" }),
+      makeSubmission({ submissionId: 2, questionId: 1, statusDisplay: "Wrong Answer" }),
+      makeSubmission({ submissionId: 3, questionId: 1, statusDisplay: "Time Limit Exceeded" }),
+      makeSubmission({ submissionId: 4, questionId: 2, statusDisplay: "Accepted" }),
+    ]);
+
+    const counts = getSubmissionCountsByQuestion();
+    expect(counts).toEqual(
+      new Map([
+        [1, 3],
+        [2, 1],
+      ]),
+    );
+    expect(counts.has(3)).toBe(false);
   });
 });
