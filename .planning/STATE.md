@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 02
 current_phase_name: per-problem-history-browse-badge
-status: verifying
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-07-01T03:10:53.856Z"
+status: executing
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-07-01T04:30:33.079Z"
 last_activity: 2026-07-01
 last_activity_desc: Phase 02 execution started
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 6
+  completed_plans: 6
   percent: 67
 ---
 
@@ -28,12 +28,12 @@ See: .planning/PROJECT.md (updated 2026-06-26)
 
 ## Current Position
 
-Phase: 02 (per-problem-history-browse-badge) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-07-01 — Phase 02 execution started
+Phase: 02 (per-problem-history-browse-badge) — ALL PLANS COMPLETE (3 of 3)
+Plan: 3 of 3
+Status: Phase 02 plans complete; awaiting phase-level verification/transition
+Last activity: 2026-07-01 — Completed 02-03-PLAN.md (UAT gap closure)
 
-Progress: [███░░░░░░░] 33%
+Progress: [██████░░░░] 67%
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 01 P03 | 20min | 3 tasks | 11 files |
 | Phase 02 P01 | 15min | 3 tasks | 13 files |
 | Phase 02 P02 | 3min | 3 tasks | 6 files |
+| Phase 02 P03 | 5min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-01: summarizeAcRuntime's best excludes the latest AC (prior-best vs latest) so the improved/regressed arrow is always meaningful; submissionsSlice stays domain-only, focusedHistoryIndex stays in problemSlice (UI/domain split)
 - [Phase 02]: 02-02: attemptCounts lives on questionsSlice (domain), not submissionsSlice, since it is a per-question browse-list aggregate rather than per-problem detail rows
 - [Phase 02]: 02-02: refreshSolutionFiles() also recomputes attemptCounts so the two markers sharing the same ◆ render slot never drift out of sync
+- [Phase 02]: 02-03: handleProblemSubmit re-invokes loadProblemSubmissions immediately after submitSolution resolves, mirroring the refresh-after-mutation pattern used by handleConfirmDeleteSolution, closing the stale History-panel UAT gap (HIST-03)
+- [Phase 02]: 02-03: QuestionList's marker cell is pre-padded via a new markerStr (.padStart(3)) alongside idStr/acStr/runtimeStr, fixing browse column misalignment across variable-digit ×N badges (BROWSE-01)
 
 ### Pending Todos
 
@@ -103,6 +106,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-01T03:10:53.849Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-07-01T04:30:33.073Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None

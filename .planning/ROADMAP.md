@@ -61,7 +61,7 @@ Plans:
   3. Per-attempt runtime/memory percentile appears inline in a history row when available — shown subtly, never as a headline (and cleanly absent for historical rows).
   4. The browse question list shows an attempt-count badge on problems the user has submitted before, richer than LeetCode's binary solved/attempted mark.
 
-**Plans**: 2/2 plans complete
+**Plans**: 3/3 plans complete
 
 Plans:
 **Wave 1** *(both plans independent — zero file overlap, run in parallel)*
@@ -71,7 +71,7 @@ Plans:
 
 **Gap closure** *(from 02-UAT.md — tests 5 & 6, both diagnosed)*
 
-- [ ] 02-03-PLAN.md — Refresh the History panel after a live submit (`handleProblemSubmit` → `loadProblemSubmissions`, HIST-03) + fixed-width browse `×N` badge so columns stay aligned (`QuestionList` marker `.padStart`, BROWSE-01)
+- [x] 02-03-PLAN.md — Refresh the History panel after a live submit (`handleProblemSubmit` → `loadProblemSubmissions`, HIST-03) + fixed-width browse `×N` badge so columns stay aligned (`QuestionList` marker `.padStart`, BROWSE-01)
 
 **UI hint**: yes
 
@@ -106,5 +106,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Submission Store & Backfill | 3/3 | Complete    | 2026-07-01 |
-| 2. Per-Problem History & Browse Badge | 2/2 | Complete   | 2026-07-01 |
+| 2. Per-Problem History & Browse Badge | 3/3 | Complete   | 2026-07-01 |
 | 3. Progress Dashboard | 0/3 | Not started | - |
