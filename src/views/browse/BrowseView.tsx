@@ -20,6 +20,7 @@ import { GitRemotePrompt } from "../../ui/components/GitRemotePrompt";
 import { GitSyncPrompt } from "../../ui/components/GitSyncPrompt";
 import { ChangelogPopup } from "../../ui/components/ChangelogPopup";
 import { RecentPopup } from "../../ui/components/RecentPopup";
+import { BackfillNudge } from "../../ui/components/BackfillNudge";
 import { EasterEgg } from "../../ui/components/EasterEgg";
 import { isDebugEnabled, getEntries } from "../../debug";
 import {
@@ -174,6 +175,8 @@ export function BrowseView({ renderer }: BrowseViewProps) {
       )}
 
       {mode === "recent" && <RecentPopup />}
+
+      {mode === "backfillNudge" && <BackfillNudge />}
 
       {mode === "easterEgg" && <EasterEgg />}
     </box>

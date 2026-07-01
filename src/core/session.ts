@@ -104,28 +104,27 @@ export function setLastShownChangelogVersion(tag: string): void {
 }
 
 // Whether the one-time first-run backfill nudge has already been shown.
-// TODO(RED): not implemented yet — stub bodies exist only so the module
-// type-checks while the failing tests are committed. GREEN fills these in.
 export function getBackfillNudgeShown(): boolean {
-  return false;
+  return state().backfillNudgeShown ?? false;
 }
 
 // Record that the backfill nudge has been shown (or seeded on a fresh install
-// with no data). Synchronous merge-write, called unconditionally at boot.
+// with no data). Synchronous merge-write, called unconditionally at boot —
+// mirrors setLastShownChangelogVersion's seeding invariant exactly.
 export function setBackfillNudgeShown(): void {
-  // stub
+  state().backfillNudgeShown = true;
+  writeNow();
 }
 
 // Pure decision for the one-time first-run backfill nudge (D-01/D-02): never
 // show once already shown, never show if submission history already exists,
 // otherwise only while the user is looking at browse.
 export function shouldShowBackfillNudge(
-  _nudgeShown: boolean,
-  _hasAnySubmissions: boolean,
-  _mode: string,
+  nudgeShown: boolean,
+  hasAnySubmissions: boolean,
+  mode: string,
 ): boolean {
-  void _nudgeShown;
-  void _hasAnySubmissions;
-  void _mode;
-  return false;
+  if (nudgeShown) return false;
+  if (hasAnySubmissions) return false;
+  return mode === "browse";
 }

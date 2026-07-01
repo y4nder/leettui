@@ -14,7 +14,8 @@ import { colors } from "../../theme";
 import { loadConfig, hasTokens, getDbPath, getSolutionsDir } from "../../../config";
 import { validateTokens, type AuthTokens } from "../../../core/auth";
 import { initClient } from "../../../api/client";
-import { openDatabase } from "../../../db";
+import { openDatabase, getDb } from "../../../db";
+import { submissions } from "../../../db/schema";
 import { syncIfEmpty } from "../../../core/sync";
 import { migrateSolutionsLayout } from "../../../core/migration";
 import { detectSolutionsRelocation, type RelocationPlan } from "../../../core/relocate";
@@ -30,6 +31,9 @@ import {
   setLastKnownSolutionsDir,
   getLastShownChangelogVersion,
   setLastShownChangelogVersion,
+  getBackfillNudgeShown,
+  setBackfillNudgeShown,
+  shouldShowBackfillNudge,
 } from "../../../core/session";
 import { useAppStore } from "../../store";
 
@@ -165,6 +169,21 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
         await syncIfEmpty((c, t) => useAppStore.getState().setSyncProgress(c, t));
         useAppStore.getState().clearSyncProgress();
         if (cancelled) return;
+        // One-time first-run backfill nudge (D-01/D-02/D-03): offers to import
+        // LeetCode submission history. Placed here (post-sync, post-openDatabase)
+        // rather than alongside the changelog check above because `hasData` needs
+        // the now-open DB. setBackfillNudgeShown() is UNCONDITIONAL — mirrors the
+        // changelog's setLastShownChangelogVersion seeding invariant exactly: a
+        // fresh install is seeded "caught up" (so it never pops on the very first
+        // launch) and every subsequent launch has the flag already true, so the
+        // nudge can fire at most once, ever.
+        if (!getBackfillNudgeShown()) {
+          const hasData = getDb().select().from(submissions).limit(1).all().length > 0;
+          if (shouldShowBackfillNudge(false, hasData, useAppStore.getState().mode)) {
+            useAppStore.getState().showBackfillNudge();
+          }
+          setBackfillNudgeShown();
+        }
         // Did the resolved solutions dir move out from under us (incl. a
         // hand-edited config.toml)? If the old dir still holds problems, offer
         // to relocate them; otherwise just adopt the current dir as last-known.
