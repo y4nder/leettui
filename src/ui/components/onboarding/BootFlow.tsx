@@ -179,7 +179,9 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
         // nudge can fire at most once, ever.
         if (!getBackfillNudgeShown()) {
           const hasData = getDb().select().from(submissions).limit(1).all().length > 0;
-          if (shouldShowBackfillNudge(false, hasData, useAppStore.getState().mode)) {
+          if (
+            shouldShowBackfillNudge(getBackfillNudgeShown(), hasData, useAppStore.getState().mode)
+          ) {
             useAppStore.getState().showBackfillNudge();
           }
           setBackfillNudgeShown();
