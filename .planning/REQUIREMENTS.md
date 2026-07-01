@@ -19,9 +19,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### History (Per-Problem)
 
-- [ ] **HIST-01**: ProblemView shows a per-problem submission-history panel listing every attempt with status (AC/WA/TLE/CE), language, runtime, memory, and timestamp
-- [ ] **HIST-02**: The history panel surfaces best (fastest AC) runtime vs. latest AC runtime for the problem
-- [ ] **HIST-03**: Per-attempt runtime/memory percentile is shown inline in the history row when available — present but not prominent (never the dashboard headline)
+- [x] **HIST-01**: ProblemView shows a per-problem submission-history panel listing every attempt with status (AC/WA/TLE/CE), language, runtime, memory, and timestamp
+- [x] **HIST-02**: The history panel surfaces best (fastest AC) runtime vs. latest AC runtime for the problem
+- [x] **HIST-03**: Per-attempt runtime/memory percentile is shown inline in the history row when available — present but not prominent (never the dashboard headline)
 
 ### Dashboard
 
@@ -78,9 +78,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-05 | Phase 1 | Complete |
 | DATA-06 | Phase 1 | Complete |
 | DATA-07 | Phase 1 | Complete |
-| HIST-01 | Phase 2 | Pending |
-| HIST-02 | Phase 2 | Pending |
-| HIST-03 | Phase 2 | Pending |
+| HIST-01 | Phase 2 | Complete |
+| HIST-02 | Phase 2 | Complete |
+| HIST-03 | Phase 2 | Complete |
 | DASH-01 | Phase 3 | Pending |
 | DASH-02 | Phase 3 | Pending |
 | DASH-03 | Phase 3 | Pending |

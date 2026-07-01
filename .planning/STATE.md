@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 2
-current_phase_name: Per-Problem History & Browse Badge
-status: verifying
-stopped_at: Phase 2 context gathered
-last_updated: "2026-07-01T02:01:32.700Z"
+current_phase: 02
+current_phase_name: per-problem-history-browse-badge
+status: executing
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-07-01T03:04:26.214Z"
 last_activity: 2026-07-01
-last_activity_desc: Phase 01 complete, transitioned to Phase 2
+last_activity_desc: Phase 02 execution started
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 5
+  completed_plans: 4
   percent: 33
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-26)
 
 **Core value:** A LeetCode user grinding in the terminal can open one view and instantly see whether they're improving and keeping it up — solve streak, recent counts, and breakdown by difficulty/topic — backed by their real submission history, owned locally.
-**Current focus:** Phase 01 — submission-store-backfill
+**Current focus:** Phase 02 — per-problem-history-browse-badge
 
 ## Current Position
 
-Phase: 2 — Per-Problem History & Browse Badge
-Plan: Not started
-Status: Phase 1 plans complete — ready for phase-level verification/transition (handled separately)
-Last activity: 2026-07-01 — Phase 01 complete, transitioned to Phase 2
+Phase: 02 (per-problem-history-browse-badge) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-07-01 — Phase 02 execution started
 
 Progress: [███░░░░░░░] 33%
 
@@ -58,6 +58,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 01 P01 | 25min | 3 tasks | 7 files |
 | Phase 01 P02 | 20min | 3 tasks | 4 files |
 | Phase 01 P03 | 20min | 3 tasks | 11 files |
+| Phase 02 P01 | 15min | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,8 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-01: submissions.ts shipped a type-checking stub before the real GREEN implementation so RED tests fail on assertions, not compile errors, under the repo's strict pre-commit typecheck gate
 - [Phase 01]: 01-02: Live spike confirmed every reverse-engineered submissionList field/unit (query name, id type, timestamp=seconds, runtime/memory strings, hasNext, PAGE_SIZE=20) with zero corrections; interPageDelayMs=1000 empirically validated safe over 40 real requests — resolved 01-02's blocking Task 2 checkpoint autonomously by running scripts/spike-submission-list.ts against the user's real, already-authenticated LeetCode session
 - [Phase 01]: 01-03: Tasks 1-3 (append-on-submit, backfill palette command, first-run nudge) committed and TDD-verified; Task 4's blocking human-verify checkpoint (real LeetCode account, live TUI) run and approved 2026-07-01 — DATA-06/DATA-07 marked complete in REQUIREMENTS.md; all 3 Phase 1 plans now done
+- [Phase 02]: 02-01: verdictColor/parseRuntimeMs use substring match (not exact ===) with a safe fallback since statusDisplay comes from two independently reverse-engineered LeetCode API surfaces (live submit vs. backfill)
+- [Phase 02]: 02-01: summarizeAcRuntime's best excludes the latest AC (prior-best vs latest) so the improved/regressed arrow is always meaningful; submissionsSlice stays domain-only, focusedHistoryIndex stays in problemSlice (UI/domain split)
 
 ### Pending Todos
 
@@ -97,6 +100,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-01T02:01:32.694Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-per-problem-history-browse-badge/02-CONTEXT.md
+Last session: 2026-07-01T03:04:26.208Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None

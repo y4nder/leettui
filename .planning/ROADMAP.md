@@ -61,12 +61,12 @@ Plans:
   3. Per-attempt runtime/memory percentile appears inline in a history row when available — shown subtly, never as a headline (and cleanly absent for historical rows).
   4. The browse question list shows an attempt-count badge on problems the user has submitted before, richer than LeetCode's binary solved/attempted mark.
 
-**Plans**: 2 plans
+**Plans**: 1/2 plans executed
 
 Plans:
 **Wave 1** *(both plans independent — zero file overlap, run in parallel)*
 
-- [ ] 02-01-PLAN.md — Per-problem History panel: verdict/runtime utils (`verdict.ts`) → `submissionsSlice` + `HistoryPanel` + ProblemView 4th-panel placement → focus/keymap wiring (navigate-only, Enter reserved) (HIST-01, HIST-02, HIST-03)
+- [x] 02-01-PLAN.md — Per-problem History panel: verdict/runtime utils (`verdict.ts`) → `submissionsSlice` + `HistoryPanel` + ProblemView 4th-panel placement → focus/keymap wiring (navigate-only, Enter reserved) (HIST-01, HIST-02, HIST-03)
 - [ ] 02-02-PLAN.md — Browse attempt-count badge: `getSubmissionCountsByQuestion` aggregate → `attemptCounts` map + `QuestionList` `×N` badge in the ◆ slot → backfill-completion refresh (BROWSE-01)
 
 **UI hint**: yes
@@ -102,5 +102,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Submission Store & Backfill | 3/3 | Complete    | 2026-07-01 |
-| 2. Per-Problem History & Browse Badge | 0/2 | Not started | - |
+| 2. Per-Problem History & Browse Badge | 1/2 | In Progress|  |
 | 3. Progress Dashboard | 0/3 | Not started | - |
