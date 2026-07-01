@@ -365,6 +365,7 @@ export async function handleProblemSubmit(triggerKey: string) {
     "handleProblemSubmit",
     async (p, langSlug) => {
       const result = await submitSolution(p.question, langSlug);
+      useAppStore.getState().loadProblemSubmissions(p.question.id);
       useAppStore.getState().setProblemResult(buildResultView(result));
     },
     {
