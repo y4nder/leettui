@@ -43,6 +43,12 @@ export interface CancelRef {
 
 const MAX_RETRIES = 5;
 
+// Defensive circuit breaker for the per-question pagination loop: without it,
+// an API response that returns `hasNext: true` alongside an empty
+// `submissions` array on every page would loop forever (offset never
+// advances). ~10k submissions/question is generous but finite.
+const MAX_PAGES_PER_QUESTION = 500;
+
 // Exponential-with-jitter backoff for 429s, capped at 30s. `baseDelayMs` reuses
 // the caller's `interPageDelayMs` politeness knob as the backoff unit, so a
 // caller (or a test) that wants faster/slower retries tunes one number.
@@ -120,10 +126,20 @@ export async function backfillSubmissions(
       const knownIds = new Set(getSubmissionsForQuestion(question.id).map((s) => s.submissionId));
       let offset = 0;
       let hasNext = true;
+      let pages = 0;
 
       while (hasNext) {
         if (cancelRef?.cancelled) {
           return { ok: false, reason: "cancelled", imported, message: "Cancelled by user" };
+        }
+
+        if (++pages > MAX_PAGES_PER_QUESTION) {
+          return {
+            ok: false,
+            reason: "network-error",
+            imported,
+            message: `Pagination did not terminate for question ${question.id} after ${MAX_PAGES_PER_QUESTION} pages`,
+          };
         }
 
         let page: SubmissionListData;
