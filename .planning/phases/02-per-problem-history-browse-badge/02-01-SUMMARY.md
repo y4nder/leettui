@@ -183,3 +183,7 @@ None - no external service configuration required.
 ---
 *Phase: 02-per-problem-history-browse-badge*
 *Completed: 2026-07-01*
+
+## Self-Check: PASSED
+
+All 4 created artifacts (`src/ui/verdict.ts`, `src/ui/verdict.test.ts`, `src/ui/components/HistoryPanel.tsx`, `src/ui/store/slices/submissionsSlice.ts`) confirmed present on disk. All 3 task commit hashes (`327bfd6`, `f43b597`, `6085cc6`) confirmed present in `git log`.
