@@ -69,6 +69,10 @@ Plans:
 - [x] 02-01-PLAN.md — Per-problem History panel: verdict/runtime utils (`verdict.ts`) → `submissionsSlice` + `HistoryPanel` + ProblemView 4th-panel placement → focus/keymap wiring (navigate-only, Enter reserved) (HIST-01, HIST-02, HIST-03)
 - [x] 02-02-PLAN.md — Browse attempt-count badge: `getSubmissionCountsByQuestion` aggregate → `attemptCounts` map + `QuestionList` `×N` badge in the ◆ slot → backfill-completion refresh (BROWSE-01)
 
+**Gap closure** *(from 02-UAT.md — tests 5 & 6, both diagnosed)*
+
+- [ ] 02-03-PLAN.md — Refresh the History panel after a live submit (`handleProblemSubmit` → `loadProblemSubmissions`, HIST-03) + fixed-width browse `×N` badge so columns stay aligned (`QuestionList` marker `.padStart`, BROWSE-01)
+
 **UI hint**: yes
 
 ### Phase 3: Progress Dashboard
