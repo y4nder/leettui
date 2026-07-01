@@ -33,12 +33,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. New submissions made through leettui (run/submit) are automatically recorded in the store, capturing runtime/memory percentile for free from the existing CheckResponse (zero extra API calls).
   5. The submission data lives in the existing `questions.db` keyed by `submissionId`, so the `*.db` gitignore protection covers it automatically (history is never pushed to a public solutions repo).
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — Submissions schema + embedded migration + CRUD module — table in `questions.db` keyed by `submissionId` PK, `(questionId, submittedAt)` + `submittedAt` indexes, `submissionsFetchedAt` cursor on `questions` (DATA-01)
+- [x] 01-01-PLAN.md — Submissions schema + embedded migration + CRUD module — table in `questions.db` keyed by `submissionId` PK, `(questionId, submittedAt)` + `submittedAt` indexes, `submissionsFetchedAt` cursor on `questions` (DATA-01)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -100,6 +100,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Submission Store & Backfill | 0/3 | Not started | - |
+| 1. Submission Store & Backfill | 1/3 | In Progress|  |
 | 2. Per-Problem History & Browse Badge | 0/2 | Not started | - |
 | 3. Progress Dashboard | 0/3 | Not started | - |

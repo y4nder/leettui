@@ -9,7 +9,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Data (Submission Store)
 
-- [ ] **DATA-01**: A `submissions` table is added via a new versioned Drizzle migration, living in the existing `questions.db` so the `*.db` gitignore protection applies automatically; rows are keyed by LeetCode `submissionId` (PRIMARY KEY) so writes are idempotent
+- [x] **DATA-01**: A `submissions` table is added via a new versioned Drizzle migration, living in the existing `questions.db` so the `*.db` gitignore protection applies automatically; rows are keyed by LeetCode `submissionId` (PRIMARY KEY) so writes are idempotent
 - [ ] **DATA-02**: User can backfill their existing LeetCode submission history into the local store via paginated `submissionList` (offset/limit, `hasNext`), persisting status, language, runtime, memory, and timestamp per attempt
 - [ ] **DATA-03**: Backfill is resumable (persisted cursor) and safely re-runnable — an interrupted or repeated backfill never duplicates rows (`onConflictDoNothing`) and resumes where it left off
 - [ ] **DATA-04**: Backfill is polite to the unofficial API (configurable inter-page delay + 429 backoff) and on-demand only — no background timers or polling
@@ -71,7 +71,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 1 | Pending |
 | DATA-03 | Phase 1 | Pending |
 | DATA-04 | Phase 1 | Pending |
@@ -91,6 +91,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BROWSE-01 | Phase 2 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 18 total
 - Mapped to phases: 18 ✓
 - Unmapped: 0
