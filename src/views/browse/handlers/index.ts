@@ -10,3 +10,4 @@ export * from "./editor";
 export * from "./solve";
 export * from "./location";
 export * from "./git";
+export * from "./backfill";
