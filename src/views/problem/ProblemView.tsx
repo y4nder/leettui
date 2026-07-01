@@ -25,6 +25,7 @@ import {
   scrollPanelBindings,
   solutionsPanelBindings,
   relatedPanelBindings,
+  historyPanelBindings,
   problemHelpBindings,
   problemPanelBindings,
   isProblemScopeEntryVisible,
@@ -55,6 +56,11 @@ function SolutionsPanelBindings() {
 
 function RelatedPanelBindings() {
   useBindings(() => ({ bindings: relatedPanelBindings }), []);
+  return null;
+}
+
+function HistoryPanelBindings() {
+  useBindings(() => ({ bindings: historyPanelBindings }), []);
   return null;
 }
 
@@ -143,6 +149,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
     focusedSolutionIndex,
     related,
     focusedRelatedIndex,
+    focusedHistoryIndex,
     focusedPanel,
     result,
     solutionPicker,
@@ -175,6 +182,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
       {!help && !deleteConfirm && scrollFocused && <ScrollPanelBindings />}
       {!help && !deleteConfirm && focusedPanel === "solutions" && <SolutionsPanelBindings />}
       {!help && !deleteConfirm && focusedPanel === "related" && <RelatedPanelBindings />}
+      {!help && !deleteConfirm && focusedPanel === "history" && <HistoryPanelBindings />}
 
       <UpdateBanner />
 
@@ -233,9 +241,8 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
             <HistoryPanel
               submissions={problemSubmissions}
               summary={submissionSummary}
-              // Interim static props — Task 3 wires live focus/cursor state.
-              focused={false}
-              focusedIndex={0}
+              focused={focusedPanel === "history"}
+              focusedIndex={focusedHistoryIndex}
               tag="5"
               maxRows={sharedMaxRows}
             />

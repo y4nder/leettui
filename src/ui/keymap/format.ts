@@ -10,6 +10,7 @@ import type { Binding } from "@opentui/keymap";
 
 import type { BrowsePanel, ProblemPanel } from "../store";
 import {
+  historyPanelBindings,
   questionPanelBindings,
   relatedPanelBindings,
   scrollPanelBindings,
@@ -54,6 +55,8 @@ export function problemPanelBindings(panel: ProblemPanel): Binding<Renderable, K
       return solutionsPanelBindings;
     case "related":
       return relatedPanelBindings;
+    case "history":
+      return historyPanelBindings;
     default:
       return scrollPanelBindings;
   }
