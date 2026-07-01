@@ -28,17 +28,17 @@ difficulty/topic — backed by their real submission history, owned locally.
 - ✓ Cookie-based auth (Firefox import → guided paste), validated and persisted to TOML config — existing
 - ✓ Solution git backup/restore (lazygit delegation, `gh`-based remote wizard, clone/pull sync) — existing
 - ✓ Recently-viewed history modal, daily challenge, "what's new" changelog, theming, self-update — existing
+- ✓ Backfill the user's existing LeetCode submission history into the local SQLite store (status, language, runtime, memory, timestamp, per problem) — Validated in Phase 1: Submission Store & Backfill
+- ✓ Persist new submissions made through leettui to the same store going forward (hybrid: backfill once, then append) — Validated in Phase 1: Submission Store & Backfill
+- ✓ Backfill degrades gracefully when the unofficial API is unavailable or partial (never a crash; resumable) — Validated in Phase 1: Submission Store & Backfill
 
 ### Active
 
 <!-- This milestone. Hypotheses until shipped and validated. -->
 
-- [ ] Backfill the user's existing LeetCode submission history into the local SQLite store (status, language, runtime, memory, timestamp, per problem)
-- [ ] Persist new submissions made through leettui to the same store going forward (hybrid: backfill once, then append)
 - [ ] Per-problem submission history surfaced in ProblemView (every attempt, best vs latest, runtime/memory/percentile when available)
 - [ ] Global progress dashboard as a new top-level view, north-starred on consistency & trajectory
 - [ ] Dashboard shows: solve streak, recent (week/month) solve counts, problems-over-time trend, breakdown by difficulty and by topic
-- [ ] Backfill degrades gracefully when the unofficial API is unavailable or partial (never a crash; resumable)
 
 ### Out of Scope
 
@@ -67,10 +67,10 @@ difficulty/topic — backed by their real submission history, owned locally.
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Scope = per-problem history feeding a global dashboard (both), not one or the other | History is the data layer; the dashboard aggregates it — they reinforce each other | — Pending |
-| Data source = backfill from LeetCode, then append leettui submissions (hybrid) | Day-one dashboard shows real history incl. website submissions; stays current afterward | — Pending |
-| Dashboard north star = consistency & trajectory (streaks, counts, trends), not percentile chasing | User's stated core value is "am I improving and keeping it up?" | — Pending |
-| Store history in the existing SQLite/Drizzle DB via a new versioned migration | Reuse the established persistence pattern; keeps data local, owned, git-backupable | — Pending |
+| Scope = per-problem history feeding a global dashboard (both), not one or the other | History is the data layer; the dashboard aggregates it — they reinforce each other | Data layer shipped in Phase 1; per-problem surfacing (Phase 2) and dashboard (Phase 3) still pending |
+| Data source = backfill from LeetCode, then append leettui submissions (hybrid) | Day-one dashboard shows real history incl. website submissions; stays current afterward | Shipped in Phase 1 — `backfillSubmissions()` (resumable, idempotent) + append-on-submit in `core/submission.ts` |
+| Dashboard north star = consistency & trajectory (streaks, counts, trends), not percentile chasing | User's stated core value is "am I improving and keeping it up?" | — Pending (Phase 3) |
+| Store history in the existing SQLite/Drizzle DB via a new versioned migration | Reuse the established persistence pattern; keeps data local, owned, git-backupable | Shipped in Phase 1 — `submissions` table + `0002` migration in `questions.db` |
 
 ## Evolution
 
@@ -90,4 +90,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-26 after initialization*
+*Last updated: 2026-07-01 after Phase 1 (Submission Store & Backfill) completion*
