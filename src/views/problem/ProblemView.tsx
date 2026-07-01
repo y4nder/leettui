@@ -16,6 +16,7 @@ import { UpdateBanner } from "../../ui/components/UpdateBanner";
 import { SolutionPickerModal } from "../../ui/components/SolutionPickerModal";
 import { SolutionsPanel } from "../../ui/components/SolutionsPanel";
 import { RelatedPanel } from "../../ui/components/RelatedPanel";
+import { HistoryPanel } from "../../ui/components/HistoryPanel";
 import { NotesPopup } from "../../ui/components/NotesPopup";
 import { DeleteSolutionPrompt } from "../../ui/components/DeleteSolutionPrompt";
 import { HelpPopup } from "../../ui/components/HelpPopup";
@@ -110,6 +111,8 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
   const syncProgress = useAppStore((s) => s.syncProgress);
   const updateAvailable = useAppStore((s) => s.updateAvailable);
   const problem = useAppStore((s) => s.problem);
+  const problemSubmissions = useAppStore((s) => s.problemSubmissions);
+  const submissionSummary = useAppStore((s) => s.submissionSummary);
 
   // Stable callback refs (identity-fixed so React only fires them on mount/unmount,
   // not every render) register each scrollbox so the focus-aware scroll commands reach it.
@@ -149,15 +152,18 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
   } = problem;
   const scrollFocused = focusedPanel === "description" || focusedPanel === "result";
 
-  // Related sits at the bottom of the right column; cap its viewport so a long similar-
-  // questions list can't starve the Result panel above. Budget = right-column inner
-  // height (mainHeight − Header − MetaLine) minus Solutions (~len+3), Related chrome (3),
-  // and a floor reserved for Result. (The keymaps hint line moved to the bottom StatusBar,
-  // so this stays deliberately conservative — Result, flexGrow, absorbs the freed row.)
-  // On short terminals Result still gives space first; the max(2, …) keeps Related usable.
+  // Related and History share the bottom of the right column (D-08/D-09); cap both
+  // viewports so neither starves the Result panel above, and split the remaining budget
+  // roughly evenly between the two windowed panels rather than handing each the old
+  // 3-panel total unchanged (which would double-count vertical space and overflow on
+  // short terminals, since both boxes are flexShrink:0 — RESEARCH Pattern 2).
   const RESULT_FLOOR = 6;
   const solutionsRows = (solutions.length || 1) + 3;
-  const relatedMaxRows = Math.max(2, mainHeight - solutionsRows - RESULT_FLOOR - 8);
+  const RIGHT_COLUMN_CHROME = 8; // border+title overhead for the two windowed panels
+  const sharedMaxRows = Math.max(
+    2,
+    Math.floor((mainHeight - solutionsRows - RESULT_FLOOR - RIGHT_COLUMN_CHROME) / 2),
+  );
 
   return (
     <box flexDirection="column" width="100%" height="100%">
@@ -221,7 +227,17 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
               focusedIndex={focusedRelatedIndex}
               focused={focusedPanel === "related"}
               tag="4"
-              maxRows={relatedMaxRows}
+              maxRows={sharedMaxRows}
+            />
+
+            <HistoryPanel
+              submissions={problemSubmissions}
+              summary={submissionSummary}
+              // Interim static props — Task 3 wires live focus/cursor state.
+              focused={false}
+              focusedIndex={0}
+              tag="5"
+              maxRows={sharedMaxRows}
             />
           </box>
         </box>
