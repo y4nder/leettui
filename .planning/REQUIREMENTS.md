@@ -14,8 +14,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [x] **DATA-03**: Backfill is resumable (persisted cursor) and safely re-runnable — an interrupted or repeated backfill never duplicates rows (`onConflictDoNothing`) and resumes where it left off
 - [x] **DATA-04**: Backfill is polite to the unofficial API (configurable inter-page delay + 429 backoff) and on-demand only — no background timers or polling
 - [x] **DATA-05**: Backfill degrades gracefully — on auth/API/rate-limit/network failure it never crashes the TUI, surfaces a clean hint, and preserves any partial data (never-throws result union, mirroring `core/git.ts`)
-- [ ] **DATA-06**: New submissions made through leettui append to the store automatically, capturing runtime/memory percentile for free from the existing `CheckResponse` (zero extra API calls)
-- [ ] **DATA-07**: In-TUI backfill progress is shown via the `syncSlice` Zustand pattern without freezing the render loop
+- [x] **DATA-06**: New submissions made through leettui append to the store automatically, capturing runtime/memory percentile for free from the existing `CheckResponse` (zero extra API calls)
+- [x] **DATA-07**: In-TUI backfill progress is shown via the `syncSlice` Zustand pattern without freezing the render loop
 
 ### History (Per-Problem)
 
@@ -76,8 +76,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-03 | Phase 1 | Complete |
 | DATA-04 | Phase 1 | Complete |
 | DATA-05 | Phase 1 | Complete |
-| DATA-06 | Phase 1 | Pending |
-| DATA-07 | Phase 1 | Pending |
+| DATA-06 | Phase 1 | Complete |
+| DATA-07 | Phase 1 | Complete |
 | HIST-01 | Phase 2 | Pending |
 | HIST-02 | Phase 2 | Pending |
 | HIST-03 | Phase 2 | Pending |

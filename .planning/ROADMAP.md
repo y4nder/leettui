@@ -13,7 +13,7 @@ This milestone adds a submission history & analytics layer to leettui across thr
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Submission Store & Backfill** - Resumable, idempotent import of LeetCode history into the local store, plus append-on-submit (01-03 Tasks 1-3 done and committed 2026-07-01; Task 4 blocking human-verify checkpoint pending)
+- [x] **Phase 1: Submission Store & Backfill** - Resumable, idempotent import of LeetCode history into the local store, plus append-on-submit (all 3 plans complete, Task 4 human-verify checkpoint approved 2026-07-01)
 - [ ] **Phase 2: Per-Problem History & Browse Badge** - Attempt history surfaced in ProblemView and a "worked-on-before" badge in the browse list
 - [ ] **Phase 3: Progress Dashboard** - A new full-screen view: streak, recent counts, difficulty breakdown, consistency score, heatmap, and trend
 
@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. New submissions made through leettui (run/submit) are automatically recorded in the store, capturing runtime/memory percentile for free from the existing CheckResponse (zero extra API calls).
   5. The submission data lives in the existing `questions.db` keyed by `submissionId`, so the `*.db` gitignore protection covers it automatically (history is never pushed to a public solutions repo).
 
-**Plans**: 3/3 plans executed — 01-03 Tasks 1-3 done; Task 4 (blocking human-verify checkpoint) pending before the phase can close
+**Plans**: 3/3 plans complete — Task 4 (blocking human-verify checkpoint) approved 2026-07-01
 
 Plans:
 **Wave 1**
@@ -46,7 +46,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [~] 01-03-PLAN.md — Append-on-submit + palette trigger + first-run nudge + syncSlice progress bar — upsert from CheckResponse on submit, backfill command, cancelable non-blocking in-TUI progress (DATA-06, DATA-07) — Tasks 1-3 committed and TDD-verified; Task 4 blocking human-verify checkpoint (real LeetCode account, live TUI) NOT yet run — see 01-03-SUMMARY.md
+- [x] 01-03-PLAN.md — Append-on-submit + palette trigger + first-run nudge + syncSlice progress bar — upsert from CheckResponse on submit, backfill command, cancelable non-blocking in-TUI progress (DATA-06, DATA-07) — Tasks 1-3 committed and TDD-verified; Task 4 blocking human-verify checkpoint approved 2026-07-01 — see 01-03-SUMMARY.md
 
 ### Phase 2: Per-Problem History & Browse Badge
 
@@ -100,6 +100,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Submission Store & Backfill | 3/3 | Blocked (Task 4 checkpoint) | - |
+| 1. Submission Store & Backfill | 3/3 | Complete | 2026-07-01 |
 | 2. Per-Problem History & Browse Badge | 0/2 | Not started | - |
 | 3. Progress Dashboard | 0/3 | Not started | - |

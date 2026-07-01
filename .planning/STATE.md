@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 01
 current_phase_name: submission-store-backfill
-status: blocked
-stopped_at: 01-03 Task 4 human-verify checkpoint (blocking) — Tasks 1-3 committed
-last_updated: "2026-07-01T00:48:39.049Z"
+status: ready for verification
+stopped_at: 01-03 complete (Task 4 checkpoint approved) — all 3 Phase 1 plans done
+last_updated: "2026-07-01T01:01:19.606Z"
 last_activity: 2026-07-01
-last_activity_desc: 01-03 Tasks 1-3 executed; Task 4 checkpoint pending human verification
+last_activity_desc: 01-03 Task 4 checkpoint approved; all 3 Phase 1 plans complete
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 0
+  completed_plans: 3
+  percent: 33
 ---
 
 # Project State
@@ -28,12 +28,12 @@ See: .planning/PROJECT.md (updated 2026-06-26)
 
 ## Current Position
 
-Phase: 01 (submission-store-backfill) — BLOCKED (Task 4 human checkpoint)
-Plan: 3 of 3 (Tasks 1-3 done; Task 4 pending)
-Status: Awaiting human verification of 01-03 Task 4 (real LeetCode account, live TUI) — see 01-03-SUMMARY.md
-Last activity: 2026-07-01 — 01-03 Tasks 1-3 committed and TDD-verified
+Phase: 01 (submission-store-backfill) — all 3 plans complete
+Plan: 3 of 3 (Tasks 1-4 done; Task 4 human-verify checkpoint approved 2026-07-01)
+Status: Phase 1 plans complete — ready for phase-level verification/transition (handled separately)
+Last activity: 2026-07-01 — 01-03 Task 4 checkpoint approved; DATA-06/DATA-07 marked complete
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
@@ -72,7 +72,7 @@ Recent decisions affecting current work:
 - Dashboard north star = consistency & trajectory (streaks, counts, trends), not percentile chasing
 - [Phase 01]: 01-01: submissions.ts shipped a type-checking stub before the real GREEN implementation so RED tests fail on assertions, not compile errors, under the repo's strict pre-commit typecheck gate
 - [Phase 01]: 01-02: Live spike confirmed every reverse-engineered submissionList field/unit (query name, id type, timestamp=seconds, runtime/memory strings, hasNext, PAGE_SIZE=20) with zero corrections; interPageDelayMs=1000 empirically validated safe over 40 real requests — resolved 01-02's blocking Task 2 checkpoint autonomously by running scripts/spike-submission-list.ts against the user's real, already-authenticated LeetCode session
-- [Phase 01]: 01-03: Tasks 1-3 (append-on-submit, backfill palette command, first-run nudge) committed and TDD-verified; Task 4's blocking human-verify checkpoint (real LeetCode account, live TUI) not yet run — DATA-06/DATA-07 deferred from requirements-complete until approved
+- [Phase 01]: 01-03: Tasks 1-3 (append-on-submit, backfill palette command, first-run nudge) committed and TDD-verified; Task 4's blocking human-verify checkpoint (real LeetCode account, live TUI) run and approved 2026-07-01 — DATA-06/DATA-07 marked complete in REQUIREMENTS.md; all 3 Phase 1 plans now done
 
 ### Pending Todos
 
@@ -85,7 +85,7 @@ None yet.
 [Issues that affect future work]
 
 - (Resolved in 01-02) Real rate-limit threshold and `submissionList` field set/pagination-at-scale were LOW-confidence; the 01-02 live spike confirmed every field/unit assumption and validated the 1000ms inter-page delay as safe (though the exact 429 ceiling itself was never hit and remains an untested design input for the backoff curve).
-- 01-03 Task 4: blocking human-verify checkpoint (real LeetCode account, live TUI) not yet run — phase 1 cannot close until approved
+- (Resolved 2026-07-01) 01-03 Task 4's blocking human-verify checkpoint (real LeetCode account, live TUI) was run and approved — all 3 Phase 1 plans are now complete; phase-level verification/transition to Phase 2 is handled separately by the orchestrator.
 
 ## Deferred Items
 
@@ -97,6 +97,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-01T00:48:39.049Z
-Stopped at: 01-03 Task 4 — blocking human-verify checkpoint (Tasks 1-3 committed and tested)
+Last session: 2026-07-01T01:01:19.606Z
+Stopped at: 01-03 complete — Task 4 checkpoint approved; all 3 Phase 1 plans done
 Resume file: .planning/phases/01-submission-store-backfill/01-03-SUMMARY.md

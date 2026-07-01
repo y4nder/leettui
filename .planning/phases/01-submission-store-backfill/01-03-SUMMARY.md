@@ -44,16 +44,14 @@ key-decisions:
   - "Task 1/Task 3 RED commits shipped type-checking stubs before the real GREEN implementation (same TDD-under-strict-typecheck pattern 01-01 established), so RED failures are assertion failures, not compile errors, under the repo's zero-tolerance pre-commit gate"
   - "appendSubmissionRecord is a separately-exported pure(ish) function (not inlined in submitSolution) so Task 1's tests exercise it directly against a throwaway DB with constructed ParsedResponse values, with no live API needed"
   - "BackfillNudge uses a bare useKeyboard layer in a dedicated uiSlice mode (like GitInitPrompt/ChangeLocationPrompt) instead of registered keymap Command entries + bindings.ts — kept the deviation footprint to one file (BrowseView.tsx) instead of three (bindings.ts + commands/modal.ts + BrowseView.tsx)"
-  - "Deferred requirements mark-complete for DATA-06/DATA-07 and the ROADMAP plan-progress table's 'Complete' status text until the Task 4 human checkpoint is approved — the code is committed and unit/TDD-verified, but the plan's own success_criteria explicitly requires human-verified non-blocking progress, idempotent cancel/resume, correct dates, and append-on-submit against a real account before the slice can be called done"
+  - "Deferred requirements mark-complete for DATA-06/DATA-07 and the ROADMAP plan-progress table's 'Complete' status text until the Task 4 human checkpoint is approved — the code is committed and unit/TDD-verified, but the plan's own success_criteria explicitly requires human-verified non-blocking progress, idempotent cancel/resume, correct dates, and append-on-submit against a real account before the slice can be called done. Task 4 was approved 2026-07-01; DATA-06/DATA-07 are now marked complete in REQUIREMENTS.md."
 
 patterns-established:
   - "Bare-mode confirm/dismiss popups reuse useKeyboard rather than the keymap Command catalog when the popup has no reason to appear in the command palette or help screen"
 
-requirements-completed: []
-# DATA-06/DATA-07 are mechanically implemented and unit-tested here, but NOT
-# marked complete in REQUIREMENTS.md yet — the plan's own success_criteria
-# requires the Task 4 human checkpoint (real account, live TUI) before the
-# end-to-end slice can be considered done. Mark complete after checkpoint approval.
+requirements-completed: [DATA-06, DATA-07]
+# Task 4's human checkpoint (real account, live TUI) was approved 2026-07-01;
+# DATA-06/DATA-07 are now marked complete in REQUIREMENTS.md.
 
 coverage:
   - id: D1
@@ -88,7 +86,7 @@ coverage:
         ref: "grep -c finally / clearSyncProgress in src/views/browse/handlers/backfill.ts (both > 0) + bun run check (lint/typecheck/348-then-354 tests)"
         status: pass
     human_judgment: true
-    rationale: "The handler's non-blocking behavior (render loop never freezes during a real multi-page backfill) and cancel/resume idempotency against a real LeetCode account can only be confirmed by watching the live interactive TUI — this is exactly Task 4's blocking human-verify checkpoint, not yet run."
+    rationale: "The handler's non-blocking behavior (render loop never freezes during a real multi-page backfill) and cancel/resume idempotency against a real LeetCode account can only be confirmed by watching the live interactive TUI — this was Task 4's blocking human-verify checkpoint, run and approved 2026-07-01."
   - id: D4
     description: "One-time first-run nudge: fires at most once (unconditional seeding), suppressed when submission history already exists, reuses the changelog version-change detection pattern"
     requirement: DATA-07
@@ -104,17 +102,19 @@ coverage:
     description: "End-to-end demonstrable slice against a real LeetCode account: non-blocking progress bar, idempotent cancel/resume with correct dates, append-on-submit on a real submit, once-only nudge, and submissions staying inside the *.db gitignore"
     verification: []
     human_judgment: true
-    rationale: "Requires launching the real leettui TUI against the user's real, authenticated LeetCode account, watching a live progress bar for freezing, cancelling mid-run, and submitting an actual solution — genuinely not automatable. This is Task 4 (type=\"checkpoint:human-verify\" gate=\"blocking\"), which has NOT yet been run."
+    rationale: "Requires launching the real leettui TUI against the user's real, authenticated LeetCode account, watching a live progress bar for freezing, cancelling mid-run, and submitting an actual solution — genuinely not automatable. This was Task 4 (type=\"checkpoint:human-verify\" gate=\"blocking\"), run and approved 2026-07-01: 112 rows, 5 distinct verdicts, sane 2026 dates, independently verified by the orchestrator via a direct bun:sqlite query."
 
 # Metrics
 duration: 20min
 completed: 2026-07-01
-status: blocked
+status: complete
 ---
 
 # Phase 1 Plan 3: Append-on-Submit + Backfill Trigger + First-Run Nudge Summary
 
-**Tasks 1-3 committed and green (append-on-submit for every submit verdict, a cancelable non-blocking backfill palette command, and a one-time first-run nudge) — Task 4's blocking human-verify checkpoint (real LeetCode account, live TUI) has NOT yet been run, so this plan is not yet complete.**
+**Tasks 1-3 committed and green (append-on-submit for every submit verdict, a cancelable non-blocking backfill palette command, and a one-time first-run nudge) — Task 4's blocking human-verify checkpoint (real LeetCode account, live TUI) was run by the user and approved on 2026-07-01. This plan is complete.**
+
+**Task 4 approval (2026-07-01):** The user ran leettui end-to-end against a real, authenticated LeetCode account and reported all six how-to-verify points satisfied — non-blocking progress bar, idempotent cancel/resume (no duplicate rows), append-on-submit, and a once-only first-run nudge. `bun run db:studio` errored for the user (a pre-existing, unrelated `drizzle.config.ts` gap predating this plan — out of scope here), so the orchestrator independently verified the stored data via a direct `bun:sqlite` query against the real DB: 112 rows keyed by real `submissionId`, spanning 5 distinct verdicts (Accepted/Wrong Answer/Runtime Error/Compile Error/Time Limit Exceeded), with sane 2026 dates (not 1970). User response: "approved".
 
 ## Performance
 
@@ -142,7 +142,7 @@ Each task was committed atomically:
    - `c7b0330` (test) — RED: 2 failing tests against type-checking stubs (9 pre-existing session tests still pass)
    - `536f050` (feat) — GREEN: real implementation across session.ts/uiSlice.ts/BackfillNudge.tsx/BootFlow.tsx/BrowseView.tsx, all 11 session tests pass
 
-**Task 4: [CHECKPOINT] Verify the end-to-end backfill + append slice against a real account** — NOT YET RUN. See "CHECKPOINT REACHED" in the executor's return message; this SUMMARY documents Tasks 1-3 only.
+**Task 4: [CHECKPOINT] Verify the end-to-end backfill + append slice against a real account** — Run by the user against a real LeetCode account and approved 2026-07-01 (see "Task 4 approval" note above).
 
 _Note: no separate REFACTOR commits were needed for either TDD task — each GREEN implementation was already clean per `bun run check`._
 
@@ -198,16 +198,16 @@ None - no external service configuration required. Task 4's checkpoint needs the
 
 ## Next Phase Readiness
 
-**This plan is NOT complete.** Tasks 1-3 are committed, tested, and `bun run check` green (354 tests), but Task 4 — a `type="checkpoint:human-verify" gate="blocking"` end-to-end verification against a real LeetCode account — has not been run. Per the plan's own success_criteria, the phase's "end-to-end slice is demonstrable" claim and DATA-06/DATA-07 cannot be marked done until a human:
+**This plan is complete.** Tasks 1-3 were committed, tested, and `bun run check` green (354 tests); Task 4 — the `type="checkpoint:human-verify" gate="blocking"` end-to-end verification against a real LeetCode account — was run by the user and approved on 2026-07-01. All six how-to-verify points were satisfied:
 
-1. Confirms the palette backfill shows non-blocking progress that never freezes the render loop.
-2. Confirms cancel mid-run clears progress and a re-run resumes without duplicating rows.
-3. Confirms stored `submitted_at` dates are sane (not 1970) and statuses span multiple verdicts.
-4. Confirms a real submit auto-appends a row with runtime/memory percentile, no extra network call.
-5. Confirms the nudge fired once and does not reappear.
-6. Confirms `submissions` lives inside `questions.db` (covered by the existing `*.db` gitignore).
+1. Confirmed the palette backfill shows non-blocking progress that never freezes the render loop.
+2. Confirmed cancel mid-run clears progress and a re-run resumes without duplicating rows.
+3. Confirmed stored `submitted_at` dates are sane (not 1970) and statuses span multiple verdicts (independently verified: 112 rows, 5 distinct verdicts, sane 2026 dates).
+4. Confirmed a real submit auto-appends a row with runtime/memory percentile, no extra network call.
+5. Confirmed the nudge fired once and does not reappear.
+6. Confirmed `submissions` lives inside `questions.db` (covered by the existing `*.db` gitignore).
 
-Once approved: mark DATA-06/DATA-07 complete in REQUIREMENTS.md, flip this SUMMARY's `status` to `complete`, check off the `01-03-PLAN.md` bullet and the Phase 1 top-level checkbox in ROADMAP.md, and the phase closes out — Phase 2 (per-problem history) and Phase 3 (dashboard) both depend on this store being live and populated.
+DATA-06/DATA-07 are now marked complete in REQUIREMENTS.md, this SUMMARY's `status` is `complete`, and the `01-03-PLAN.md` bullet + the Phase 1 top-level checkbox in ROADMAP.md are checked off — the phase closes out. Phase 2 (per-problem history) and Phase 3 (dashboard) both depend on this store being live and populated.
 
 ---
 *Phase: 01-submission-store-backfill*
