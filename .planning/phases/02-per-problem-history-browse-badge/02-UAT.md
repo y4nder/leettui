@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 02-per-problem-history-browse-badge
 source: [02-01-SUMMARY.md, 02-02-SUMMARY.md]
 started: 2026-07-01T03:18:51Z
-updated: 2026-07-01T03:43:28Z
+updated: 2026-07-01T03:52:00Z
 ---
 
 ## Current Test
@@ -60,17 +60,23 @@ blocked: 0
   reason: "User reported: it does not refresh automatically the history panel after s"
   severity: major
   test: 5
-  root_cause: ""     # Filled by diagnosis
-  artifacts: []      # Filled by diagnosis
-  missing: []        # Filled by diagnosis
-  debug_session: ""  # Filled by diagnosis
+  root_cause: "handleProblemSubmit (src/views/problem/handlers.ts:362-376) never re-invokes loadProblemSubmissions after submitSolution resolves. submitSolution correctly persists the new submission row to SQLite via appendSubmissionRecord for every verdict, so the DB is always fresh — but submissionsSlice's in-memory problemSubmissions/submissionSummary state that HistoryPanel renders is a one-time snapshot populated only by loadProblemSubmissions, whose sole call site in the codebase is handleEnterProblemView (fires once on entering the problem view). Nothing re-fires it after a live submit."
+  artifacts:
+    - path: "src/views/problem/handlers.ts"
+      issue: "handleProblemSubmit's success path does not call loadProblemSubmissions after submitSolution resolves"
+  missing:
+    - "Call useAppStore.getState().loadProblemSubmissions(p.question.id) inside handleProblemSubmit after submitSolution resolves (mirroring the refresh-after-mutation pattern used in handleConfirmDeleteSolution), placed before or alongside setProblemResult so History and Result panels update together"
+  debug_session: ".planning/debug/history-panel-no-refresh-after-submit.md"
 
 - truth: "The submitted problem shows `×N` in the marker slot (N = total attempts across all verdicts, matching your real history); the never-attempted problem shows blank (no `×0`); the solution-file-only problem shows `◆`."
   status: failed
   reason: "User reported: passed but I want changes for this one, because it kinda misaligned the ui — screenshot shows the ×N badge is not fixed-width, so rows with different attempt-count digit lengths (×1 vs ×3 vs ×32) shift the problem-number/title columns left or right relative to each other, breaking visual column alignment down the question list."
   severity: cosmetic
   test: 6
-  root_cause: ""     # Filled by diagnosis
-  artifacts: []      # Filled by diagnosis
-  missing: []        # Filled by diagnosis
-  debug_session: ""  # Filled by diagnosis
+  root_cause: "QuestionList.tsx's marker cell (lines 87-90) renders `×${attemptCount}` / `◆` / ' ' as an unpadded, variable-length string. Every other data column in the same row (idStr, acStr, runtimeStr) is explicitly pre-padded to a fixed character count via .padStart() before interpolation, but the marker cell never received the same treatment. The pre-Phase-02 ◆-only marker was always exactly 1 character so it accidentally behaved like a fixed-width column; the ×N replacement is 2-4+ characters depending on digit count, so wider counts push every subsequent column rightward. The plan's must_haves specified the same column slot but never specified a fixed rendered width — a plan gap, not an implementation deviation."
+  artifacts:
+    - path: "src/ui/components/QuestionList.tsx"
+      issue: "marker cell (lines 87-90) lacks fixed-width padding unlike idStr/acStr/runtimeStr in the same component"
+  missing:
+    - "Pad the badge string (×${attemptCount} / ◆ / blank) to a fixed width (matching the widest realistic badge) before interpolating into the <text> element, same pattern as idStr/acStr/runtimeStr"
+  debug_session: ".planning/debug/browse-badge-alignment-misaligned.md"
