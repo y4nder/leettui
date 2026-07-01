@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. New submissions made through leettui (run/submit) are automatically recorded in the store, capturing runtime/memory percentile for free from the existing CheckResponse (zero extra API calls).
   5. The submission data lives in the existing `questions.db` keyed by `submissionId`, so the `*.db` gitignore protection covers it automatically (history is never pushed to a public solutions repo).
 
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 
 Plans:
 **Wave 1**
@@ -42,7 +42,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02-PLAN.md — `submissionList` GraphQL query + never-throws resumable backfill service — offset/limit pagination, inter-page delay + 429 backoff, AuthError handling; includes a live spike validating the real rate-limit threshold and the field set/pagination at scale (DATA-02, DATA-03, DATA-04, DATA-05)
+- [x] 01-02-PLAN.md — `submissionList` GraphQL query + never-throws resumable backfill service — offset/limit pagination, inter-page delay + 429 backoff, AuthError handling; includes a live spike validating the real rate-limit threshold and the field set/pagination at scale (DATA-02, DATA-03, DATA-04, DATA-05)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -100,6 +100,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Submission Store & Backfill | 1/3 | In Progress|  |
+| 1. Submission Store & Backfill | 2/3 | In Progress|  |
 | 2. Per-Problem History & Browse Badge | 0/2 | Not started | - |
 | 3. Progress Dashboard | 0/3 | Not started | - |

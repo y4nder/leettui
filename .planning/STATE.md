@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: submission-store-backfill
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-07-01T00:07:22.672Z"
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-07-01T00:30:27.174Z"
 last_activity: 2026-06-30
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-06-26)
 ## Current Position
 
 Phase: 01 (submission-store-backfill) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-30 — Phase 01 execution started
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01 P01 | 25min | 3 tasks | 7 files |
+| Phase 01 P02 | 20min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,7 @@ Recent decisions affecting current work:
 - Store history in the existing SQLite/Drizzle DB (in `questions.db`) via a new versioned migration
 - Dashboard north star = consistency & trajectory (streaks, counts, trends), not percentile chasing
 - [Phase 01]: 01-01: submissions.ts shipped a type-checking stub before the real GREEN implementation so RED tests fail on assertions, not compile errors, under the repo's strict pre-commit typecheck gate
+- [Phase 01]: 01-02: Live spike confirmed every reverse-engineered submissionList field/unit (query name, id type, timestamp=seconds, runtime/memory strings, hasNext, PAGE_SIZE=20) with zero corrections; interPageDelayMs=1000 empirically validated safe over 40 real requests — resolved 01-02's blocking Task 2 checkpoint autonomously by running scripts/spike-submission-list.ts against the user's real, already-authenticated LeetCode session
 
 ### Pending Todos
 
@@ -80,7 +82,7 @@ None yet.
 
 [Issues that affect future work]
 
-- [Phase 1] Real rate-limit threshold and `submissionList` field set/pagination-at-scale are LOW-confidence — a live spike (against a 500+ submission account) is scheduled in plan 01-02 to validate before locking the inter-page delay.
+- (Resolved in 01-02) Real rate-limit threshold and `submissionList` field set/pagination-at-scale were LOW-confidence; the 01-02 live spike confirmed every field/unit assumption and validated the 1000ms inter-page delay as safe (though the exact 429 ceiling itself was never hit and remains an untested design input for the backoff curve).
 
 ## Deferred Items
 
@@ -92,6 +94,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-01T00:07:22.666Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-07-01T00:30:27.168Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None

@@ -10,10 +10,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Data (Submission Store)
 
 - [x] **DATA-01**: A `submissions` table is added via a new versioned Drizzle migration, living in the existing `questions.db` so the `*.db` gitignore protection applies automatically; rows are keyed by LeetCode `submissionId` (PRIMARY KEY) so writes are idempotent
-- [ ] **DATA-02**: User can backfill their existing LeetCode submission history into the local store via paginated `submissionList` (offset/limit, `hasNext`), persisting status, language, runtime, memory, and timestamp per attempt
-- [ ] **DATA-03**: Backfill is resumable (persisted cursor) and safely re-runnable — an interrupted or repeated backfill never duplicates rows (`onConflictDoNothing`) and resumes where it left off
-- [ ] **DATA-04**: Backfill is polite to the unofficial API (configurable inter-page delay + 429 backoff) and on-demand only — no background timers or polling
-- [ ] **DATA-05**: Backfill degrades gracefully — on auth/API/rate-limit/network failure it never crashes the TUI, surfaces a clean hint, and preserves any partial data (never-throws result union, mirroring `core/git.ts`)
+- [x] **DATA-02**: User can backfill their existing LeetCode submission history into the local store via paginated `submissionList` (offset/limit, `hasNext`), persisting status, language, runtime, memory, and timestamp per attempt
+- [x] **DATA-03**: Backfill is resumable (persisted cursor) and safely re-runnable — an interrupted or repeated backfill never duplicates rows (`onConflictDoNothing`) and resumes where it left off
+- [x] **DATA-04**: Backfill is polite to the unofficial API (configurable inter-page delay + 429 backoff) and on-demand only — no background timers or polling
+- [x] **DATA-05**: Backfill degrades gracefully — on auth/API/rate-limit/network failure it never crashes the TUI, surfaces a clean hint, and preserves any partial data (never-throws result union, mirroring `core/git.ts`)
 - [ ] **DATA-06**: New submissions made through leettui append to the store automatically, capturing runtime/memory percentile for free from the existing `CheckResponse` (zero extra API calls)
 - [ ] **DATA-07**: In-TUI backfill progress is shown via the `syncSlice` Zustand pattern without freezing the render loop
 
@@ -72,10 +72,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | DATA-01 | Phase 1 | Complete |
-| DATA-02 | Phase 1 | Pending |
-| DATA-03 | Phase 1 | Pending |
-| DATA-04 | Phase 1 | Pending |
-| DATA-05 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Complete |
+| DATA-03 | Phase 1 | Complete |
+| DATA-04 | Phase 1 | Complete |
+| DATA-05 | Phase 1 | Complete |
 | DATA-06 | Phase 1 | Pending |
 | DATA-07 | Phase 1 | Pending |
 | HIST-01 | Phase 2 | Pending |
