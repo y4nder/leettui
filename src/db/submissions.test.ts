@@ -8,6 +8,7 @@ import { upsertQuestion } from "./questions";
 import {
   type DbSubmission,
   getSubmissionsForQuestion,
+  hasAnySubmissions,
   insertSubmission,
   insertSubmissions,
   setSubmissionsFetchedAt,
@@ -146,5 +147,12 @@ describe("submissions CRUD", () => {
     expect(() => insertSubmission(makeSubmission({ submissionId: 1, questionId: 999 }))).toThrow(
       /FOREIGN KEY/i,
     );
+  });
+
+  test("hasAnySubmissions is false on an empty table and true once a row exists", () => {
+    seedQuestion(1);
+    expect(hasAnySubmissions()).toBe(false);
+    insertSubmission(makeSubmission({ submissionId: 1, questionId: 1 }));
+    expect(hasAnySubmissions()).toBe(true);
   });
 });

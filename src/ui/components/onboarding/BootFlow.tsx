@@ -14,8 +14,8 @@ import { colors } from "../../theme";
 import { loadConfig, hasTokens, getDbPath, getSolutionsDir } from "../../../config";
 import { validateTokens, type AuthTokens } from "../../../core/auth";
 import { initClient } from "../../../api/client";
-import { openDatabase, getDb } from "../../../db";
-import { submissions } from "../../../db/schema";
+import { openDatabase } from "../../../db";
+import { hasAnySubmissions } from "../../../db/submissions";
 import { syncIfEmpty } from "../../../core/sync";
 import { migrateSolutionsLayout } from "../../../core/migration";
 import { detectSolutionsRelocation, type RelocationPlan } from "../../../core/relocate";
@@ -178,7 +178,7 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
         // launch) and every subsequent launch has the flag already true, so the
         // nudge can fire at most once, ever.
         if (!getBackfillNudgeShown()) {
-          const hasData = getDb().select().from(submissions).limit(1).all().length > 0;
+          const hasData = hasAnySubmissions();
           if (
             shouldShowBackfillNudge(getBackfillNudgeShown(), hasData, useAppStore.getState().mode)
           ) {

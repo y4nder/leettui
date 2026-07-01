@@ -38,6 +38,13 @@ export function insertSubmissions(rows: DbSubmission[]): void {
   });
 }
 
+// Cheap existence check (LIMIT 1) — backs BootFlow's first-run backfill-nudge
+// decision without pulling every row, and keeps that raw-Drizzle query out of
+// the UI layer.
+export function hasAnySubmissions(): boolean {
+  return getDb().select().from(submissions).limit(1).all().length > 0;
+}
+
 // Per-question history, newest-first — the shape Phase 2's per-problem panel
 // reads directly.
 export function getSubmissionsForQuestion(questionId: number): DbSubmission[] {
