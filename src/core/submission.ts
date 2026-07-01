@@ -7,6 +7,7 @@ import { runCode } from "../api/rest/run";
 import { submitCode } from "../api/rest/submit";
 import { pollResult } from "../api/rest/check";
 import { readSolutionFile } from "./solutions";
+import { insertSubmission } from "../db/submissions";
 
 export class SolutionError extends Error {
   constructor(message: string) {
@@ -17,28 +18,56 @@ export class SolutionError extends Error {
 
 // Maps a CheckResponse status_code to its display string — the fallback used
 // when a submit result's `status_msg` isn't present (D-08: every verdict, not
-// just accepted, gets a display string).
-// TODO(RED): not implemented yet — stub body exists only so the module
-// type-checks while the failing tests are committed. GREEN fills this in.
-export function statusDisplayFromCode(_code: number): string {
-  void _code;
-  return "";
+// just accepted, gets a display string). Codes per src/api/CLAUDE.md.
+export function statusDisplayFromCode(code: number): string {
+  switch (code) {
+    case 10:
+      return "Accepted";
+    case 11:
+      return "Wrong Answer";
+    case 12:
+      return "Memory Limit Exceeded";
+    case 13:
+      return "Output Limit Exceeded";
+    case 14:
+      return "Time Limit Exceeded";
+    case 15:
+      return "Runtime Error";
+    case 20:
+      return "Compile Error";
+    case 30:
+      return "Timeout";
+    default:
+      return "Unknown";
+  }
 }
 
 // Builds + inserts a `submissions` row for a submit result carrying a
-// `submission_id` (D-08 — every verdict, not just accepted). No-op for a
-// result with none (a run's `interpret_id` never reaches this call site, and
-// pending/timeout/unknown carry no submission_id).
-// TODO(RED): not implemented yet — stub body exists only so the module
-// type-checks while the failing tests are committed. GREEN fills this in.
+// `submission_id` (D-08 — every verdict, not just accepted, is stored — WA/
+// TLE/CE/RE/MLE included, not just Accepted). No-op for a result with none: a
+// run's `interpret_id` never reaches this call site (only submitSolution
+// calls it), and pending/timeout/unknown carry no `data.submission_id`.
 export function appendSubmissionRecord(
-  _question: DbQuestion,
-  _langSlug: string,
-  _result: ParsedResponse,
+  question: DbQuestion,
+  langSlug: string,
+  result: ParsedResponse,
 ): void {
-  void _question;
-  void _langSlug;
-  void _result;
+  if (!("data" in result)) return; // pending/timeout/unknown/internal_error — no CheckResponse
+  const data = result.data;
+  if (!data.submission_id) return; // defensive: only submits carry a submission_id
+
+  insertSubmission({
+    submissionId: parseInt(data.submission_id, 10),
+    questionId: question.id,
+    titleSlug: question.title_slug,
+    lang: langSlug,
+    statusDisplay: data.status_msg ?? statusDisplayFromCode(data.status_code ?? 0),
+    runtime: data.status_runtime ?? null,
+    memory: data.status_memory ?? null,
+    submittedAt: Date.now(), // CheckResponse has no timestamp field
+    runtimePercentile: data.runtime_percentile ?? null,
+    memoryPercentile: data.memory_percentile ?? null,
+  });
 }
 
 function loadCode(question: DbQuestion, langSlug: string): string {
