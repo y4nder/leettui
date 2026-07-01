@@ -1,8 +1,8 @@
 ---
-status: diagnosed
+status: resolved
 trigger: "browse-badge-alignment-misaligned"
 created: 2026-07-01T00:00:00Z
-updated: 2026-07-01T00:00:00Z
+updated: 2026-07-01T12:00:00Z
 ---
 
 ## Current Focus

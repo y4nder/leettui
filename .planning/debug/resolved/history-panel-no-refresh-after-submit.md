@@ -1,8 +1,8 @@
 ---
-status: diagnosed
+status: resolved
 trigger: "history-panel-no-refresh-after-submit — After a user submits a solution live (pressing `s` in the problem view, `problem.submitFocused` -> `handleProblemSubmit`), the per-problem History panel does not refresh to show the newly-created submission row (with its runtime percentile). The user has to do something else (unclear what) to see it."
 created: 2026-07-01T00:00:00Z
-updated: 2026-07-01T00:05:00Z
+updated: 2026-07-01T12:00:00Z
 ---
 
 ## Current Focus

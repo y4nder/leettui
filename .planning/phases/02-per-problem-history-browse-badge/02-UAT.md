@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: resolved
 phase: 02-per-problem-history-browse-badge
 source: [02-01-SUMMARY.md, 02-02-SUMMARY.md]
 started: 2026-07-01T03:18:51Z
-updated: 2026-07-01T03:52:00Z
+updated: 2026-07-01T12:00:00Z
 ---
 
 ## Current Test
@@ -56,7 +56,7 @@ blocked: 0
 ## Gaps
 
 - truth: "The live-submitted row shows a dim `(top N%)` parenthetical after the runtime; backfilled rows show no percentile text at all (no dash/placeholder)."
-  status: failed
+  status: resolved
   reason: "User reported: it does not refresh automatically the history panel after s"
   severity: major
   test: 5
@@ -69,7 +69,7 @@ blocked: 0
   debug_session: ".planning/debug/history-panel-no-refresh-after-submit.md"
 
 - truth: "The submitted problem shows `×N` in the marker slot (N = total attempts across all verdicts, matching your real history); the never-attempted problem shows blank (no `×0`); the solution-file-only problem shows `◆`."
-  status: failed
+  status: resolved
   reason: "User reported: passed but I want changes for this one, because it kinda misaligned the ui — screenshot shows the ×N badge is not fixed-width, so rows with different attempt-count digit lengths (×1 vs ×3 vs ×32) shift the problem-number/title columns left or right relative to each other, breaking visual column alignment down the question list."
   severity: cosmetic
   test: 6
