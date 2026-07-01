@@ -24,6 +24,10 @@ export interface SessionState {
   questionId?: number;
   solutionsDir?: string;
   lastShownChangelogVersion?: string;
+  // Whether the one-time first-run backfill nudge (D-01/D-02) has already been
+  // shown. Set unconditionally at boot (mirrors lastShownChangelogVersion's
+  // seeding invariant) so it can never re-fire.
+  backfillNudgeShown?: boolean;
 }
 
 // In-memory mirror of the session file. Lazily initialized from disk so the
@@ -97,4 +101,31 @@ export function getLastShownChangelogVersion(): string | undefined {
 export function setLastShownChangelogVersion(tag: string): void {
   state().lastShownChangelogVersion = tag;
   writeNow();
+}
+
+// Whether the one-time first-run backfill nudge has already been shown.
+// TODO(RED): not implemented yet — stub bodies exist only so the module
+// type-checks while the failing tests are committed. GREEN fills these in.
+export function getBackfillNudgeShown(): boolean {
+  return false;
+}
+
+// Record that the backfill nudge has been shown (or seeded on a fresh install
+// with no data). Synchronous merge-write, called unconditionally at boot.
+export function setBackfillNudgeShown(): void {
+  // stub
+}
+
+// Pure decision for the one-time first-run backfill nudge (D-01/D-02): never
+// show once already shown, never show if submission history already exists,
+// otherwise only while the user is looking at browse.
+export function shouldShowBackfillNudge(
+  _nudgeShown: boolean,
+  _hasAnySubmissions: boolean,
+  _mode: string,
+): boolean {
+  void _nudgeShown;
+  void _hasAnySubmissions;
+  void _mode;
+  return false;
 }
