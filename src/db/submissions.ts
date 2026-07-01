@@ -2,6 +2,9 @@ import { desc, eq } from "drizzle-orm";
 import { getDb } from "./index";
 import { questions, submissions } from "./schema";
 
+// A single submission attempt (any verdict — D-08). Keyed by LeetCode's own
+// `submissionId`, so re-inserting the same id is a safe no-op regardless of
+// caller (backfill re-run, retry, or live append-on-submit).
 export interface DbSubmission {
   submissionId: number;
   questionId: number;
@@ -15,29 +18,41 @@ export interface DbSubmission {
   memoryPercentile: number | null;
 }
 
-// TODO(RED): not implemented yet — stub bodies exist only so the module
-// type-checks while the failing tests are committed. GREEN fills these in.
-export function insertSubmission(_row: DbSubmission): void {
-  void _row;
+// Idempotent single insert (DATA-01/DATA-03 dedupe safety net). Callers must
+// resolve `questionId` from the local DB first — the FK is enforced
+// (`PRAGMA foreign_keys = ON`), so a row for an unknown question throws.
+export function insertSubmission(row: DbSubmission): void {
+  getDb().insert(submissions).values(row).onConflictDoNothing().run();
 }
 
-export function insertSubmissions(_rows: DbSubmission[]): void {
-  void _rows;
+// Idempotent batch insert, transactional (WAL throughput + atomicity) — never
+// a bare loop. Mirrors `core/sync.ts`'s `persistPage` pattern.
+export function insertSubmissions(rows: DbSubmission[]): void {
+  getDb().transaction(() => {
+    for (const row of rows) {
+      getDb().insert(submissions).values(row).onConflictDoNothing().run();
+    }
+  });
 }
 
-export function getSubmissionsForQuestion(_questionId: number): DbSubmission[] {
-  void _questionId;
-  return [];
+// Per-question history, newest-first — the shape Phase 2's per-problem panel
+// reads directly.
+export function getSubmissionsForQuestion(questionId: number): DbSubmission[] {
+  return getDb()
+    .select()
+    .from(submissions)
+    .where(eq(submissions.questionId, questionId))
+    .orderBy(desc(submissions.submittedAt))
+    .all();
 }
 
-export function setSubmissionsFetchedAt(_questionId: number, _now: number = Date.now()): void {
-  void _questionId;
-  void _now;
+// D-07 cursor write: resume marker for an interrupted backfill run and the
+// high-water mark for a completed one. `now` is injectable for deterministic
+// tests.
+export function setSubmissionsFetchedAt(questionId: number, now: number = Date.now()): void {
+  getDb()
+    .update(questions)
+    .set({ submissionsFetchedAt: now })
+    .where(eq(questions.id, questionId))
+    .run();
 }
-
-// Referenced so lint doesn't flag unused imports ahead of GREEN.
-void desc;
-void eq;
-void getDb;
-void questions;
-void submissions;
