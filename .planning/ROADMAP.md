@@ -108,3 +108,46 @@ Phases execute in numeric order: 1 → 2 → 3
 | 1. Submission Store & Backfill | 3/3 | Complete    | 2026-07-01 |
 | 2. Per-Problem History & Browse Badge | 3/3 | Complete    | 2026-07-01 |
 | 3. Progress Dashboard | 0/3 | Not started | - |
+
+## Backlog
+
+Unsequenced ideas parked outside the active phase sequence (999.x). Promote to the active
+milestone with `/gsd-review-backlog`. **Theme: Local test-case output management** — a QoL
+slice for the offline test harness the user wants to land *before* Phase 3 (Progress
+Dashboard). Both items close the same gap: seeded `tests/case-NN.txt` ship inputs only, so
+the sibling `case-NN.out` (expected output) must be hand-written today; without it a case
+runs as `ran` with no pass/fail verdict (`src/core/testRunner.ts`). Item 999.2 is the
+upstream feeder for 999.1's local grading. Phasing (one combined QoL phase vs. two) is
+intentionally left open pending `/gsd-review-backlog`.
+
+### Phase 999.1: Manage local test-case expected outputs (golden/snapshot workflow) (BACKLOG)
+
+**Goal:** [Captured for future planning] Give the user a way to populate/edit `case-NN.out`
+without hand-writing files, so local `leettui test` actually grades pass/fail. Candidate
+surfaces (decide during planning, not mutually exclusive): (1) a **CLI verb** in `src/cli/`
+— e.g. `leettui test --save` / `leettui accept` that snapshots the current run's stdout into
+`case-NN.out`, plus a verb to add a brand-new case (input + expected pair); fits the existing
+editor `:!leettui test` inner-loop. (2) a **TUI enhancement** in ProblemView — a panel/modal
+to add/edit cases and "accept current output as expected." Touches `src/core/testRunner.ts`
+(`discoverCases`/`pairCases`/`compareOutput`), `src/core/solutions/` (tests helpers,
+`seedTests`), `src/cli/`.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.2: Auto-capture failing cases from run/submit into offline regression tests (BACKLOG)
+
+**Goal:** [Captured for future planning] When `run`/`submit` returns a wrong-answer verdict,
+LeetCode's `CheckResponse` carries the failing input + `expected_output` + `code_output`.
+Auto-write that failing input as a new `tests/case-NN.txt` plus its `case-NN.out`, turning the
+failure into a permanent, reproducible **offline** regression case runnable via `leettui test`
+— the upstream feeder for 999.1's local grading. Touches `src/core/submission.ts`
+(`runSolution`/`submitSolution`, where `CheckResponse` is parsed), the run/submit handlers in
+`views/problem`, and `src/core/solutions` tests helpers.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
