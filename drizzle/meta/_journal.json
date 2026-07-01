@@ -15,6 +15,13 @@
       "when": 1781744102053,
       "tag": "0001_even_proudstar",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1782864132120,
+      "tag": "0002_marvelous_maverick",
+      "breakpoints": true
     }
   ]
 }
