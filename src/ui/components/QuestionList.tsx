@@ -76,6 +76,9 @@ export function QuestionList({
           const attemptCount = attemptCounts.get(q.id) ?? 0;
           const acStr = formatAcRate(q.ac_rate).padStart(6, " ");
           const runtimeStr = (q.last_runtime ?? "").padStart(8, " ");
+          const markerStr = (
+            attemptCount > 0 ? `×${attemptCount}` : hasSolution ? "◆" : " "
+          ).padStart(3, " ");
 
           return (
             <box
@@ -85,9 +88,7 @@ export function QuestionList({
               width="100%"
             >
               <text fg={sColor}> {icon} </text>
-              <text fg={colors.accent}>
-                {attemptCount > 0 ? `×${attemptCount}` : hasSolution ? "◆" : " "}
-              </text>
+              <text fg={colors.accent}>{markerStr}</text>
               <text fg={colors.fgDim}> {idStr} </text>
               <text fg={isSelected ? selectedFg : colors.fg} flexGrow={1}>
                 {q.title}
