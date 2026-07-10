@@ -120,11 +120,18 @@ Plans:
   3. The captured case is immediately gradeable offline — `leettui test` runs it and reports pass once the solution is fixed — closing the online→offline debug loop.
   4. Capture never destabilizes the run/submit path: a parse/write failure degrades cleanly (the submit result still renders), consistent with the never-throws contract of the surrounding services.
 
-**Plans**: 0 plans (not yet planned)
+**Requirements**: TCASE-04, TCASE-05 *(formalized in REQUIREMENTS.md by plan 02.2-01)*
+
+**Plans**: 2 plans
 
 Plans:
+**Wave 1**
 
-- [ ] TBD — run `/gsd-discuss-phase 2.2` then `/gsd-plan-phase 2.2`
+- [ ] 02.2-01-PLAN.md — Capture engine + requirements: pure never-throws `capture.ts` (`captureFailingCase` submit-side new-case capture with dedup/fill/mismatch D-01/D-03/D-04/D-05/D-06 + `blessRunOutputs` run-side content-matched `.out` blessing D-02/D-07) + `capture.test.ts` round-trip/path-safety proof + export `normalize` + formalize TCASE-04/TCASE-05 (TCASE-04, TCASE-05)
+
+**Wave 2** *(blocked on Wave 1 — imports the capture writers + `normalize`)*
+
+- [ ] 02.2-02-PLAN.md — Wire capture into run/submit + surface feedback: hook writers into `submission.ts` (`{ response, captureNotes }` return + never-throws guard D-08), thread `captureNotes` through both TUI call sites + CLI `runApiVerb`, add `notes?: string[]` to `ResultView`, render dim notes in `ResultBody.tsx` + `present.ts` (D-10) (TCASE-04, TCASE-05)
 
 **Design note**: The failing-case fields (`last_testcase`/`input`, `expected_output`, `code_output`) live in the `CheckResponse` already parsed by `src/core/submission.ts`; the write path is the same tests-dir seam introduced in 2.1. Touches the run/submit handlers in `views/problem`.
 
@@ -161,5 +168,5 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 2.2 → 3
 | 1. Submission Store & Backfill | 3/3 | Complete    | 2026-07-01 |
 | 2. Per-Problem History & Browse Badge | 3/3 | Complete    | 2026-07-01 |
 | 2.1 Local Test-Case Output Management | 2/2 | Complete    | 2026-07-10 |
-| 2.2 Auto-Capture Failing Cases | 0/0 | Not started (INSERTED) | - |
+| 2.2 Auto-Capture Failing Cases | 0/2 | Planned (INSERTED) | - |
 | 3. Progress Dashboard | 0/3 | Deferred behind 2.1/2.2 | - |
