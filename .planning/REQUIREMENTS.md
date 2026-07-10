@@ -37,6 +37,12 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 - [x] **BROWSE-01**: The browse question list shows a "solved/attempted before" badge (attempt count) derived from submission history, richer than LeetCode's binary solved/attempted
 
+### Test-Case Management (Phase 2.1)
+
+- [ ] **TCASE-01**: `leettui test --save` snapshots the current run's cleanly-run stdout into `case-NN.out` per case, overwriting an existing golden per the jest `-u` model, skipping any case that errored or timed out, reporting created/changed/unchanged/skipped per case plus a correctness reminder, and never touching an unrelated case's `.out`
+- [ ] **TCASE-02**: `leettui test --add-case` reads a new case input from stdin or a file argument and writes it as the next sequential `case-NN.txt`, picked up by `discoverCases`/`pairCases` on the next run with no runner changes
+- [ ] **TCASE-03**: The case-writing path reuses the existing `tests/` layout and `compareOutput` grading, and is safe, idempotent, and never-throws — it never clobbers an unrelated case
+
 ## v2 Requirements
 
 Deferred to a future milestone. Tracked but not in this roadmap.
@@ -89,13 +95,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-06 | Phase 3 | Pending |
 | DASH-07 | Phase 3 | Pending |
 | BROWSE-01 | Phase 2 | Complete |
+| TCASE-01 | Phase 2.1 | Pending |
+| TCASE-02 | Phase 2.1 | Pending |
+| TCASE-03 | Phase 2.1 | Pending |
 
 **Coverage:**
 
-- v1 requirements: 18 total
-- Mapped to phases: 18 ✓
+- v1 requirements: 21 total
+- Mapped to phases: 21 ✓
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-26*
-*Last updated: 2026-06-26 after roadmap creation (traceability filled)*
+*Last updated: 2026-07-11 after Phase 2.1 plan 01 formalized TCASE-01/02/03*

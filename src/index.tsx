@@ -42,13 +42,14 @@ if (process.argv.includes("update")) {
 
 // Headless CLI verbs (Stage 8): `test`/`run`/`submit`/`new` run the engine
 // UI-free and exit before the renderer starts, so they work from inside an
-// editor's `:!`. `new <language>` takes a positional argument (the others infer
-// everything from cwd), threaded through via `verbArg`.
+// editor's `:!`. The full `argv` is threaded through so `runCli` can derive
+// `new`'s positional language argument and any flags (`--save`, Phase 2.1)
+// itself — this seam only needs to learn the CLI dispatch once.
 {
-  const { matchCliVerb, verbArg, runCli } = await import("./cli");
+  const { matchCliVerb, runCli } = await import("./cli");
   const verb = matchCliVerb(process.argv);
   if (verb) {
-    process.exit(await runCli(verb, process.cwd(), verbArg(process.argv, verb)));
+    process.exit(await runCli(verb, process.cwd(), process.argv));
   }
 }
 

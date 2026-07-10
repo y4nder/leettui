@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { matchCliVerb, verbArg, bootstrapApiClient, AUTH_HINT } from "./index";
+import { matchCliVerb, verbArg, hasFlag, flagValue, bootstrapApiClient, AUTH_HINT } from "./index";
 import {
   presentResultView,
   exitCodeForLocalRun,
@@ -55,6 +55,32 @@ describe("verbArg", () => {
 
   test("skips leading flags to the first real token", () => {
     expect(verbArg(["bun", "src/index.tsx", "new", "--debug", "python3"], "new")).toBe("python3");
+  });
+});
+
+describe("hasFlag", () => {
+  test("true when the flag is present as an exact argv element", () => {
+    expect(hasFlag(["bun", "src/index.tsx", "test", "--save"], "--save")).toBe(true);
+  });
+
+  test("false when absent", () => {
+    expect(hasFlag(["bun", "src/index.tsx", "test"], "--save")).toBe(false);
+  });
+});
+
+describe("flagValue", () => {
+  test("returns the first non-flag token after the flag", () => {
+    expect(
+      flagValue(["bun", "src/index.tsx", "test", "--add-case", "cases.txt"], "--add-case"),
+    ).toBe("cases.txt");
+  });
+
+  test("undefined when the next token is another flag or absent", () => {
+    expect(flagValue(["bun", "src/index.tsx", "test", "--add-case", "--save"], "--add-case")).toBe(
+      undefined,
+    );
+    expect(flagValue(["bun", "src/index.tsx", "test", "--add-case"], "--add-case")).toBeUndefined();
+    expect(flagValue(["bun", "src/index.tsx", "test"], "--add-case")).toBeUndefined();
   });
 });
 
