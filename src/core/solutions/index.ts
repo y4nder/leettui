@@ -47,3 +47,5 @@ export {
 export { deleteSolution } from "./remove";
 
 export { type SaveOutcome, type SaveResult, saveGoldenOutputs } from "./save-output";
+
+export { addCase, nextCaseName } from "./add-case";
