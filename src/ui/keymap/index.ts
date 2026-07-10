@@ -43,6 +43,8 @@ export {
   questionPanelBindings,
   relatedPanelBindings,
   resultBindings,
+  resultFullscreenBindings,
+  resultPanelBindings,
   scrollPanelBindings,
   searchBindings,
   solutionsPanelBindings,

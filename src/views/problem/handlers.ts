@@ -73,6 +73,11 @@ async function withFocusedSolution(
     return;
   }
   useAppStore.getState().setProblemResult(loading(opts.loadingMessage));
+  // Run/submit/test take over the screen immediately (loading → result repaints in
+  // place). This is exactly the solve seam: the editor path passes no opts and the
+  // "no solution" nudge returned above, so neither auto-opens. The open action
+  // no-ops while picker/notes float over the view.
+  useAppStore.getState().openResultFullscreen();
   try {
     await fn(p, langSlug);
   } catch (e) {
