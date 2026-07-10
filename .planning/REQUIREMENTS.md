@@ -39,9 +39,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Test-Case Management (Phase 2.1)
 
-- [ ] **TCASE-01**: `leettui test --save` snapshots the current run's cleanly-run stdout into `case-NN.out` per case, overwriting an existing golden per the jest `-u` model, skipping any case that errored or timed out, reporting created/changed/unchanged/skipped per case plus a correctness reminder, and never touching an unrelated case's `.out`
+- [x] **TCASE-01**: `leettui test --save` snapshots the current run's cleanly-run stdout into `case-NN.out` per case, overwriting an existing golden per the jest `-u` model, skipping any case that errored or timed out, reporting created/changed/unchanged/skipped per case plus a correctness reminder, and never touching an unrelated case's `.out`
 - [ ] **TCASE-02**: `leettui test --add-case` reads a new case input from stdin or a file argument and writes it as the next sequential `case-NN.txt`, picked up by `discoverCases`/`pairCases` on the next run with no runner changes
-- [ ] **TCASE-03**: The case-writing path reuses the existing `tests/` layout and `compareOutput` grading, and is safe, idempotent, and never-throws — it never clobbers an unrelated case
+- [x] **TCASE-03**: The case-writing path reuses the existing `tests/` layout and `compareOutput` grading, and is safe, idempotent, and never-throws — it never clobbers an unrelated case
 
 ## v2 Requirements
 
@@ -95,9 +95,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-06 | Phase 3 | Pending |
 | DASH-07 | Phase 3 | Pending |
 | BROWSE-01 | Phase 2 | Complete |
-| TCASE-01 | Phase 2.1 | Pending |
+| TCASE-01 | Phase 2.1 | Complete |
 | TCASE-02 | Phase 2.1 | Pending |
-| TCASE-03 | Phase 2.1 | Pending |
+| TCASE-03 | Phase 2.1 | Complete |
 
 **Coverage:**
 

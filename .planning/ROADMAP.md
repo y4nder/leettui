@@ -92,12 +92,12 @@ Plans:
   3. The case-writing path reuses the existing `tests/` layout and `compareOutput` grading (JSON-normalized), and is safe/idempotent (never clobbers an unrelated case).
   4. (If a TUI surface is chosen) a ProblemView action lets the user add/edit a case and "accept current output as expected" without leaving the TUI.
 
-**Plans**: 2 plans
+**Plans**: 1/2 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 02.1-01-PLAN.md — `leettui test --save` golden-snapshot slice: `saveGoldenOutputs` core writer (never-throws, overwrite-on-purpose, skips error/timeout) + `present.ts` created/changed/unchanged/skipped report + reminder + `exitCodeForSave`, argv-threaded `runCli`, TCASE requirements formalized (TCASE-01, TCASE-03)
+- [x] 02.1-01-PLAN.md — `leettui test --save` golden-snapshot slice: `saveGoldenOutputs` core writer (never-throws, overwrite-on-purpose, skips error/timeout) + `present.ts` created/changed/unchanged/skipped report + reminder + `exitCodeForSave`, argv-threaded `runCli`, TCASE requirements formalized (TCASE-01, TCASE-03)
 
 **Wave 2** *(blocked on Wave 1 — shares `src/cli/index.ts` + the solutions barrel, and the add→save→grade round-trip needs `--save`)*
 
@@ -123,6 +123,7 @@ Plans:
 **Plans**: 0 plans (not yet planned)
 
 Plans:
+
 - [ ] TBD — run `/gsd-discuss-phase 2.2` then `/gsd-plan-phase 2.2`
 
 **Design note**: The failing-case fields (`last_testcase`/`input`, `expected_output`, `code_output`) live in the `CheckResponse` already parsed by `src/core/submission.ts`; the write path is the same tests-dir seam introduced in 2.1. Touches the run/submit handlers in `views/problem`.
@@ -159,6 +160,6 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 2.2 → 3
 |-------|----------------|--------|-----------|
 | 1. Submission Store & Backfill | 3/3 | Complete    | 2026-07-01 |
 | 2. Per-Problem History & Browse Badge | 3/3 | Complete    | 2026-07-01 |
-| 2.1 Local Test-Case Output Management | 0/2 | Planned (INSERTED) | - |
+| 2.1 Local Test-Case Output Management | 1/2 | In Progress|  |
 | 2.2 Auto-Capture Failing Cases | 0/0 | Not started (INSERTED) | - |
 | 3. Progress Dashboard | 0/3 | Deferred behind 2.1/2.2 | - |

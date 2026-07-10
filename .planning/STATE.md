@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 2.1
-current_phase_name: Local Test-Case Output Management, INSERTED
-status: "Phase 02 shipped (PR #55); QoL phases 2.1/2.2 inserted ahead of Phase 3 on branch feat/test-case-management"
-stopped_at: Phase 2.1 context gathered
-last_updated: "2026-07-10T16:49:32.543Z"
+current_phase: 02.1
+current_phase_name: manage-local-test-case-expected-outputs-golden-snapshot-work
+status: executing
+stopped_at: Completed 02.1-01-PLAN.md
+last_updated: "2026-07-10T21:32:02.747Z"
 last_activity: 2026-07-10
-last_activity_desc: Phase 2.1 planning complete
+last_activity_desc: Phase 02.1 execution started
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
   percent: 40
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-26)
 
 **Core value:** A LeetCode user grinding in the terminal can open one view and instantly see whether they're improving and keeping it up — solve streak, recent counts, and breakdown by difficulty/topic — backed by their real submission history, owned locally.
-**Current focus:** Phase 2.1 — Local Test-Case Output Management (QoL, inserted ahead of Phase 3)
+**Current focus:** Phase 02.1 — manage-local-test-case-expected-outputs-golden-snapshot-work
 
 ## Current Position
 
-Phase: 2.1 of 5 (Local Test-Case Output Management, INSERTED)
-Plan: 0 of 2 complete — planned 2026-07-11, ready to execute (`/gsd-execute-phase 2.1`)
-Status: Phase 2.1 planned (2 plans, 2 waves, checker passed); work lives on branch feat/test-case-management
-Last activity: 2026-07-10 — Phase 2.1 planning complete
+Phase: 02.1 (manage-local-test-case-expected-outputs-golden-snapshot-work) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-07-10 — Phase 02.1 execution started
 
 Progress: [████░░░░░░] 40%
 
@@ -62,6 +62,7 @@ Progress: [████░░░░░░] 40%
 | Phase 02 P01 | 15min | 3 tasks | 13 files |
 | Phase 02 P02 | 3min | 3 tasks | 6 files |
 | Phase 02 P03 | 5min | 2 tasks | 2 files |
+| Phase 02.1 P01 | 35min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-02: refreshSolutionFiles() also recomputes attemptCounts so the two markers sharing the same ◆ render slot never drift out of sync
 - [Phase 02]: 02-03: handleProblemSubmit re-invokes loadProblemSubmissions immediately after submitSolution resolves, mirroring the refresh-after-mutation pattern used by handleConfirmDeleteSolution, closing the stale History-panel UAT gap (HIST-03)
 - [Phase 02]: 02-03: QuestionList's marker cell is pre-padded via a new markerStr (.padStart(3)) alongside idStr/acStr/runtimeStr, fixing browse column misalignment across variable-digit ×N badges (BROWSE-01)
+- [Phase 02.1]: 02.1-01: saveGoldenOutputs is dir-injected (testsDir: string) rather than (id, titleSlug) so it's unit-testable in-process with a temp dir, matching discoverCases' shape — the CLI resolves getTestsDir(id, slug) and passes it in
+- [Phase 02.1]: 02.1-01: save-output.ts uses synchronous node:fs readFileSync/writeFileSync instead of Bun.write's unawaited promise — so the create-vs-overwrite decision and the write complete within one synchronous call, needed for in-process temp-dir unit tests
 
 ### Pending Todos
 
@@ -107,6 +110,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-11
-Stopped at: Session resumed, proceeding to plan Phase 2.1
-Resume file: .planning/phases/02.1-manage-local-test-case-expected-outputs-golden-snapshot-work/02.1-CONTEXT.md
+Last session: 2026-07-10T21:32:02.740Z
+Stopped at: Completed 02.1-01-PLAN.md
+Resume file: None
