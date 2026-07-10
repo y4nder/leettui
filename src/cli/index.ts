@@ -17,6 +17,7 @@ import type { ParsedResponse } from "../api/types";
 import { fetchEditorData } from "../api/queries/editor-data";
 import { fetchConsolePanelConfig } from "../api/queries/console-panel-config";
 import {
+  addCase,
   createSolutionWithHarness,
   getSolutionPath,
   getTestsDir,
@@ -122,6 +123,25 @@ export async function runCli(
 
   switch (verb) {
     case "test": {
+      // `--add-case` is an alternate mode of `test` that writes a new case
+      // input and exits — it never runs the solution. Handled before
+      // `runLocalTests` so it short-circuits the normal run/save path.
+      if (hasFlag(argv, "--add-case")) {
+        const filePath = flagValue(argv, "--add-case");
+        const input = filePath ? await Bun.file(filePath).text() : await Bun.stdin.text();
+        if (input.trim() === "") {
+          console.error(
+            formatTargetError(
+              "No case input — pipe it on stdin (leettui test --add-case < input.txt) or pass a file.",
+            ),
+          );
+          return 2;
+        }
+        const testsDir = getTestsDir(question.id, question.title_slug);
+        const path = addCase(testsDir, input);
+        process.stdout.write(`${header}\n\n  created: ${path}\n`);
+        return 0;
+      }
       // Always run the cases first (D-12) — `--save` consumes this same
       // `LocalCaseResult[]`, never re-running/re-compiling.
       const report = await runLocalTests(question, langSlug);

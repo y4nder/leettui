@@ -82,6 +82,13 @@ describe("flagValue", () => {
     expect(flagValue(["bun", "src/index.tsx", "test", "--add-case"], "--add-case")).toBeUndefined();
     expect(flagValue(["bun", "src/index.tsx", "test"], "--add-case")).toBeUndefined();
   });
+
+  test("--add-case file-arg contract: a file path resolves, bare form is undefined", () => {
+    expect(
+      flagValue(["bun", "src/index.tsx", "test", "--add-case", "cases/extra.txt"], "--add-case"),
+    ).toBe("cases/extra.txt");
+    expect(flagValue(["bun", "src/index.tsx", "test", "--add-case"], "--add-case")).toBeUndefined();
+  });
 });
 
 function ran(...cases: LocalCaseResult[]): LocalRunReport {
