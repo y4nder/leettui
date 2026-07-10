@@ -6,7 +6,7 @@ import { useAppStore } from "../../../ui/store";
 import { makeReportError } from "../../shared";
 
 export type { Renderer } from "../../shared";
-export { withSuspendedRenderer, currentTopic } from "../../shared";
+export { withSuspendedRenderer, openInEditor, currentTopic } from "../../shared";
 
 // Browse error reports log against the "browse" scope.
 export const reportError = makeReportError("browse");

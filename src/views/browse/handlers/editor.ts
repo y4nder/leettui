@@ -1,9 +1,9 @@
 // Browse handlers that spawn `$EDITOR`: open a single solution file (`e`), the
-// whole problem folder (`w`), or the entire solutions dir (`W`). All three reuse
-// the suspend/spawn/resume handover via `withSuspendedRenderer`.
+// whole problem folder (`w`), or the entire solutions dir (`W`). All three go
+// through the shared `openInEditor` — terminal editors suspend/resume the TUI,
+// GUI editors launch detached so the TUI stays live.
 
 import { mkdirSync } from "node:fs";
-import { dirname } from "node:path";
 
 import { useAppStore } from "../../../ui/store";
 import { htmlToMarkdown } from "../../../core/markdown";
@@ -16,9 +16,9 @@ import {
   ensureProblemDir,
   ensureProblemMd,
 } from "../../../core/solutions";
-import { getEditorArgv, getSolutionsDir } from "../../../config";
+import { getSolutionsDir } from "../../../config";
 import { info } from "../resultView";
-import { currentQuestion, reportError, withSuspendedRenderer, type Renderer } from "./shared";
+import { currentQuestion, openInEditor, reportError, type Renderer } from "./shared";
 
 export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
   const q = currentQuestion();
@@ -40,55 +40,36 @@ export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
         hideSelect();
         if (index === null) return;
 
-        const snippet = snippets[index]!;
-        // metaData + example cases drive harness generation / tests seeding (cached fetch).
-        const cfg = await fetchConsolePanelConfig(q.title_slug).catch(() => null);
-        const path = createSolutionWithHarness(
-          q.id,
-          q.title_slug,
-          snippet.langSlug,
-          snippet.code,
-          cfg?.question.metaData,
-          cfg?.question.exampleTestcaseList,
-        );
+        // SelectPopup invokes this callback fire-and-forget, so the outer
+        // try/catch has already returned — report failures here or they'd be
+        // unhandled rejections.
+        try {
+          const snippet = snippets[index]!;
+          // metaData + example cases drive harness generation / tests seeding (cached fetch).
+          const cfg = await fetchConsolePanelConfig(q.title_slug).catch(() => null);
+          const path = createSolutionWithHarness(
+            q.id,
+            q.title_slug,
+            snippet.langSlug,
+            snippet.code,
+            cfg?.question.metaData,
+            cfg?.question.exampleTestcaseList,
+          );
 
-        const editor = getEditorArgv();
-        await withSuspendedRenderer(renderer, async () => {
-          const proc = Bun.spawn([...editor, path], {
-            // cwd = the language folder, so the headless CLI's cwd-inference
-            // (`leettui test`) and per-language LSP work from inside the editor.
-            cwd: dirname(path),
-            stdin: "inherit",
-            stdout: "inherit",
-            stderr: "inherit",
+          // Default cwd = the language folder, so the headless CLI's cwd-inference
+          // (`leettui test`) and per-language LSP work from inside the editor.
+          // A newly created file should immediately show the "solution exists" mark.
+          await openInEditor(renderer, path, {
+            onExit: () => useAppStore.getState().refreshSolutionFiles(),
           });
-          await proc.exited;
-        });
-        // A newly created file should immediately show the "solution exists" mark.
-        useAppStore.getState().refreshSolutionFiles();
+        } catch (e) {
+          reportError(showResult, triggerKey, "handleOpenEditor", "Error opening editor", e);
+        }
       },
     );
   } catch (e) {
     reportError(showResult, triggerKey, "handleOpenEditor", "Error fetching editor data", e);
   }
-}
-
-// Spawn `$EDITOR {dir}` as a workspace (Stage 13): cwd is the dir itself, so an
-// editor opens it as a project (VS Code) / file tree (vim netrw). Deliberately
-// NOT `openInEditorPath` — that sets cwd to the file's *parent*; here cwd must be
-// the problem dir itself. (cwd = problem dir is also why `leettui test` can't
-// infer a langSlug from a workspace — that path stays on `e`.)
-async function spawnEditorInDir(renderer: Renderer, dir: string) {
-  const editor = getEditorArgv();
-  await withSuspendedRenderer(renderer, async () => {
-    const proc = Bun.spawn([...editor, dir], {
-      cwd: dir,
-      stdin: "inherit",
-      stdout: "inherit",
-      stderr: "inherit",
-    });
-    await proc.exited;
-  });
 }
 
 // Open the whole problem folder as a workspace (Stage 13): ensure the problem
@@ -112,8 +93,14 @@ export async function handleOpenWorkspace(triggerKey: string, renderer: Renderer
     ensureProblemMd(q.id, q.title_slug, description, q.title);
     ensureNotesFile(q.id, q.title_slug, q.title);
 
-    await spawnEditorInDir(renderer, problemDir);
-    useAppStore.getState().refreshSolutionFiles();
+    // cwd = the dir itself so an editor opens it as a project (VS Code) / file
+    // tree (vim netrw) — NOT the file's-parent default. (cwd = problem dir is
+    // also why `leettui test` can't infer a langSlug from a workspace — that
+    // path stays on `e`.)
+    await openInEditor(renderer, problemDir, {
+      cwd: problemDir,
+      onExit: () => useAppStore.getState().refreshSolutionFiles(),
+    });
   } catch (e) {
     reportError(showResult, triggerKey, "handleOpenWorkspace", "Error opening workspace", e);
   }
@@ -130,8 +117,10 @@ export async function handleOpenSolutionsWorkspace(triggerKey: string, renderer:
   try {
     const dir = getSolutionsDir();
     mkdirSync(dir, { recursive: true });
-    await spawnEditorInDir(renderer, dir);
-    useAppStore.getState().refreshSolutionFiles();
+    await openInEditor(renderer, dir, {
+      cwd: dir,
+      onExit: () => useAppStore.getState().refreshSolutionFiles(),
+    });
   } catch (e) {
     reportError(
       showResult,

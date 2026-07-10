@@ -3,6 +3,9 @@ export interface Config {
   lc_session: string;
   editor?: {
     command?: string;
+    // "auto" (default): GUI editors launch detached (TUI stays live), terminal
+    // editors suspend the TUI; true/false forces either behavior.
+    detach?: "auto" | boolean;
   };
   git?: {
     ui?: string;
