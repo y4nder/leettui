@@ -84,7 +84,7 @@ Plans:
 **Goal**: The user can populate and edit a case's expected output (`case-NN.out`) without hand-writing files, so local `leettui test` grades real pass/fail instead of the verdict-less `ran`. Closes the gap that seeded `tests/case-NN.txt` ship inputs only.
 **Mode:** mvp
 **Depends on**: Existing offline test harness (`src/core/testRunner.ts`, `src/core/solutions/`, `src/cli/`) — pre-milestone; no dependency on Phase 1/2 data.
-**Requirements**: TBD (define in discuss/plan) — provisional TCASE-01..03
+**Requirements**: TCASE-01, TCASE-02, TCASE-03
 **Success Criteria** (what must be TRUE):
 
   1. From the editor inner-loop (`:!leettui …`), the user can snapshot the current run's stdout into `case-NN.out` (a golden/accept-output workflow) so the next `leettui test` grades that case pass/fail.
@@ -92,12 +92,18 @@ Plans:
   3. The case-writing path reuses the existing `tests/` layout and `compareOutput` grading (JSON-normalized), and is safe/idempotent (never clobbers an unrelated case).
   4. (If a TUI surface is chosen) a ProblemView action lets the user add/edit a case and "accept current output as expected" without leaving the TUI.
 
-**Plans**: 0 plans (not yet planned)
+**Plans**: 2 plans
 
 Plans:
-- [ ] TBD — run `/gsd-discuss-phase 2.1` then `/gsd-plan-phase 2.1`
+**Wave 1**
 
-**Design note**: CLI-verb surface vs. TUI surface is deliberately undecided — resolve in discuss/plan (they are not mutually exclusive). Candidate seams: `leettui test --save`/`leettui accept` in `src/cli/`, plus tests-dir write helpers alongside `seedTests` in `src/core/solutions/`.
+- [ ] 02.1-01-PLAN.md — `leettui test --save` golden-snapshot slice: `saveGoldenOutputs` core writer (never-throws, overwrite-on-purpose, skips error/timeout) + `present.ts` created/changed/unchanged/skipped report + reminder + `exitCodeForSave`, argv-threaded `runCli`, TCASE requirements formalized (TCASE-01, TCASE-03)
+
+**Wave 2** *(blocked on Wave 1 — shares `src/cli/index.ts` + the solutions barrel, and the add→save→grade round-trip needs `--save`)*
+
+- [ ] 02.1-02-PLAN.md — `leettui test --add-case` slice: `nextCaseName`/`addCase` core input-writer (next sequential `case-NN.txt` via `discoverCases`, never-throws) + CLI stdin/file-arg wiring, picked up by `discoverCases`/`pairCases` on the next run (TCASE-02)
+
+**Design note**: Resolved in discuss-phase to **CLI-only** (D-01) — a `--save`/`--add-case` flag pair on the existing `test` verb; the ProblemView/TUI surface is deferred. Seams: new write helpers alongside `seedTests` in `src/core/solutions/`, flag wiring in `src/cli/`.
 
 **UI hint**: yes *(only if the ProblemView surface is chosen; the CLI-only path is non-UI)*
 
@@ -153,6 +159,6 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 2.2 → 3
 |-------|----------------|--------|-----------|
 | 1. Submission Store & Backfill | 3/3 | Complete    | 2026-07-01 |
 | 2. Per-Problem History & Browse Badge | 3/3 | Complete    | 2026-07-01 |
-| 2.1 Local Test-Case Output Management | 0/0 | Not started (INSERTED) | - |
+| 2.1 Local Test-Case Output Management | 0/2 | Planned (INSERTED) | - |
 | 2.2 Auto-Capture Failing Cases | 0/0 | Not started (INSERTED) | - |
 | 3. Progress Dashboard | 0/3 | Deferred behind 2.1/2.2 | - |
