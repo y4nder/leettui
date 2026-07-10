@@ -5,8 +5,8 @@ milestone_name: milestone
 current_phase: 02.2
 current_phase_name: Auto-Capture Failing Cases **
 status: verifying
-stopped_at: Completed 02.1-02-PLAN.md
-last_updated: "2026-07-10T21:55:33.662Z"
+stopped_at: Phase 2.2 context gathered
+last_updated: "2026-07-10T23:35:22.545Z"
 last_activity: 2026-07-10
 last_activity_desc: Phase 02.1 complete, transitioned to Phase 02.2
 progress:
@@ -114,6 +114,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-10T21:47:42.896Z
-Stopped at: Completed 02.1-02-PLAN.md
-Resume file: None
+Last session: 2026-07-10T23:35:22.433Z
+Stopped at: Phase 2.2 context gathered
+Resume file: .planning/phases/02.2-auto-capture-failing-cases-from-run-submit-into-offline-regr/02.2-CONTEXT.md
