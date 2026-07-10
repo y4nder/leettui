@@ -2,8 +2,6 @@
 // handlers but routes results to the in-view inline result panel instead of
 // the modal popup.
 
-import { dirname } from "node:path";
-
 import { useAppStore } from "../../ui/store";
 import type { RelatedQuestion } from "../../ui/store";
 import { htmlToMarkdown } from "../../core/markdown";
@@ -30,10 +28,9 @@ import {
 } from "../../core/solutions";
 import { runSolution, submitSolution, SolutionError } from "../../core/submission";
 import { runLocalTests } from "../../core/testRunner";
-import { getEditorArgv } from "../../config";
 import { errMessage } from "../../debug";
 import { buildResultView, buildLocalRunView, info, loading, errorView } from "../browse/resultView";
-import { currentTopic, makeReportError, withSuspendedRenderer, type Renderer } from "../shared";
+import { currentTopic, makeReportError, openInEditor, type Renderer } from "../shared";
 
 // Problem-view error reports log against the "problem" scope.
 const reportError = makeReportError("problem");
@@ -178,8 +175,7 @@ function refreshProblemSolutions(focusLangSlug?: string) {
 
 export async function handleProblemOpenEditor(triggerKey: string, renderer: Renderer) {
   await withFocusedSolution(triggerKey, "handleProblemOpenEditor", async (_p, langSlug) => {
-    await openInEditor(renderer, langSlug);
-    refreshProblemSolutions(langSlug);
+    await openSolutionInEditor(renderer, langSlug);
   });
 }
 
@@ -269,30 +265,20 @@ export async function handlePickerOpenEditor(_triggerKey: string, renderer: Rend
   }
 
   useAppStore.getState().closeSolutionPicker();
-  await openInEditorPath(renderer, path);
-  refreshProblemSolutions(snippet.langSlug);
+  await openInEditor(renderer, path, {
+    onExit: () => refreshProblemSolutions(snippet.langSlug),
+  });
 }
 
-async function openInEditor(renderer: Renderer, langSlug: string) {
+// The shared `openInEditor` defaults cwd to the file's folder (lang folder for
+// solutions, problem folder for notes), so the headless CLI's cwd-inference and
+// per-language LSP work from inside the editor.
+async function openSolutionInEditor(renderer: Renderer, langSlug: string) {
   const p = useAppStore.getState().problem;
   if (!p) return;
   const path = getSolutionPath(p.question.id, p.question.title_slug, langSlug);
-  await openInEditorPath(renderer, path);
-}
-
-async function openInEditorPath(renderer: Renderer, path: string) {
-  const editor = getEditorArgv();
-  await withSuspendedRenderer(renderer, async () => {
-    const proc = Bun.spawn([...editor, path], {
-      // cwd = the file's folder (lang folder for solutions, problem folder for
-      // notes), so the headless CLI's cwd-inference and per-language LSP work
-      // from inside the editor.
-      cwd: dirname(path),
-      stdin: "inherit",
-      stdout: "inherit",
-      stderr: "inherit",
-    });
-    await proc.exited;
+  await openInEditor(renderer, path, {
+    onExit: () => refreshProblemSolutions(langSlug),
   });
 }
 
@@ -309,17 +295,10 @@ export async function handleOpenProblemWorkspace(triggerKey: string, renderer: R
     ensureProblemMd(p.question.id, p.question.title_slug, p.description, p.question.title);
     ensureNotesFile(p.question.id, p.question.title_slug, p.question.title);
 
-    const editor = getEditorArgv();
-    await withSuspendedRenderer(renderer, async () => {
-      const proc = Bun.spawn([...editor, problemDir], {
-        cwd: problemDir,
-        stdin: "inherit",
-        stdout: "inherit",
-        stderr: "inherit",
-      });
-      await proc.exited;
+    await openInEditor(renderer, problemDir, {
+      cwd: problemDir,
+      onExit: () => refreshProblemSolutions(),
     });
-    refreshProblemSolutions();
   } catch (e) {
     reportError(
       useAppStore.getState().setProblemResult,
@@ -390,12 +369,17 @@ export async function handleEditNotes(_triggerKey: string, renderer: Renderer) {
   const p = useAppStore.getState().problem;
   if (!p) return;
   const path = ensureNotesFile(p.question.id, p.question.title_slug, p.question.title);
-  await openInEditorPath(renderer, path);
-  // Re-read so an open notes popup reflects the edit.
-  if (useAppStore.getState().problem?.notes) {
-    const content = readNotes(p.question.id, p.question.title_slug) ?? "";
-    useAppStore.getState().setNotesContent(content);
-  }
+  // Re-read so an open notes popup reflects the edit. With a detached GUI
+  // editor the popup only refreshes when the editor exits — acceptable, since
+  // handleOpenNotes re-reads fresh on every open.
+  await openInEditor(renderer, path, {
+    onExit: () => {
+      if (useAppStore.getState().problem?.notes) {
+        const content = readNotes(p.question.id, p.question.title_slug) ?? "";
+        useAppStore.getState().setNotesContent(content);
+      }
+    },
+  });
 }
 
 export function handleCloseNotes() {

@@ -212,6 +212,10 @@ lc_session = "..."
 # (vim; on Windows "code --wait" if VS Code is on PATH, else notepad).
 # Arguments are supported — quote a path that has spaces.
 command = "code --wait"
+# GUI editors (VS Code, Zed, …) open detached — the TUI stays interactive so
+# you can run/test/submit while the editor is open. Terminal editors (vim,
+# nvim, hx, …) still take over the terminal. Set true/false to force.
+detach = "auto"
 
 [git]
 ui = "lazygit"         # git UI opened by Ctrl+g (default: lazygit)

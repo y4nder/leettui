@@ -17,6 +17,9 @@ lc_session = ""
 #               # "code --wait" if VS Code is on PATH, else notepad). Arguments are
 #               # supported, e.g. "code --wait" or "nvim -p"; quote a full path that
 #               # contains spaces.
+# detach = "auto"  # "auto" | true | false — GUI editors (VS Code, Zed, …) launch
+#                  # detached so the TUI stays interactive; terminal editors still
+#                  # suspend the TUI. true/false forces it either way.
 
 # [git]
 # ui = "lazygit"  # git UI launched by Ctrl+g, in the solutions dir (falls back to lazygit)
@@ -132,6 +135,75 @@ export function getEditorArgv(): string[] {
   const raw = config.editor?.command || process.env.EDITOR || defaultEditorCommand();
   const argv = parseEditorCommand(raw);
   return argv.length > 0 ? argv : parseEditorCommand(defaultEditorCommand());
+}
+
+export type EditorDetach = "auto" | boolean;
+
+// TOML can hand us anything for `[editor] detach`: real booleans pass through,
+// "true"/"false" strings are tolerated, everything else (including "auto" and
+// garbage) normalizes to "auto". Pure, unit-tested in editorDetach.test.ts.
+export function coerceEditorDetach(raw: unknown): EditorDetach {
+  if (typeof raw === "boolean") return raw;
+  if (typeof raw === "string") {
+    const s = raw.trim().toLowerCase();
+    if (s === "true") return true;
+    if (s === "false") return false;
+  }
+  return "auto";
+}
+
+export function getEditorDetach(): EditorDetach {
+  return coerceEditorDetach(loadConfig().editor?.detach);
+}
+
+// Basenames of known GUI editors — detached under "auto" so the TUI stays live
+// while the editor window is open. Terminal editors (vim/nvim/hx/nano/…) stay on
+// the blocking suspend/resume handover. `emacs` is deliberately absent: GUI emacs
+// and `emacs -nw` are indistinguishable by basename — force `detach = true` if
+// you run GUI emacs. Same for wrapper launches (`flatpak run …` → basename
+// `flatpak` → blocking).
+export const GUI_EDITOR_BASENAMES = new Set([
+  "code",
+  "code-insiders",
+  "codium",
+  "vscodium",
+  "code-oss",
+  "cursor",
+  "windsurf",
+  "zed",
+  "atom",
+  "subl",
+  "sublime_text",
+  "gedit",
+  "gnome-text-editor",
+  "kate",
+  "kwrite",
+  "geany",
+  "mousepad",
+  "pluma",
+  "xed",
+  "notepad",
+  "notepad++",
+  "notepadqq",
+  "idea",
+  "webstorm",
+  "pycharm",
+  "clion",
+  "goland",
+  "rider",
+  "fleet",
+]);
+
+// Pure detach decision: a forced true/false wins; "auto" matches argv[0]'s
+// basename against the GUI list. Split on both / and \ (a Windows path arrives
+// with backslashes) and strip launcher extensions (`Code.exe`, `code.cmd`).
+export function shouldDetachEditor(editorArgv: string[], detach: EditorDetach): boolean {
+  if (detach !== "auto") return detach;
+  const cmd = editorArgv[0];
+  if (!cmd) return false;
+  const base = cmd.split(/[/\\]/).pop()!.toLowerCase();
+  const name = base.replace(/\.(exe|cmd|bat|com)$/, "");
+  return GUI_EDITOR_BASENAMES.has(name);
 }
 
 // The git UI launched in the solutions dir by the `git.openUi` command (Ctrl+g,
