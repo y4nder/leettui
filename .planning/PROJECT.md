@@ -33,6 +33,7 @@ difficulty/topic — backed by their real submission history, owned locally.
 - ✓ Backfill degrades gracefully when the unofficial API is unavailable or partial (never a crash; resumable) — Validated in Phase 1: Submission Store & Backfill
 - ✓ Per-problem submission history surfaced in ProblemView (every attempt, best vs latest, runtime/memory/percentile when available) — Validated in Phase 2: Per-Problem History & Browse Badge
 - ✓ Browse question list shows a "solved/attempted before" attempt-count badge derived from submission history — Validated in Phase 2: Per-Problem History & Browse Badge
+- ✓ Local test-case expected outputs manageable without hand-writing files: `leettui test --save` blesses the current run's stdout into `case-NN.out` (golden snapshot) and `leettui test --add-case` writes the next sequential input from stdin/file, so offline `leettui test` grades real pass/fail — Validated in Phase 2.1: Local Test-Case Output Management
 
 ### Active
 
@@ -72,6 +73,7 @@ difficulty/topic — backed by their real submission history, owned locally.
 | Data source = backfill from LeetCode, then append leettui submissions (hybrid) | Day-one dashboard shows real history incl. website submissions; stays current afterward | Shipped in Phase 1 — `backfillSubmissions()` (resumable, idempotent) + append-on-submit in `core/submission.ts` |
 | Dashboard north star = consistency & trajectory (streaks, counts, trends), not percentile chasing | User's stated core value is "am I improving and keeping it up?" | — Pending (Phase 3) |
 | Store history in the existing SQLite/Drizzle DB via a new versioned migration | Reuse the established persistence pattern; keeps data local, owned, git-backupable | Shipped in Phase 1 — `submissions` table + `0002` migration in `questions.db` |
+| Phase 2.1 test-case management = CLI-only (`--save`/`--add-case` flags on the existing `test` verb); ProblemView/TUI surface deferred (D-01) | The editor inner-loop (`:!leettui test …`) is where the flow lives; a TUI surface is a cheap later re-skin once the core writers exist | Shipped in Phase 2.1 — `saveGoldenOutputs` + `addCase`/`nextCaseName` in `core/solutions/`, flag wiring in `src/cli/` |
 
 ## Evolution
 
@@ -91,4 +93,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-01 after Phase 2 (Per-Problem History & Browse Badge) completion*
+*Last updated: 2026-07-11 after Phase 2.1 (Local Test-Case Output Management) completion*
