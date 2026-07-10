@@ -154,6 +154,9 @@ export const problemGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFo
   "problem.focusResult": "3",
   "problem.focusRelated": "4",
   "problem.focusHistory": "5",
+  // `o` reopens the last result full-screen from any panel (no-op with no result).
+  // Free here — only pickerBindings binds `o`, a mutually exclusive modal layer.
+  "problem.resultExpand": "o",
   "problem.help": "?",
   "update.dismiss": "x",
   "problem.escape": ["escape", "q"],
@@ -164,6 +167,29 @@ export const problemGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFo
 export const scrollPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "problem.scrollDown": ["j", "down"],
   "problem.scrollUp": ["k", "up"],
+});
+
+// Mounted (alongside scrollPanelBindings) only while the Result panel is focused:
+// Enter expands the last result full-screen. The global `o` alias works from any panel.
+export const resultPanelBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "problem.resultExpand": "return",
+});
+
+// Mounted by ResultFullscreen while open. A true modal like help/delete: ProblemView
+// gates the global + panel layers off, so this is the only live problem layer. The
+// solve keys are deliberately re-bound here — the detached-editor loop is edit →
+// flip to TUI → shift+r/t/s again with the results screen staying up (each re-run
+// just repaints it); `e` hops back to the editor without closing.
+export const resultFullscreenBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "popup.scrollDown": ["j", "down"],
+  "popup.scrollUp": ["k", "up"],
+  "popup.scrollHalfDown": "ctrl+d",
+  "popup.scrollHalfUp": "ctrl+u",
+  "problem.runFocused": "shift+r",
+  "problem.testLocal": "t",
+  "problem.submitFocused": "s",
+  "problem.editorOpen": "e",
+  "problem.resultFsClose": ["escape", "q"],
 });
 
 // Mounted only while the Solutions panel is focused. j/k cycle the active solution

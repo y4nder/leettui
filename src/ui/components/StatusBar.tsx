@@ -22,7 +22,7 @@ const PROBLEM_PANEL_LABEL: Record<ProblemPanel, string> = {
   history: "History",
 };
 const PROBLEM_HINTS =
-  "Tab:Focus j/k:Nav f:Solutions e:Edit d:Delete w:Wkspc R:Run t:Test s:Submit n:Notes ?:Help Esc/q:Back";
+  "Tab:Focus j/k:Nav f:Solutions e:Edit d:Delete w:Wkspc R:Run t:Test s:Submit o:Result n:Notes ?:Help Esc/q:Back";
 
 interface StatusBarProps {
   mode: AppMode;

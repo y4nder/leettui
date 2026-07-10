@@ -20,6 +20,7 @@ import { HistoryPanel } from "../../ui/components/HistoryPanel";
 import { NotesPopup } from "../../ui/components/NotesPopup";
 import { DeleteSolutionPrompt } from "../../ui/components/DeleteSolutionPrompt";
 import { HelpPopup } from "../../ui/components/HelpPopup";
+import { ResultFullscreen } from "../../ui/components/ResultFullscreen";
 import {
   problemGlobalBindings,
   scrollPanelBindings,
@@ -28,6 +29,7 @@ import {
   historyPanelBindings,
   problemHelpBindings,
   problemPanelBindings,
+  resultPanelBindings,
   isProblemScopeEntryVisible,
   registerProblemScroller,
 } from "../../ui/keymap";
@@ -46,6 +48,11 @@ function ProblemGlobalBindings() {
 
 function ScrollPanelBindings() {
   useBindings(() => ({ bindings: scrollPanelBindings }), []);
+  return null;
+}
+
+function ResultPanelBindings() {
+  useBindings(() => ({ bindings: resultPanelBindings }), []);
   return null;
 }
 
@@ -156,6 +163,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
     notes,
     help,
     deleteConfirm,
+    resultFullscreen,
   } = problem;
   const scrollFocused = focusedPanel === "description" || focusedPanel === "result";
 
@@ -174,15 +182,26 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
 
   return (
     <box flexDirection="column" width="100%" height="100%">
-      {/* Help and the delete-confirm prompt are true modals: while either is open it gates
-          off the global + panel layers so the keys they'd shadow (e/R/s/t…, and especially
-          the `d` that opened the prompt) can't fire behind them — only the modal's own layer
-          is live (problemHelpBindings / deletePromptBindings). */}
-      {!help && !deleteConfirm && <ProblemGlobalBindings />}
-      {!help && !deleteConfirm && scrollFocused && <ScrollPanelBindings />}
-      {!help && !deleteConfirm && focusedPanel === "solutions" && <SolutionsPanelBindings />}
-      {!help && !deleteConfirm && focusedPanel === "related" && <RelatedPanelBindings />}
-      {!help && !deleteConfirm && focusedPanel === "history" && <HistoryPanelBindings />}
+      {/* Help, the delete-confirm prompt, and the full-screen result are true modals:
+          while any is open it gates off the global + panel layers so the keys they'd
+          shadow (e/R/s/t…, and especially the `d` that opened the prompt) can't fire
+          behind them — only the modal's own layer is live (problemHelpBindings /
+          deletePromptBindings / resultFullscreenBindings, which deliberately re-binds
+          the solve keys itself for the re-run loop). */}
+      {!help && !deleteConfirm && !resultFullscreen && <ProblemGlobalBindings />}
+      {!help && !deleteConfirm && !resultFullscreen && scrollFocused && <ScrollPanelBindings />}
+      {!help && !deleteConfirm && !resultFullscreen && focusedPanel === "result" && (
+        <ResultPanelBindings />
+      )}
+      {!help && !deleteConfirm && !resultFullscreen && focusedPanel === "solutions" && (
+        <SolutionsPanelBindings />
+      )}
+      {!help && !deleteConfirm && !resultFullscreen && focusedPanel === "related" && (
+        <RelatedPanelBindings />
+      )}
+      {!help && !deleteConfirm && !resultFullscreen && focusedPanel === "history" && (
+        <HistoryPanelBindings />
+      )}
 
       <UpdateBanner />
 
@@ -258,6 +277,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
         difficultyFilter={difficultyFilter}
       />
 
+      {resultFullscreen && <ResultFullscreen />}
       {solutionPicker && <SolutionPickerModal />}
       {notes && <NotesPopup content={notes.content} />}
       {deleteConfirm && <DeleteSolutionPrompt langSlug={deleteConfirm.langSlug} />}

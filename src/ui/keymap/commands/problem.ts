@@ -129,11 +129,12 @@ export const problemCommands: CommandEntry[] = [
     category: "View",
     group: "modal",
     run: () => {
-      // Defer to an open sub-modal's own cancel binding (picker / notes / help).
-      // (Help also gates ProblemGlobalBindings off while open, so escape can't even
-      // reach here then — this guard is belt-and-suspenders.)
+      // Defer to an open sub-modal's own cancel binding (picker / notes / help /
+      // fullscreen result). (Help and the fullscreen result also gate
+      // ProblemGlobalBindings off while open, so escape can't even reach here then —
+      // this guard is belt-and-suspenders.)
       const p = useAppStore.getState().problem;
-      if (p?.solutionPicker || p?.notes || p?.help) return;
+      if (p?.solutionPicker || p?.notes || p?.help || p?.resultFullscreen) return;
       handleExitProblemView();
     },
   }),
@@ -236,6 +237,25 @@ export const problemCommands: CommandEntry[] = [
     category: "Navigation",
     group: "modal",
     run: () => useAppStore.getState().moveProblemFocus("down"),
+  }),
+  makeCommand({
+    name: "problem.resultExpand",
+    title: "Expand result full-screen",
+    category: "View",
+    group: "modal",
+    run: () => {
+      // Only a real (or in-flight) result is worth a takeover — `o` with nothing
+      // run yet is a no-op.
+      const p = useAppStore.getState().problem;
+      if (p?.result) useAppStore.getState().openResultFullscreen();
+    },
+  }),
+  makeCommand({
+    name: "problem.resultFsClose",
+    title: "Close full-screen result",
+    category: "View",
+    group: "modal",
+    run: () => useAppStore.getState().closeResultFullscreen(),
   }),
   makeCommand({
     name: "problem.scrollDown",

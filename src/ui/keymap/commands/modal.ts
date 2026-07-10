@@ -3,6 +3,7 @@
 // popup/result *closers* and scroll + the search edit keys only.
 
 import { useAppStore } from "../../store";
+import { getScrollJumpRows } from "../../../config";
 import { makeCommand, type CommandEntry } from "../command";
 import { scrollActivePopup } from "../runtime";
 import { dumpToString } from "../../../debug";
@@ -25,6 +26,20 @@ export const modalCommands: CommandEntry[] = [
     category: "View",
     group: "modal",
     run: () => scrollActivePopup(-1),
+  }),
+  makeCommand({
+    name: "popup.scrollHalfDown",
+    title: "Scroll popup half-page down",
+    category: "View",
+    group: "modal",
+    run: () => scrollActivePopup(getScrollJumpRows()),
+  }),
+  makeCommand({
+    name: "popup.scrollHalfUp",
+    title: "Scroll popup half-page up",
+    category: "View",
+    group: "modal",
+    run: () => scrollActivePopup(-getScrollJumpRows()),
   }),
   makeCommand({
     name: "popup.close",
