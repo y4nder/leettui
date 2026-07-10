@@ -14,6 +14,7 @@
 import type { DbQuestion } from "../db/questions";
 import type { ResultView, ResultKind } from "../views/browse/resultView";
 import type { CaseStatus, LocalRunReport } from "../core/testRunner";
+import type { SaveOutcome, SaveResult } from "../core/solutions";
 
 // ── ANSI ────────────────────────────────────────────────────────────────────
 
@@ -245,4 +246,23 @@ export function exitCodeForResultView(view: ResultView): number {
     case "loading":
       return 1;
   }
+}
+
+// ── `leettui test --save` reporting (Phase 2.1, TCASE-01) ─────────────────────
+// STUB (Task 1 RED) — real implementations land in Task 2.
+
+export function saveOutcomeGlyph(_outcome: SaveOutcome): string {
+  return "";
+}
+
+export function presentSaveSummary(_results: SaveResult[]): string {
+  return "";
+}
+
+export function saveReminder(_written: number): string {
+  return "";
+}
+
+export function exitCodeForSave(_results: SaveResult[]): number {
+  return 0;
 }

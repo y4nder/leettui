@@ -45,3 +45,5 @@ export {
 } from "./create";
 
 export { deleteSolution } from "./remove";
+
+export { type SaveOutcome, type SaveResult, saveGoldenOutputs } from "./save-output";
