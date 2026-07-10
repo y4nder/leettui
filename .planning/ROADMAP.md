@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Submission Store & Backfill** - Resumable, idempotent import of LeetCode history into the local store, plus append-on-submit (all 3 plans complete, Task 4 human-verify checkpoint approved 2026-07-01)
 - [x] **Phase 2: Per-Problem History & Browse Badge** - Attempt history surfaced in ProblemView and a "worked-on-before" badge in the browse list (completed 2026-07-01)
-- [ ] **Phase 2.1: Local Test-Case Output Management** *(INSERTED 2026-07-01)* - Populate/edit `case-NN.out` (accept-current-output / add-case) so local `leettui test` actually grades pass/fail — via a CLI verb and/or a ProblemView surface
+- [x] **Phase 2.1: Local Test-Case Output Management** *(INSERTED 2026-07-01)* - Populate/edit `case-NN.out` (accept-current-output / add-case) so local `leettui test` actually grades pass/fail — via a CLI verb and/or a ProblemView surface (completed 2026-07-10)
 - [ ] **Phase 2.2: Auto-Capture Failing Cases** *(INSERTED 2026-07-01)* - On a wrong-answer run/submit, auto-write the failing LeetCode input + expected output into `tests/` as a reproducible offline regression case (feeds 2.1's grading)
 - [ ] **Phase 3: Progress Dashboard** *(deferred behind 2.1/2.2)* - A new full-screen view: streak, recent counts, difficulty breakdown, consistency score, heatmap, and trend
 
@@ -92,7 +92,7 @@ Plans:
   3. The case-writing path reuses the existing `tests/` layout and `compareOutput` grading (JSON-normalized), and is safe/idempotent (never clobbers an unrelated case).
   4. (If a TUI surface is chosen) a ProblemView action lets the user add/edit a case and "accept current output as expected" without leaving the TUI.
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans complete
 
 Plans:
 **Wave 1**
@@ -101,7 +101,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 — shares `src/cli/index.ts` + the solutions barrel, and the add→save→grade round-trip needs `--save`)*
 
-- [ ] 02.1-02-PLAN.md — `leettui test --add-case` slice: `nextCaseName`/`addCase` core input-writer (next sequential `case-NN.txt` via `discoverCases`, never-throws) + CLI stdin/file-arg wiring, picked up by `discoverCases`/`pairCases` on the next run (TCASE-02)
+- [x] 02.1-02-PLAN.md — `leettui test --add-case` slice: `nextCaseName`/`addCase` core input-writer (next sequential `case-NN.txt` via `discoverCases`, never-throws) + CLI stdin/file-arg wiring, picked up by `discoverCases`/`pairCases` on the next run (TCASE-02)
 
 **Design note**: Resolved in discuss-phase to **CLI-only** (D-01) — a `--save`/`--add-case` flag pair on the existing `test` verb; the ProblemView/TUI surface is deferred. Seams: new write helpers alongside `seedTests` in `src/core/solutions/`, flag wiring in `src/cli/`.
 
@@ -160,6 +160,6 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 2.2 → 3
 |-------|----------------|--------|-----------|
 | 1. Submission Store & Backfill | 3/3 | Complete    | 2026-07-01 |
 | 2. Per-Problem History & Browse Badge | 3/3 | Complete    | 2026-07-01 |
-| 2.1 Local Test-Case Output Management | 1/2 | In Progress|  |
+| 2.1 Local Test-Case Output Management | 2/2 | Complete   | 2026-07-10 |
 | 2.2 Auto-Capture Failing Cases | 0/0 | Not started (INSERTED) | - |
 | 3. Progress Dashboard | 0/3 | Deferred behind 2.1/2.2 | - |

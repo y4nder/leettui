@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 02.1
 current_phase_name: manage-local-test-case-expected-outputs-golden-snapshot-work
-status: executing
-stopped_at: Completed 02.1-01-PLAN.md
-last_updated: "2026-07-10T21:32:02.747Z"
+status: verifying
+stopped_at: Completed 02.1-02-PLAN.md
+last_updated: "2026-07-10T21:47:42.902Z"
 last_activity: 2026-07-10
 last_activity_desc: Phase 02.1 execution started
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
-  percent: 40
+  completed_plans: 8
+  percent: 60
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-26)
 
 Phase: 02.1 (manage-local-test-case-expected-outputs-golden-snapshot-work) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-10 — Phase 02.1 execution started
 
 Progress: [████░░░░░░] 40%
@@ -63,6 +63,7 @@ Progress: [████░░░░░░] 40%
 | Phase 02 P02 | 3min | 3 tasks | 6 files |
 | Phase 02 P03 | 5min | 2 tasks | 2 files |
 | Phase 02.1 P01 | 35min | 3 tasks | 8 files |
+| Phase 02.1 P02 | 15min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-03: QuestionList's marker cell is pre-padded via a new markerStr (.padStart(3)) alongside idStr/acStr/runtimeStr, fixing browse column misalignment across variable-digit ×N badges (BROWSE-01)
 - [Phase 02.1]: 02.1-01: saveGoldenOutputs is dir-injected (testsDir: string) rather than (id, titleSlug) so it's unit-testable in-process with a temp dir, matching discoverCases' shape — the CLI resolves getTestsDir(id, slug) and passes it in
 - [Phase 02.1]: 02.1-01: save-output.ts uses synchronous node:fs readFileSync/writeFileSync instead of Bun.write's unawaited promise — so the create-vs-overwrite decision and the write complete within one synchronous call, needed for in-process temp-dir unit tests
+- [Phase 02.1]: 02.1-02: nextCaseName/addCase are dir-injected (testsDir: string) matching discoverCases/saveGoldenOutputs' shape, and nextCaseName is strictly max+1 (never gap-fill) so numbering stays monotonic and collision-free even after a manual case deletion
+- [Phase 02.1]: 02.1-02: --add-case is handled as an early branch inside the existing test case in cli/index.ts (before runLocalTests), since it's an alternate mode of test that writes an input and exits rather than running the solution
 
 ### Pending Todos
 
@@ -110,6 +113,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-10T21:32:02.740Z
-Stopped at: Completed 02.1-01-PLAN.md
+Last session: 2026-07-10T21:47:42.896Z
+Stopped at: Completed 02.1-02-PLAN.md
 Resume file: None
