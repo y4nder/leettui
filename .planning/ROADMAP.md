@@ -168,5 +168,5 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 2.2 → 3
 | 1. Submission Store & Backfill | 3/3 | Complete    | 2026-07-01 |
 | 2. Per-Problem History & Browse Badge | 3/3 | Complete    | 2026-07-01 |
 | 2.1 Local Test-Case Output Management | 2/2 | Complete    | 2026-07-10 |
-| 2.2 Auto-Capture Failing Cases | 2/2 | Complete   | 2026-07-11 |
+| 2.2 Auto-Capture Failing Cases | 2/2 | Complete    | 2026-07-11 |
 | 3. Progress Dashboard | 0/3 | Deferred behind 2.1/2.2 | - |

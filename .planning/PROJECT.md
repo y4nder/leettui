@@ -34,6 +34,7 @@ difficulty/topic — backed by their real submission history, owned locally.
 - ✓ Per-problem submission history surfaced in ProblemView (every attempt, best vs latest, runtime/memory/percentile when available) — Validated in Phase 2: Per-Problem History & Browse Badge
 - ✓ Browse question list shows a "solved/attempted before" attempt-count badge derived from submission history — Validated in Phase 2: Per-Problem History & Browse Badge
 - ✓ Local test-case expected outputs manageable without hand-writing files: `leettui test --save` blesses the current run's stdout into `case-NN.out` (golden snapshot) and `leettui test --add-case` writes the next sequential input from stdin/file, so offline `leettui test` grades real pass/fail — Validated in Phase 2.1: Local Test-Case Output Management
+- ✓ Failing run/submit cases auto-captured into offline regression tests: a wrong-answer (or RE/TLE/MLE) verdict writes the failing LeetCode input + expected output into `tests/case-NN.txt`/`case-NN.out` (deduped, never-overwriting), completed runs bless missing `.out`s from LeetCode's authoritative outputs, and a dim capture note surfaces in both TUI and CLI result views (TCASE-04/TCASE-05) — Validated in Phase 2.2: Auto-Capture Failing Cases
 
 ### Active
 
@@ -74,6 +75,7 @@ difficulty/topic — backed by their real submission history, owned locally.
 | Dashboard north star = consistency & trajectory (streaks, counts, trends), not percentile chasing | User's stated core value is "am I improving and keeping it up?" | — Pending (Phase 3) |
 | Store history in the existing SQLite/Drizzle DB via a new versioned migration | Reuse the established persistence pattern; keeps data local, owned, git-backupable | Shipped in Phase 1 — `submissions` table + `0002` migration in `questions.db` |
 | Phase 2.1 test-case management = CLI-only (`--save`/`--add-case` flags on the existing `test` verb); ProblemView/TUI surface deferred (D-01) | The editor inner-loop (`:!leettui test …`) is where the flow lives; a TUI surface is a cheap later re-skin once the core writers exist | Shipped in Phase 2.1 — `saveGoldenOutputs` + `addCase`/`nextCaseName` in `core/solutions/`, flag wiring in `src/cli/` |
+| Phase 2.2 auto-capture = two dir-injected never-throws writers reusing 2.1's primitives (`addCase`/`discoverCases`/`compareOutput`), hooked into `runSolution`/`submitSolution` behind a try/catch, with feedback as an optional `notes` field on the shared `ResultView` | One shared service hook (D-08) gives TUI and CLI capture for free and can never drift; capture must never destabilize a successful run/submit | Shipped in Phase 2.2 — `capture.ts` (`captureFailingCase`/`blessRunOutputs`) + `{ response, captureNotes }` from `submission.ts`, notes rendered in `ResultBody.tsx`/`present.ts` |
 
 ## Evolution
 
@@ -93,4 +95,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-11 after Phase 2.1 (Local Test-Case Output Management) completion*
+*Last updated: 2026-07-11 after Phase 2.2 (Auto-Capture Failing Cases) completion*
