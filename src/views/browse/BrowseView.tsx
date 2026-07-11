@@ -15,6 +15,7 @@ import { ProgressBar } from "../../ui/components/ProgressBar";
 import { UpdateBanner } from "../../ui/components/UpdateBanner";
 import { CommandPalette } from "../../ui/components/CommandPalette";
 import { ChangeLocationPrompt } from "../../ui/components/ChangeLocationPrompt";
+import { SettingsEditor } from "../../ui/components/SettingsEditor";
 import { GitInitPrompt } from "../../ui/components/GitInitPrompt";
 import { GitRemotePrompt } from "../../ui/components/GitRemotePrompt";
 import { GitSyncPrompt } from "../../ui/components/GitSyncPrompt";
@@ -165,6 +166,8 @@ export function BrowseView({ renderer }: BrowseViewProps) {
       {mode === "palette" && <CommandPalette />}
 
       {mode === "relocate" && <ChangeLocationPrompt />}
+
+      {mode === "config" && <SettingsEditor />}
 
       {mode === "gitInit" && <GitInitPrompt renderer={renderer} />}
 

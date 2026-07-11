@@ -5,7 +5,7 @@
 
 import { describe, expect, test } from "bun:test";
 import { parse } from "smol-toml";
-import { upsertSectionString } from "./index";
+import { upsertSectionRaw, upsertSectionString } from "./index";
 
 // A config with the same commented-out scaffolding as the shipped DEFAULT_TOML:
 // `[paths]`/`[theme]` exist only as comments, so they are NOT real sections.
@@ -64,5 +64,42 @@ name = "tokyo-night"  # my pick
   test("escapes embedded quotes and backslashes in the value", () => {
     const next = upsertSectionString(FRESH, "paths", "solutions", 'C:\\Users\\a "b"');
     expect((parse(next).paths as { solutions: string }).solutions).toBe('C:\\Users\\a "b"');
+  });
+});
+
+describe("upsertSectionRaw — bare (unquoted) scalars", () => {
+  test("appends a new section with a bare integer that parses as a NUMBER", () => {
+    // The crux: quoting jump_rows would make clampJumpRows reject it. A bare int
+    // must round-trip through smol-toml as a real number.
+    const next = upsertSectionRaw(FRESH, "scroll", "jump_rows", "20");
+    const scroll = parse(next).scroll as { jump_rows: number };
+    expect(scroll.jump_rows).toBe(20);
+    expect(typeof scroll.jump_rows).toBe("number");
+  });
+
+  test("writes a bare boolean that parses as a real boolean", () => {
+    const next = upsertSectionRaw(FRESH, "editor", "detach", "true");
+    const editor = parse(next).editor as { detach: boolean };
+    expect(editor.detach).toBe(true);
+    expect(typeof editor.detach).toBe("boolean");
+  });
+
+  test("replaces a previously QUOTED value with a bare one (fixes a hand-edit)", () => {
+    const withQuoted = `[scroll]
+jump_rows = "10"  # oops, quoted by hand
+`;
+    const next = upsertSectionRaw(withQuoted, "scroll", "jump_rows", "15");
+    expect((parse(next).scroll as { jump_rows: number }).jump_rows).toBe(15);
+    expect(next).toContain("# oops, quoted by hand");
+  });
+
+  test("adds a bare key under an existing section, preserving siblings + comments", () => {
+    const withScroll = `[scroll]
+# tuning
+jump_rows = 5
+`;
+    const next = upsertSectionRaw(withScroll, "scroll", "jump_rows", "8");
+    expect((parse(next).scroll as { jump_rows: number }).jump_rows).toBe(8);
+    expect(next).toContain("# tuning");
   });
 });
