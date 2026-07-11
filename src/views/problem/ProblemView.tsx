@@ -2,10 +2,12 @@ import { useCallback, useMemo } from "react";
 import { useBindings } from "@opentui/keymap/react";
 import { useTerminalDimensions } from "@opentui/react";
 import { TextAttributes } from "@opentui/core";
-import type { createCliRenderer, ScrollBoxRenderable } from "@opentui/core";
+import type { createCliRenderer, MouseEvent, ScrollBoxRenderable } from "@opentui/core";
 
 import { useAppStore } from "../../ui/store";
+import type { ProblemPanel } from "../../ui/store";
 import type { DbQuestion } from "../../db/questions";
+import { problemPanelMouseEnabled } from "../../ui/useListMouse";
 import { colors, difficultyColor, statusColor } from "../../ui/theme";
 import { buildMarkdownSyntaxStyle } from "../../ui/markdownStyle";
 import { ResultBody } from "../../ui/components/ResultBody";
@@ -133,6 +135,14 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
 
   const mainHeight = height - (syncProgress ? 2 : 1) - (updateAvailable ? 1 : 0);
 
+  // Focus-on-click for the two non-list panels (the list panels wire their own mouse
+  // support via useListMouse). Their scrollboxes keep native wheel scroll — no
+  // onMouseScroll anywhere in this chain.
+  const focusPanelOnClick = (panel: ProblemPanel) => (event: MouseEvent) => {
+    if (event.button !== 0 || !problemPanelMouseEnabled()) return;
+    useAppStore.getState().setProblemFocusedPanel(panel);
+  };
+
   if (!problem) {
     return (
       <box flexDirection="column" width="100%" height="100%" padding={1}>
@@ -193,11 +203,13 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
         <MetaLine question={question} topicTags={topicTags} />
 
         <box flexDirection="row" flexGrow={1}>
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: OpenTUI's <box> is a terminal renderable, not a DOM element — ARIA roles don't exist here */}
           <box
             flexDirection="column"
             width="60%"
             borderStyle="rounded"
             borderColor={focusedPanel === "description" ? colors.accent : colors.border}
+            onMouseDown={focusPanelOnClick("description")}
           >
             <PanelTitle tag="1" label="Description" focused={focusedPanel === "description"} />
             <scrollbox ref={registerDescription} flexGrow={1} paddingLeft={1} paddingRight={1}>
@@ -213,12 +225,14 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
               tag="2"
             />
 
+            {/* biome-ignore lint/a11y/noStaticElementInteractions: OpenTUI's <box> is a terminal renderable, not a DOM element — ARIA roles don't exist here */}
             <box
               flexDirection="column"
               borderStyle="rounded"
               borderColor={focusedPanel === "result" ? colors.accent : colors.border}
               flexGrow={1}
               width="100%"
+              onMouseDown={focusPanelOnClick("result")}
             >
               <PanelTitle tag="3" label="Result" focused={focusedPanel === "result"} />
               <scrollbox ref={registerResult} flexGrow={1}>

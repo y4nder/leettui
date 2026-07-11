@@ -1,7 +1,10 @@
 import type { DbQuestion } from "../../db/questions";
 import { colors, difficultyColor, statusIcon, statusColor } from "../theme";
-import { useScrollOffset } from "../useScrollOffset";
+import { getKeymap } from "../keymap";
+import { useAppStore } from "../store";
+import { useScrollableList } from "../useScrollableList";
 import { useGlide } from "../useGlide";
+import { useListMouse } from "../useListMouse";
 
 interface QuestionListProps {
   questions: DbQuestion[];
@@ -34,12 +37,27 @@ export function QuestionList({
   smoothNonce,
 }: QuestionListProps) {
   const visibleCount = Math.max(1, height - 2);
-  const scrollOffset = useGlide(
-    useScrollOffset(selectedIndex, questions.length, visibleCount),
-    smoothNonce,
-  );
+  const list = useScrollableList(selectedIndex, questions.length, visibleCount);
+  const scrollOffset = useGlide(list.scrollOffset, smoothNonce);
 
   const visible = questions.slice(scrollOffset, scrollOffset + visibleCount);
+
+  // Click to select (focusing the panel first if needed), click the selected question
+  // again to open it in the problem view (≡ Enter), wheel to scroll the viewport — the
+  // highlight is dragged along only when it would leave the window, so j/k afterwards
+  // continues from where you're looking.
+  const mouse = useListMouse({
+    enabled: () => useAppStore.getState().mode === "browse",
+    isFocused: () => useAppStore.getState().focusedPanel === "questions",
+    focus: () => useAppStore.getState().setFocusedPanel("questions"),
+    getSelectedIndex: () => useAppStore.getState().selectedQuestionIndex,
+    select: (i) => useAppStore.getState().setQuestionIndex(i),
+    activate: () => getKeymap().runCommand("problem.enter"),
+    onWheel: (d) => {
+      const dragged = list.scrollBy(d);
+      if (dragged !== null) useAppStore.getState().setQuestionIndex(dragged);
+    },
+  });
 
   // When the panel isn't focused, the selected row gets a muted version of the
   // highlight (dimmer bg + dimmer accent) so the active panel's selection stands out.
@@ -53,6 +71,7 @@ export function QuestionList({
       borderColor={focused ? colors.accent : colors.border}
       flexGrow={1}
       height="100%"
+      {...mouse.containerProps}
     >
       <box flexDirection="row">
         <text fg={focused ? colors.accent : colors.fgDim}> [{tag}]</text>
@@ -86,6 +105,7 @@ export function QuestionList({
               flexDirection="row"
               backgroundColor={isSelected ? selectedBg : undefined}
               width="100%"
+              {...mouse.rowProps(realIndex)}
             >
               <text fg={sColor}> {icon} </text>
               <text fg={colors.accent}>{markerStr}</text>

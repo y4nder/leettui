@@ -1,6 +1,10 @@
 import { useTerminalDimensions } from "@opentui/react";
 import type { RelatedQuestion } from "../store";
+import { useAppStore } from "../store";
 import { colors } from "../theme";
+import { getKeymap } from "../keymap";
+import { problemPanelMouseEnabled, useListMouse } from "../useListMouse";
+import { useScrollableList } from "../useScrollableList";
 
 interface RelatedPanelProps {
   related: RelatedQuestion[];
@@ -24,17 +28,33 @@ export function RelatedPanel({ related, focusedIndex, focused, tag, maxRows }: R
   // Truncate in JS — a too-long title would otherwise wrap and overlap the next row.
   const budget = Math.max(8, Math.floor(width * 0.4) - 11);
 
+  // Window the list so the focused row stays visible (mirrors QuestionList).
+  const visibleCount = Math.max(1, Math.min(maxRows, related.length));
+  const list = useScrollableList(focusedIndex, related.length, visibleCount);
+  const scrollOffset = list.scrollOffset;
+  const visible = related.slice(scrollOffset, scrollOffset + visibleCount);
+
+  // Click to move the cursor (focusing the panel first if needed), click the focused
+  // row again to navigate-replace (≡ Enter — the handler still refuses non-navigable
+  // premium/unsynced rows with the info message), wheel to scroll the viewport (the
+  // cursor is dragged along only when it would leave the window).
+  const mouse = useListMouse({
+    enabled: problemPanelMouseEnabled,
+    isFocused: () => useAppStore.getState().problem?.focusedPanel === "related",
+    focus: () => useAppStore.getState().setProblemFocusedPanel("related"),
+    getSelectedIndex: () => useAppStore.getState().problem?.focusedRelatedIndex ?? 0,
+    select: (i) => useAppStore.getState().setFocusedRelatedIndex(i),
+    activate: () => getKeymap().runCommand("problem.relatedEnter"),
+    onWheel: (d) => {
+      const dragged = list.scrollBy(d);
+      if (dragged !== null) useAppStore.getState().setFocusedRelatedIndex(dragged);
+    },
+  });
+
   // Mirror QuestionList/SolutionsPanel focus-aware highlight (fg is the real
   // differentiator since bgHighlight === surface in some themes).
   const selectedBg = focused ? colors.bgHighlight : colors.surface;
   const selectedFg = focused ? colors.fgAccent : colors.mutedAccent;
-
-  // Window the list so the focused row stays visible (mirrors QuestionList).
-  const visibleCount = Math.max(1, Math.min(maxRows, related.length));
-  let scrollOffset = 0;
-  if (focusedIndex >= scrollOffset + visibleCount) scrollOffset = focusedIndex - visibleCount + 1;
-  if (focusedIndex < scrollOffset) scrollOffset = focusedIndex;
-  const visible = related.slice(scrollOffset, scrollOffset + visibleCount);
 
   return (
     <box
@@ -45,6 +65,7 @@ export function RelatedPanel({ related, focusedIndex, focused, tag, maxRows }: R
       // flexShrink:0 (like SolutionsPanel): the windowed content is a fixed row count, so
       // shrinking the box would overlap the rows. Result (flexGrow) absorbs the slack.
       flexShrink={0}
+      {...mouse.containerProps}
     >
       <box flexDirection="row">
         <text fg={focused ? colors.accent : colors.fgDim}> [{tag}]</text>
@@ -67,6 +88,7 @@ export function RelatedPanel({ related, focusedIndex, focused, tag, maxRows }: R
               backgroundColor={isSelected ? selectedBg : undefined}
               width="100%"
               height={1}
+              {...mouse.rowProps(realIndex)}
             >
               <text fg={rowFg}>
                 {" "}

@@ -77,6 +77,7 @@ Version metadata lives in `src/core/version.ts`, inlined at build time via `--de
 ### Key bindings (browse mode)
 
 Browse uses lazygit-style focusable panels (Stage 11): exactly one panel is focused.
+All lists are also **mouse-aware** (Stage 26, `src/ui/useListMouse.ts`): click a row to select it (focusing its panel first if needed), click the selected row again to trigger its Enter action — in browse and problem-view panels and in every popup (recent history, select, command palette, solution picker). No double-click timing: "already selected → activate". The **wheel scrolls the viewport** in the windowed lists (topics, questions, related, history, recent, command palette — `src/ui/useScrollableList.ts`): the highlight is dragged along only when it would leave the window, so keyboard navigation afterwards continues from where you're looking, no view jump; short fully-rendered lists (solutions, select popup, solution picker) move the cursor instead, where a viewport scroll would be a no-op.
 Tab / Shift+Tab: cycle focus | Ctrl+h/Ctrl+l: focus left/right | [1]/[2]: jump to topics/questions panel
 Topics focused — j/k: change topic (live-filters questions) | gg/G: jump first/last | Ctrl+d/Ctrl+u: scroll jump (distance configurable via [scroll] jump_rows) | Enter: focus questions
 Questions focused — j/k or arrows: navigate | gg/G: jump first/last | Ctrl+d/Ctrl+u: scroll jump (distance configurable via [scroll] jump_rows) | Enter: view problem

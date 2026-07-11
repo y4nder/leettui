@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useBindings } from "@opentui/keymap/react";
 import { colors } from "../theme";
+import { useListMouse } from "../useListMouse";
 
 interface SelectPopupProps {
   title: string;
@@ -25,6 +26,15 @@ export function SelectPopup({ title, items, onSelect }: SelectPopupProps) {
     [items.length, selectedIndex, onSelect],
   );
 
+  // Click to select, click the selected item again to confirm (≡ Enter), wheel to move
+  // the cursor. A modal is always "focused", so it gets pure select/activate semantics.
+  const mouse = useListMouse({
+    getSelectedIndex: () => selectedIndex,
+    select: setSelectedIndex,
+    activate: (i) => onSelect(i),
+    onWheel: (d) => setSelectedIndex((i) => Math.max(0, Math.min(i + d, items.length - 1))),
+  });
+
   return (
     <box
       position="absolute"
@@ -39,16 +49,22 @@ export function SelectPopup({ title, items, onSelect }: SelectPopupProps) {
     >
       <text fg={colors.fgAccent}> {title} </text>
       <scrollbox flexGrow={1}>
-        {items.map((item, i) => (
-          <text
-            key={item}
-            fg={i === selectedIndex ? colors.fgAccent : colors.fg}
-            bg={i === selectedIndex ? colors.bgHighlight : undefined}
-          >
-            {i === selectedIndex ? " ► " : "   "}
-            {item}
-          </text>
-        ))}
+        {/* The rows wrapper sits INSIDE the scrollbox so its wheel handler runs first
+            (descendant order) and stopPropagation suppresses the native content scroll —
+            the wheel drives the selection cursor, exactly like j/k. */}
+        <box flexDirection="column" width="100%" {...mouse.containerProps}>
+          {items.map((item, i) => (
+            <text
+              key={item}
+              fg={i === selectedIndex ? colors.fgAccent : colors.fg}
+              bg={i === selectedIndex ? colors.bgHighlight : undefined}
+              {...mouse.rowProps(i)}
+            >
+              {i === selectedIndex ? " ► " : "   "}
+              {item}
+            </text>
+          ))}
+        </box>
       </scrollbox>
       <text fg={colors.fgDim}> j/k:Navigate Enter:Select Esc:Cancel </text>
     </box>

@@ -1,6 +1,9 @@
 import { colors } from "../theme";
-import { useScrollOffset } from "../useScrollOffset";
+import { getKeymap } from "../keymap";
+import { useAppStore } from "../store";
+import { useScrollableList } from "../useScrollableList";
 import { useGlide } from "../useGlide";
+import { useListMouse } from "../useListMouse";
 
 interface TopicListProps {
   topics: string[];
@@ -22,12 +25,27 @@ export function TopicList({
   smoothNonce,
 }: TopicListProps) {
   const visibleCount = Math.max(1, height - 2);
-  const scrollOffset = useGlide(
-    useScrollOffset(selectedIndex, topics.length, visibleCount),
-    smoothNonce,
-  );
+  const list = useScrollableList(selectedIndex, topics.length, visibleCount);
+  const scrollOffset = useGlide(list.scrollOffset, smoothNonce);
 
   const visible = topics.slice(scrollOffset, scrollOffset + visibleCount);
+
+  // Click to select (focusing the panel first if needed), click the selected topic
+  // again to hand focus to questions (≡ Enter), wheel to scroll the viewport — the
+  // highlight is dragged along only when it would leave the window, so j/k afterwards
+  // continues from where you're looking.
+  const mouse = useListMouse({
+    enabled: () => useAppStore.getState().mode === "browse",
+    isFocused: () => useAppStore.getState().focusedPanel === "topics",
+    focus: () => useAppStore.getState().setFocusedPanel("topics"),
+    getSelectedIndex: () => useAppStore.getState().selectedTopicIndex,
+    select: (i) => useAppStore.getState().setTopicIndex(i),
+    activate: () => getKeymap().runCommand("focus.questions"),
+    onWheel: (d) => {
+      const dragged = list.scrollBy(d);
+      if (dragged !== null) useAppStore.getState().setTopicIndex(dragged);
+    },
+  });
 
   // When the panel isn't focused, the selected row gets a muted version of the
   // highlight (dimmer bg + dimmer accent) so the active panel's selection stands out.
@@ -41,6 +59,7 @@ export function TopicList({
       borderColor={focused ? colors.accent : colors.border}
       width="20%"
       height="100%"
+      {...mouse.containerProps}
     >
       <box flexDirection="row">
         <text fg={focused ? colors.accent : colors.fgDim}> [{tag}]</text>
@@ -50,7 +69,12 @@ export function TopicList({
         const realIndex = scrollOffset + i;
         const isSelected = realIndex === selectedIndex;
         return (
-          <box key={topic} backgroundColor={isSelected ? selectedBg : undefined} width="100%">
+          <box
+            key={topic}
+            backgroundColor={isSelected ? selectedBg : undefined}
+            width="100%"
+            {...mouse.rowProps(realIndex)}
+          >
             <text fg={isSelected ? selectedFg : colors.fg}>
               {isSelected ? " ► " : "   "}
               {topic}
