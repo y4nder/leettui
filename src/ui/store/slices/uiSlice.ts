@@ -6,7 +6,7 @@
 import type { StateCreator } from "zustand";
 import type { AppStore } from "../index";
 import type { ResultView } from "../../../views/browse/resultView";
-import type { ReleaseInfo } from "../../../core/update";
+import type { ChangelogPayload } from "../../../core/update";
 import type { RecentQuestion } from "../../../db/recents";
 import type { DbQuestion } from "../../../db/questions";
 
@@ -56,8 +56,9 @@ export interface UiSlice {
   resultView: ResultView | null;
   // The newer release tag to advertise in the top banner, or null when none.
   updateAvailable: string | null;
-  // The release whose "What's new" popup is open (tag + notes body), or null.
-  changelog: ReleaseInfo | null;
+  // The open "What's new" payload (recent releases newest-first + which tag is
+  // emphasized — installed at boot, latest via the palette), or null when closed.
+  changelog: ChangelogPayload | null;
   // Recently-viewed questions snapshot backing the `h` history modal (Stage 20).
   // Captured at open time (like the select/changelog payloads), empty when closed.
   // Each carries its `viewedAt` instant so the modal can show when it was opened.
@@ -76,7 +77,7 @@ export interface UiSlice {
   bumpThemeVersion: () => void;
   requestSmoothScroll: (panel: BrowsePanel) => void;
   setUpdateAvailable: (tag: string | null) => void;
-  showChangelog: (release: ReleaseInfo) => void;
+  showChangelog: (payload: ChangelogPayload) => void;
   hideChangelog: () => void;
   showRecent: (items: RecentQuestion[]) => void;
   hideRecent: () => void;
@@ -139,7 +140,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
 
   // "What's new" popup (Stage 18). Auto-opened once per new version at boot and
   // on demand from the command palette; closing returns to browse.
-  showChangelog: (release) => set({ mode: "changelog", changelog: release }),
+  showChangelog: (payload) => set({ mode: "changelog", changelog: payload }),
   hideChangelog: () => set({ mode: "browse", changelog: null }),
 
   // Recently-viewed history modal (Stage 20). Opened with `h` from browse; the

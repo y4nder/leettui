@@ -98,12 +98,15 @@ export const resultBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "result.close": ["escape", "return"],
 });
 
-// Mounted by ChangelogPopup while open (Stage 18). j/k scroll the release notes
-// (reusing the shared popup scroller), `o` opens the full release page on GitHub,
-// Esc/q close back to browse.
+// Mounted by ChangelogPopup while open (Stage 18). j/k + Ctrl+d/u scroll the
+// release notes (reusing the shared popup scroller — half-page because the
+// multi-release scroll is long), `o` opens the emphasized release's page on
+// GitHub, Esc/q close back to browse.
 export const changelogBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "popup.scrollDown": ["j", "down"],
   "popup.scrollUp": ["k", "up"],
+  "popup.scrollHalfDown": "ctrl+d",
+  "popup.scrollHalfUp": "ctrl+u",
   "changelog.openGithub": "o",
   "changelog.close": ["escape", "q"],
 });

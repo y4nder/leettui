@@ -110,10 +110,11 @@ export const modalCommands: CommandEntry[] = [
     category: "View",
     group: "modal",
     // Fire-and-forget (openInBrowser is try/caught + unref'd); no-op if somehow
-    // open with no payload.
+    // open with no payload. Opens the emphasized release's page (installed at
+    // boot, latest via the palette).
     run: () => {
       const cl = useAppStore.getState().changelog;
-      if (cl) openInBrowser(releaseUrl(cl.tag));
+      if (cl) openInBrowser(releaseUrl(cl.highlightTag));
     },
   }),
   makeCommand({

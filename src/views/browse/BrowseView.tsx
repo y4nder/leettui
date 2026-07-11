@@ -173,7 +173,7 @@ export function BrowseView({ renderer }: BrowseViewProps) {
       {mode === "gitSync" && <GitSyncPrompt />}
 
       {mode === "changelog" && changelog && (
-        <ChangelogPopup tag={changelog.tag} body={changelog.body} />
+        <ChangelogPopup releases={changelog.releases} highlightTag={changelog.highlightTag} />
       )}
 
       {mode === "recent" && <RecentPopup />}
