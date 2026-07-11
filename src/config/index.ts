@@ -259,21 +259,35 @@ export function getLanguageTemplateDir(langSlug: string): string {
 // theme name, preserving the user's comments and formatting (regex-based rather
 // than parse→stringify, since smol-toml has no comment-preserving stringifier).
 export function persistThemeName(name: string): void {
-  if (!existsSync(CONFIG_FILE)) return;
-  const content = readFileSync(CONFIG_FILE, "utf-8");
-  writeFileSync(CONFIG_FILE, upsertSectionString(content, "theme", "name", name));
-  // Refresh the in-process config so getThemeName() reflects the persisted value
-  // on the next call (e.g., for diagnostics).
-  _config = null;
+  persistSetting("theme", "name", name);
 }
 
 // Persist the solutions directory to `[paths] solutions` (Stage 10 item 3 —
-// first-run onboarding / item 4 — in-TUI change). Same comment-preserving rewrite
-// as persistThemeName; falls back to DEFAULT_TOML if the file isn't there yet (as
-// persistTokens does) so onboarding can write before anything else has.
+// first-run onboarding / item 4 — in-TUI change).
 export function persistSolutionsDir(dir: string): void {
+  persistSetting("paths", "solutions", dir);
+}
+
+// Generic comment-preserving persist for any `[section] key`. The single write
+// path behind the in-TUI settings editor (and, by delegation, persistThemeName /
+// persistSolutionsDir). Strings route through upsertSectionString (quoted +
+// escaped); numbers/booleans through upsertSectionRaw (bare scalar) — the latter
+// is essential for `[scroll] jump_rows`, which clampJumpRows only accepts as a
+// real TOML number (a quoted "10" would be silently reset to the default). Falls
+// back to DEFAULT_TOML when the file is absent (like persistTokens) so it can
+// write before anything else has, then invalidates the memo so the next accessor
+// read reflects the write. Assumes `key` is unique to `section` (upsertSection*'s
+// documented invariant — safe for the current schema).
+export function persistSetting(
+  section: string,
+  key: string,
+  value: string | number | boolean,
+): void {
   let content = existsSync(CONFIG_FILE) ? readFileSync(CONFIG_FILE, "utf-8") : DEFAULT_TOML;
-  content = upsertSectionString(content, "paths", "solutions", dir);
+  content =
+    typeof value === "string"
+      ? upsertSectionString(content, section, key, value)
+      : upsertSectionRaw(content, section, key, String(value));
   mkdirSync(CONFIG_DIR, { recursive: true });
   writeFileSync(CONFIG_FILE, content);
   _config = null;
@@ -306,6 +320,39 @@ export function upsertSectionString(
     );
   }
   return `${content.trimEnd()}\n\n[${section}]\n${key} = "${escaped}"\n`;
+}
+
+// Bare (unquoted) sibling of upsertSectionString for non-string TOML scalars: a
+// bare integer (`jump_rows = 10`) or bare boolean (`detach = true`). Same three
+// cases (replace / add to section / append section), but the value-match regex
+// tolerates a prior bare *or* quoted value so it overwrites either (fixing a user
+// who hand-wrote `jump_rows = "10"`). NO escaping — `rawValue` is only ever
+// String(number)/String(boolean) from persistSetting, never arbitrary user text.
+// Pure (string→string), unit-tested in persist.test.ts.
+export function upsertSectionRaw(
+  content: string,
+  section: string,
+  key: string,
+  rawValue: string,
+): string {
+  const sectionRe = new RegExp(`^\\s*\\[${section}\\]`, "m");
+  const hasSection = sectionRe.test(content);
+  // Match an existing value that's either quoted ("…") or a bare scalar run up to
+  // an optional trailing comment/newline, so a prior quoted value is replaced too.
+  const keyRe = new RegExp(
+    `(^\\s*\\[${section}\\][\\s\\S]*?^\\s*)${key}\\s*=\\s*(?:"[^"]*"|[^\\s#]+)`,
+    "m",
+  );
+  const hasKey = hasSection && keyRe.test(content);
+
+  if (hasKey) return content.replace(keyRe, `$1${key} = ${rawValue}`);
+  if (hasSection) {
+    return content.replace(
+      new RegExp(`(^\\s*\\[${section}\\]\\s*\\n)`, "m"),
+      `$1${key} = ${rawValue}\n`,
+    );
+  }
+  return `${content.trimEnd()}\n\n[${section}]\n${key} = ${rawValue}\n`;
 }
 
 // Surgically rewrite the top-level `csrftoken`/`lc_session` values, preserving all

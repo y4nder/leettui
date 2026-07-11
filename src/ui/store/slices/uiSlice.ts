@@ -34,6 +34,7 @@ export type AppMode =
   | "gitInit"
   | "gitRemote"
   | "gitSync"
+  | "config"
   | "backfillNudge"
   | "easterEgg";
 
@@ -105,6 +106,8 @@ export interface UiSlice {
   hideGitRemote: () => void;
   showGitSync: (mode: GitSyncMode) => void;
   hideGitSync: () => void;
+  showConfig: () => void;
+  hideConfig: () => void;
   showBackfillNudge: () => void;
   hideBackfillNudge: () => void;
   showEasterEgg: () => void;
@@ -195,6 +198,12 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   // start at the right phase (clone → input a repo, pull → straight to confirm).
   showGitSync: (mode) => set({ mode: "gitSync", gitSyncMode: mode }),
   hideGitSync: () => set({ mode: "browse", gitSyncMode: null }),
+
+  // In-TUI settings editor. A bare mode toggle like showRelocate — SettingsEditor
+  // owns its own list cursor + inline-edit sub-state, and no key-bearing layer
+  // mounts in "config" mode, so every key falls through to its useKeyboard/<input>.
+  showConfig: () => set({ mode: "config" }),
+  hideConfig: () => set({ mode: "browse" }),
 
   // One-time first-run backfill nudge (D-01/D-02/D-03). A bare mode toggle like
   // showGitInit/showGitRemote — BackfillNudge owns its own confirm/dismiss keys

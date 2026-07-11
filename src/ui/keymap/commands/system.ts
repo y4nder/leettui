@@ -86,6 +86,13 @@ export const systemCommands: CommandEntry[] = [
     run: () => useAppStore.getState().showRelocate(),
   }),
   makeCommand({
+    name: "config.open",
+    title: "Settings — edit configuration",
+    category: "System",
+    short: "Settings",
+    run: () => useAppStore.getState().showConfig(),
+  }),
+  makeCommand({
     name: "solutions.openWorkspace",
     title: "Open solutions dir in editor",
     category: "System",

@@ -42,6 +42,9 @@ export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor
   "debug.open": "`",
   "db.sync": "*",
   "palette.open": "ctrl+p",
+  // Comma opens the in-TUI settings editor (the conventional "preferences" key);
+  // also reachable from the palette. Plain `,` is otherwise unused in browse.
+  "config.open": ",",
   // Ctrl+g opens the git UI (lazygit) in the solutions dir — the version-control
   // escape hatch (Stage 22). Plain `g`/`G` are taken (gg/G jumps); ctrl+g is the
   // idiomatic lazygit-launch binding.
