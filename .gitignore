@@ -55,7 +55,9 @@ Thumbs.db
 /leettui.gz
 
 # Claude Code skills (local-only, not shared via repo)
-.claude/skills/
+.claude/skills/*
+# ...except project-specific skills that belong in the repo
+!.claude/skills/release/
 
 # Machine-specific Claude/GSD local settings (hardcoded paths; regenerated per machine)
 .claude/settings.local.json
