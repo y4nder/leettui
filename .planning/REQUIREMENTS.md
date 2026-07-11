@@ -43,6 +43,13 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [x] **TCASE-02**: `leettui test --add-case` reads a new case input from stdin or a file argument and writes it as the next sequential `case-NN.txt`, picked up by `discoverCases`/`pairCases` on the next run with no runner changes
 - [x] **TCASE-03**: The case-writing path reuses the existing `tests/` layout and `compareOutput` grading, and is safe, idempotent, and never-throws — it never clobbers an unrelated case
 
+### Auto-Capture Failing Cases (Phase 2.2)
+
+- [ ] **TCASE-04**: Submit WA/RE/TLE/MLE responses auto-capture `last_testcase` (plus `expected_output` when present) into a new `tests/case-NN.txt` (+ sibling `.out`), de-duplicated by normalized input match and non-destructive — a missing sibling `.out` is filled (never a duplicate), a disagreeing `.out` is surfaced not overwritten (D-01, D-03, D-04, D-05, D-06)
+- [ ] **TCASE-05**: Run responses (accepted or wrong-answer) bless missing `.out`s for existing seeded cases from `expected_code_answer[]`, matched to the local case by normalized `exampleTestcaseList[i]` content, never by array index (D-02, D-07)
+
+TCASE-04 and TCASE-05 jointly satisfy all four ROADMAP Phase 2.2 success criteria (capture, non-destructive dedup, offline gradeability, never-destabilize run/submit).
+
 ## v2 Requirements
 
 Deferred to a future milestone. Tracked but not in this roadmap.
@@ -98,13 +105,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TCASE-01 | Phase 2.1 | Complete |
 | TCASE-02 | Phase 2.1 | Complete |
 | TCASE-03 | Phase 2.1 | Complete |
+| TCASE-04 | Phase 2.2 | Pending |
+| TCASE-05 | Phase 2.2 | Pending |
 
 **Coverage:**
 
-- v1 requirements: 21 total
-- Mapped to phases: 21 ✓
+- v1 requirements: 23 total
+- Mapped to phases: 23 ✓
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-26*
-*Last updated: 2026-07-11 after Phase 2.1 plan 01 formalized TCASE-01/02/03*
+*Last updated: 2026-07-11 after Phase 2.2 plan 01 formalized TCASE-04/05*
