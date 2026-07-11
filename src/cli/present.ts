@@ -192,6 +192,11 @@ export function presentResultView(view: ResultView): string {
     for (const line of view.error.split("\n")) lines.push(`${INDENT}${c.red(line)}`);
   }
 
+  if (view.notes?.length) {
+    lines.push("");
+    for (const note of view.notes) lines.push(`${INDENT}${c.dim(note)}`);
+  }
+
   return lines.join("\n");
 }
 

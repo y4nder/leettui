@@ -147,6 +147,17 @@ export function ResultBody({ view }: ResultBodyProps) {
         </box>
       )}
 
+      {view.notes && view.notes.length > 0 && (
+        <box flexDirection="column" marginTop={1}>
+          {view.notes.map((n) => (
+            <text key={n} fg={colors.subtle}>
+              {" "}
+              {n}
+            </text>
+          ))}
+        </box>
+      )}
+
       {view.cases && view.cases.length > 0 && (
         <box flexDirection="column">
           {view.cases.map((c) => (
