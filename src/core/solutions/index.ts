@@ -45,3 +45,14 @@ export {
 } from "./create";
 
 export { deleteSolution } from "./remove";
+
+export { type SaveOutcome, type SaveResult, saveGoldenOutputs } from "./save-output";
+
+export { addCase, nextCaseName } from "./add-case";
+
+export {
+  type CaptureOutcome,
+  type CaptureResult,
+  blessRunOutputs,
+  captureFailingCase,
+} from "./capture";

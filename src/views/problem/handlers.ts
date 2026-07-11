@@ -320,8 +320,10 @@ export async function handleProblemRun(triggerKey: string) {
     triggerKey,
     "handleProblemRun",
     async (p, langSlug) => {
-      const result = await runSolution(p.question, langSlug);
-      useAppStore.getState().setProblemResult(buildResultView(result));
+      const { response, captureNotes } = await runSolution(p.question, langSlug);
+      useAppStore
+        .getState()
+        .setProblemResult({ ...buildResultView(response), notes: captureNotes });
     },
     { loadingMessage: "Running solution...", errorTitle: "Run error", solutionErrorArm: true },
   );
@@ -348,9 +350,11 @@ export async function handleProblemSubmit(triggerKey: string) {
     triggerKey,
     "handleProblemSubmit",
     async (p, langSlug) => {
-      const result = await submitSolution(p.question, langSlug);
+      const { response, captureNotes } = await submitSolution(p.question, langSlug);
       useAppStore.getState().loadProblemSubmissions(p.question.id);
-      useAppStore.getState().setProblemResult(buildResultView(result));
+      useAppStore
+        .getState()
+        .setProblemResult({ ...buildResultView(response), notes: captureNotes });
     },
     {
       loadingMessage: "Submitting solution...",

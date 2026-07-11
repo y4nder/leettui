@@ -33,4 +33,5 @@ export interface ResultView {
   error?: string;
   outputs?: { label: string; value: string }[];
   cases?: ResultCase[];
+  notes?: string[];
 }

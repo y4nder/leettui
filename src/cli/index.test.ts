@@ -1,17 +1,21 @@
 import { describe, expect, test } from "bun:test";
-import { matchCliVerb, verbArg, bootstrapApiClient, AUTH_HINT } from "./index";
+import { matchCliVerb, verbArg, hasFlag, flagValue, bootstrapApiClient, AUTH_HINT } from "./index";
 import {
   presentResultView,
   exitCodeForLocalRun,
   exitCodeForResultView,
   brandHeader,
   formatTargetError,
+  exitCodeForSave,
+  presentSaveSummary,
+  saveReminder,
 } from "./present";
 import type { LocalRunReport, LocalCaseResult } from "../core/testRunner";
 import type { DbQuestion } from "../db/questions";
 import type { Config } from "../config/types";
 import type { ResultKind } from "../views/browse/resultView";
 import { buildLocalRunView } from "../views/browse/resultView";
+import type { SaveResult } from "../core/solutions";
 
 describe("matchCliVerb", () => {
   test("matches each verb as an exact argv element", () => {
@@ -51,6 +55,39 @@ describe("verbArg", () => {
 
   test("skips leading flags to the first real token", () => {
     expect(verbArg(["bun", "src/index.tsx", "new", "--debug", "python3"], "new")).toBe("python3");
+  });
+});
+
+describe("hasFlag", () => {
+  test("true when the flag is present as an exact argv element", () => {
+    expect(hasFlag(["bun", "src/index.tsx", "test", "--save"], "--save")).toBe(true);
+  });
+
+  test("false when absent", () => {
+    expect(hasFlag(["bun", "src/index.tsx", "test"], "--save")).toBe(false);
+  });
+});
+
+describe("flagValue", () => {
+  test("returns the first non-flag token after the flag", () => {
+    expect(
+      flagValue(["bun", "src/index.tsx", "test", "--add-case", "cases.txt"], "--add-case"),
+    ).toBe("cases.txt");
+  });
+
+  test("undefined when the next token is another flag or absent", () => {
+    expect(flagValue(["bun", "src/index.tsx", "test", "--add-case", "--save"], "--add-case")).toBe(
+      undefined,
+    );
+    expect(flagValue(["bun", "src/index.tsx", "test", "--add-case"], "--add-case")).toBeUndefined();
+    expect(flagValue(["bun", "src/index.tsx", "test"], "--add-case")).toBeUndefined();
+  });
+
+  test("--add-case file-arg contract: a file path resolves, bare form is undefined", () => {
+    expect(
+      flagValue(["bun", "src/index.tsx", "test", "--add-case", "cases/extra.txt"], "--add-case"),
+    ).toBe("cases/extra.txt");
+    expect(flagValue(["bun", "src/index.tsx", "test", "--add-case"], "--add-case")).toBeUndefined();
   });
 });
 
@@ -264,5 +301,50 @@ describe("brandHeader / formatTargetError", () => {
   test("target error is branded", () => {
     expect(formatTargetError("nope")).toContain("leettui");
     expect(formatTargetError("nope")).toContain("nope");
+  });
+});
+
+describe("exitCodeForSave", () => {
+  test("at least one non-skipped outcome → 0", () => {
+    const results: SaveResult[] = [
+      { name: "case-01", outcome: "created" },
+      { name: "case-02", outcome: "skipped" },
+    ];
+    expect(exitCodeForSave(results)).toBe(0);
+  });
+
+  test("all-skipped → 2 (nothing writable, couldn't bless)", () => {
+    const results: SaveResult[] = [
+      { name: "case-01", outcome: "skipped" },
+      { name: "case-02", outcome: "skipped" },
+    ];
+    expect(exitCodeForSave(results)).toBe(2);
+  });
+});
+
+describe("presentSaveSummary", () => {
+  test("renders each case name and the created/changed/unchanged/skipped glyphs", () => {
+    const results: SaveResult[] = [
+      { name: "case-01", outcome: "created" },
+      { name: "case-02", outcome: "changed" },
+      { name: "case-03", outcome: "unchanged" },
+      { name: "case-04", outcome: "skipped" },
+    ];
+    const out = stripAnsi(presentSaveSummary(results));
+
+    expect(out).toContain("case-01");
+    expect(out).toContain("case-02");
+    expect(out).toContain("case-03");
+    expect(out).toContain("case-04");
+    expect(out).toContain("+");
+    expect(out).toContain("~");
+    expect(out).toContain("=");
+    expect(out).toContain("!");
+  });
+});
+
+describe("saveReminder", () => {
+  test("reminds the user to verify correctness before trusting the golden", () => {
+    expect(saveReminder(2)).toContain("accepted on LeetCode");
   });
 });

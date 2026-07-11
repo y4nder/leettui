@@ -84,7 +84,10 @@ export function pairCases(filenames: string[]): { name: string; hasExpected: boo
 }
 
 // Trailing-whitespace-insensitive (and CRLF-insensitive) string normalization.
-function normalize(s: string): string {
+// Exported for reuse by `core/solutions/capture.ts` (D-04/D-07 input-matching
+// needs the identical rule `compareOutput` uses internally for output-grading —
+// exporting avoids a second, potentially-diverging implementation).
+export function normalize(s: string): string {
   return s.replace(/\r\n/g, "\n").trimEnd();
 }
 
