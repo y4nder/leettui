@@ -290,7 +290,7 @@ export function bootstrapApiClient(
 async function runApiVerb(
   header: string,
   status: string,
-  action: () => Promise<ParsedResponse>,
+  action: () => Promise<{ response: ParsedResponse; captureNotes: string[] }>,
 ): Promise<number> {
   const boot = bootstrapApiClient();
   if (!boot.ok) {
@@ -302,7 +302,8 @@ async function runApiVerb(
   process.stdout.write(`${header}\n`);
   const stopStatus = startStatus(status);
   try {
-    const view = buildResultView(await action());
+    const { response, captureNotes } = await action();
+    const view = { ...buildResultView(response), notes: captureNotes };
     stopStatus();
     process.stdout.write(`${presentResultView(view)}\n`);
     return exitCodeForResultView(view);
