@@ -2,20 +2,34 @@ import { describe, expect, test } from "bun:test";
 import type { DbQuestion } from "../../../db/questions";
 import type { DbSubmission } from "../../../db/submissions";
 import type { AppStore } from "../index";
+import { useAppStore } from "../index";
 import { createProblemSlice, type ProblemViewState } from "./problemSlice";
 
-// The invariant the mouse set*Index actions rely on (mirrors selectionSlice.test.ts's
-// clamp coverage): a click index — however stale the render it came from — is pinned
-// into [0, length-1], and an empty/absent list is a strict no-op.
+// Two DB-free suites over the problem slice:
+// - The mouse set*Index invariant (mirrors selectionSlice.test.ts's clamp coverage):
+//   a click index — however stale the render it came from — is pinned into
+//   [0, length-1], and an empty/absent list is a strict no-op.
+// - The full-screen results sub-modal (open/close + the exclusivity guard), run
+//   against the real store: everything mutates the in-memory `problem` state only.
 
-const fakeQuestion = { id: 1, title: "Two Sum", title_slug: "two-sum" } as unknown as DbQuestion;
+const QUESTION = {
+  id: 1,
+  title: "Two Sum",
+  title_slug: "two-sum",
+  difficulty: "Easy",
+  paid_only: 0,
+  status: null,
+  ac_rate: 50,
+  last_runtime: null,
+  last_memory: null,
+} as DbQuestion;
 
-function problemState(partial: Partial<ProblemViewState> = {}): ProblemViewState {
+function problemState(overrides: Partial<ProblemViewState> = {}): ProblemViewState {
   return {
-    question: fakeQuestion,
-    description: "",
+    question: QUESTION,
+    description: "desc",
     topicTags: [],
-    solutions: [],
+    solutions: ["python3"],
     focusedSolutionIndex: 0,
     related: [],
     focusedRelatedIndex: 0,
@@ -26,13 +40,14 @@ function problemState(partial: Partial<ProblemViewState> = {}): ProblemViewState
     notes: null,
     help: false,
     deleteConfirm: null,
-    ...partial,
+    resultFullscreen: false,
+    ...overrides,
   };
 }
 
 // Minimal Zustand harness: drives createProblemSlice with a plain merge-set over just
-// the fields the slice reads, so the tests exercise the real action implementations
-// without booting the full store (which would drag in DB/API modules).
+// the fields the slice reads, so the set*Index tests can seed problemSubmissions (a
+// sibling-slice field the real store only fills from the DB).
 function makeSlice(problem: ProblemViewState | null, submissionCount = 0) {
   const problemSubmissions = Array.from(
     { length: submissionCount },
@@ -133,5 +148,66 @@ describe("setPickerIndex", () => {
     const h = makeSlice(problemState());
     h.slice.setPickerIndex(1);
     expect(h.problem()?.solutionPicker).toBeNull();
+  });
+});
+
+describe("resultFullscreen sub-modal", () => {
+  test("open sets the flag; close clears it", () => {
+    useAppStore.setState({ problem: problemState() });
+
+    useAppStore.getState().openResultFullscreen();
+    expect(useAppStore.getState().problem?.resultFullscreen).toBe(true);
+
+    useAppStore.getState().closeResultFullscreen();
+    expect(useAppStore.getState().problem?.resultFullscreen).toBe(false);
+  });
+
+  test("open is a no-op while the solution picker is up", () => {
+    useAppStore.setState({
+      problem: problemState({
+        solutionPicker: { snippets: [], existing: new Set(), index: 0 },
+      }),
+    });
+
+    useAppStore.getState().openResultFullscreen();
+    expect(useAppStore.getState().problem?.resultFullscreen).toBe(false);
+  });
+
+  test("open is a no-op while notes are up", () => {
+    useAppStore.setState({ problem: problemState({ notes: { content: "" } }) });
+
+    useAppStore.getState().openResultFullscreen();
+    expect(useAppStore.getState().problem?.resultFullscreen).toBe(false);
+  });
+
+  test("actions no-op when no problem is open", () => {
+    useAppStore.setState({ problem: null });
+
+    useAppStore.getState().openResultFullscreen();
+    expect(useAppStore.getState().problem).toBeNull();
+
+    useAppStore.getState().closeResultFullscreen();
+    expect(useAppStore.getState().problem).toBeNull();
+  });
+
+  test("setProblemResult leaves the flag untouched", () => {
+    useAppStore.setState({ problem: problemState({ resultFullscreen: true }) });
+
+    useAppStore.getState().setProblemResult({ kind: "info", title: "hi" });
+    const p = useAppStore.getState().problem;
+    expect(p?.resultFullscreen).toBe(true);
+    expect(p?.result?.title).toBe("hi");
+  });
+
+  test("enterProblemView initializes the flag false", () => {
+    useAppStore.setState({ problem: null });
+    useAppStore.getState().enterProblemView({
+      question: QUESTION,
+      description: "desc",
+      solutions: [],
+      topicTags: [],
+      related: [],
+    });
+    expect(useAppStore.getState().problem?.resultFullscreen).toBe(false);
   });
 });

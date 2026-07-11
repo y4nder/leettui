@@ -4,41 +4,42 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 3
 current_phase_name: Progress Dashboard
-status: "Phase 02 shipped — PR #55"
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-07-01T04:46:08.116Z"
-last_activity: 2026-07-01
+status: ready-to-plan
+stopped_at: Phase 2.2 complete; Phase 3 deferred pending feat/test-case-management wrap-up
+last_updated: "2026-07-11T00:54:13.894Z"
+last_activity: 2026-07-11
+last_activity_desc: Phase 02.2 complete, transitioned to Phase 3
 progress:
-  total_phases: 3
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
-  percent: 67
+  total_phases: 5
+  completed_phases: 4
+  total_plans: 10
+  completed_plans: 10
+  percent: 80
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-26)
+See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core value:** A LeetCode user grinding in the terminal can open one view and instantly see whether they're improving and keeping it up — solve streak, recent counts, and breakdown by difficulty/topic — backed by their real submission history, owned locally.
-**Current focus:** Phase 3 — Progress Dashboard
+**Current focus:** Wrap up feat/test-case-management (PR/merge); Phase 3 (Progress Dashboard) deferred by user decision 2026-07-11 — different feature, starts after this branch lands
 
 ## Current Position
 
-Phase: 3 of 3 (Progress Dashboard)
+Phase: 3 — Progress Dashboard
 Plan: Not started
-Status: Phase 02 shipped — PR #55
-Last activity: 2026-07-01
+Status: Phase 3 deferred (user decision 2026-07-11) — finish feat/test-case-management branch (PR/merge) before starting the dashboard feature
+Last activity: 2026-07-11 — Phase 02.2 complete, transitioned to Phase 3
 
-Progress: [██████░░░░] 67%
+Progress: [████████████████████] 10/10 plans (100%) — 4/5 phases complete
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 6
+- Total plans completed: 10
 - Average duration: — min
 - Total execution time: 0.0 hours
 
@@ -48,6 +49,8 @@ Progress: [██████░░░░] 67%
 |-------|-------|-------|----------|
 | 01 | 3 | - | - |
 | 02 | 3 | - | - |
+| 02.1 | 2 | - | - |
+| 02.2 | 2 | - | - |
 
 **Recent Trend:**
 
@@ -61,6 +64,10 @@ Progress: [██████░░░░] 67%
 | Phase 02 P01 | 15min | 3 tasks | 13 files |
 | Phase 02 P02 | 3min | 3 tasks | 6 files |
 | Phase 02 P03 | 5min | 2 tasks | 2 files |
+| Phase 02.1 P01 | 35min | 3 tasks | 8 files |
+| Phase 02.1 P02 | 15min | 2 tasks | 5 files |
+| Phase 02.2 P01 | 6min | 2 tasks | 5 files |
+| Phase 02.2 P02 | 15min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -82,6 +89,13 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-02: refreshSolutionFiles() also recomputes attemptCounts so the two markers sharing the same ◆ render slot never drift out of sync
 - [Phase 02]: 02-03: handleProblemSubmit re-invokes loadProblemSubmissions immediately after submitSolution resolves, mirroring the refresh-after-mutation pattern used by handleConfirmDeleteSolution, closing the stale History-panel UAT gap (HIST-03)
 - [Phase 02]: 02-03: QuestionList's marker cell is pre-padded via a new markerStr (.padStart(3)) alongside idStr/acStr/runtimeStr, fixing browse column misalignment across variable-digit ×N badges (BROWSE-01)
+- [Phase 02.1]: 02.1-01: saveGoldenOutputs is dir-injected (testsDir: string) rather than (id, titleSlug) so it's unit-testable in-process with a temp dir, matching discoverCases' shape — the CLI resolves getTestsDir(id, slug) and passes it in
+- [Phase 02.1]: 02.1-01: save-output.ts uses synchronous node:fs readFileSync/writeFileSync instead of Bun.write's unawaited promise — so the create-vs-overwrite decision and the write complete within one synchronous call, needed for in-process temp-dir unit tests
+- [Phase 02.1]: 02.1-02: nextCaseName/addCase are dir-injected (testsDir: string) matching discoverCases/saveGoldenOutputs' shape, and nextCaseName is strictly max+1 (never gap-fill) so numbering stays monotonic and collision-free even after a manual case deletion
+- [Phase 02.1]: 02.1-02: --add-case is handled as an early branch inside the existing test case in cli/index.ts (before runLocalTests), since it's an alternate mode of test that writes an input and exits rather than running the solution
+- [Phase 02.2]: 02.2-01: TDD RED phase shipped capture.ts as a type-checking stub (throws not-implemented) rather than omitting the file, so capture.test.ts fails on assertions instead of a missing-module compile error under the repo's zero-tolerance tsc pre-commit gate
+- [Phase 02.2]: 02.2-01: captureFailingCase/blessRunOutputs reuse addCase/discoverCases/compareOutput/normalize verbatim rather than inventing a new capture-engine abstraction
+- [Phase 02.2]: 02.2-02: captureFromSubmitResult/captureFromRunResult are testsDir-injected (not internally resolving getTestsDir), mirroring capture.ts's own dir-injected shape — keeps them pure/config-free and unit-testable against a temp dir with zero network/config mocking
 
 ### Pending Todos
 
@@ -106,6 +120,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-01T04:30:33.073Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-07-11T00:55:12Z
+Stopped at: Phase 2.2 complete; Phase 3 deferred — wrap up feat/test-case-management first
 Resume file: None

@@ -25,4 +25,15 @@ describe("binding command-names", () => {
       expect(COMMAND_BY_NAME.has(name)).toBe(true);
     }
   });
+
+  test("the full-screen result bindings resolve", () => {
+    for (const name of [
+      "problem.resultExpand",
+      "problem.resultFsClose",
+      "popup.scrollHalfDown",
+      "popup.scrollHalfUp",
+    ]) {
+      expect(COMMAND_BY_NAME.has(name)).toBe(true);
+    }
+  });
 });

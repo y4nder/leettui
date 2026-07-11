@@ -4,6 +4,8 @@ import {
   fetchAsset,
   fetchLatestRelease,
   fetchReleaseByTag,
+  fetchReleases,
+  formatReleaseDate,
   isNewerVersion,
   shouldShowChangelog,
 } from "./update";
@@ -60,21 +62,33 @@ describe("release fetch", () => {
     }) as unknown as typeof fetch;
   }
 
-  test("fetchLatestRelease hits /releases/latest and returns tag + notes body", async () => {
-    stubFetch(200, { tag_name: "v9.9.9", body: "## What's new\n\nstuff" });
-    expect(await fetchLatestRelease()).toEqual({ tag: "v9.9.9", body: "## What's new\n\nstuff" });
+  test("fetchLatestRelease hits /releases/latest and returns tag + notes + date", async () => {
+    stubFetch(200, {
+      tag_name: "v9.9.9",
+      body: "## What's new\n\nstuff",
+      published_at: "2026-07-01T12:00:00Z",
+    });
+    expect(await fetchLatestRelease()).toEqual({
+      tag: "v9.9.9",
+      body: "## What's new\n\nstuff",
+      publishedAt: "2026-07-01T12:00:00Z",
+    });
     expect(lastUrl).toContain("/releases/latest");
   });
 
   test("fetchReleaseByTag hits /releases/tags/{tag} and parses it", async () => {
     stubFetch(200, { tag_name: "v1.2.3", body: "notes" });
-    expect(await fetchReleaseByTag("v1.2.3")).toEqual({ tag: "v1.2.3", body: "notes" });
+    expect(await fetchReleaseByTag("v1.2.3")).toEqual({
+      tag: "v1.2.3",
+      body: "notes",
+      publishedAt: undefined,
+    });
     expect(lastUrl).toContain("/releases/tags/v1.2.3");
   });
 
   test("defaults body to empty string when the release has no notes", async () => {
     stubFetch(200, { tag_name: "v9.9.9" });
-    expect(await fetchLatestRelease()).toEqual({ tag: "v9.9.9", body: "" });
+    expect(await fetchLatestRelease()).toMatchObject({ tag: "v9.9.9", body: "" });
   });
 
   test("throws when the payload has no tag_name", async () => {
@@ -85,6 +99,61 @@ describe("release fetch", () => {
   test("throws on a non-ok response", async () => {
     stubFetch(404, {});
     expect(fetchLatestRelease()).rejects.toThrow("GitHub API returned 404");
+  });
+
+  test("fetchReleases hits /releases?per_page=10 and parses the list newest-first", async () => {
+    stubFetch(200, [
+      { tag_name: "v0.6.0", body: "new", published_at: "2026-07-01T00:00:00Z" },
+      { tag_name: "v0.5.0", body: "old", published_at: "2026-06-01T00:00:00Z" },
+    ]);
+    expect(await fetchReleases()).toEqual([
+      { tag: "v0.6.0", body: "new", publishedAt: "2026-07-01T00:00:00Z" },
+      { tag: "v0.5.0", body: "old", publishedAt: "2026-06-01T00:00:00Z" },
+    ]);
+    expect(lastUrl).toContain("/releases?per_page=10");
+  });
+
+  test("fetchReleases passes a custom limit through as per_page", async () => {
+    stubFetch(200, [{ tag_name: "v1.0.0" }]);
+    expect(await fetchReleases(3)).toEqual([{ tag: "v1.0.0", body: "", publishedAt: undefined }]);
+    expect(lastUrl).toContain("/releases?per_page=3");
+  });
+
+  test("fetchReleases skips prereleases and entries with no tag_name", async () => {
+    stubFetch(200, [
+      { tag_name: "v0.7.0-rc1", body: "rc", prerelease: true },
+      { body: "orphaned" },
+      { tag_name: "v0.6.0", body: "stable" },
+    ]);
+    const releases = await fetchReleases();
+    expect(releases.map((r) => r.tag)).toEqual(["v0.6.0"]);
+  });
+
+  test("fetchReleases throws on a non-ok response", async () => {
+    stubFetch(500, []);
+    expect(fetchReleases()).rejects.toThrow("GitHub API returned 500");
+  });
+
+  test("fetchReleases throws on a non-array payload", async () => {
+    stubFetch(200, { message: "rate limited" });
+    expect(fetchReleases()).rejects.toThrow("not an array");
+  });
+
+  test("fetchReleases throws when nothing survives the filter", async () => {
+    stubFetch(200, [{ tag_name: "v0.7.0-rc1", prerelease: true }]);
+    expect(fetchReleases()).rejects.toThrow("no published releases");
+  });
+});
+
+describe("formatReleaseDate", () => {
+  test("YYYY-MM-DD from an ISO published_at", () => {
+    expect(formatReleaseDate("2026-07-01T12:34:56Z")).toBe("2026-07-01");
+  });
+
+  test("empty string when absent or malformed", () => {
+    expect(formatReleaseDate(undefined)).toBe("");
+    expect(formatReleaseDate("")).toBe("");
+    expect(formatReleaseDate("not a date")).toBe("");
   });
 });
 

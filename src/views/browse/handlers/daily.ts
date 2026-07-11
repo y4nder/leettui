@@ -7,22 +7,23 @@ import { fetchQuestionContent } from "../../../api/queries/question-content";
 import { fetchDailyChallenge } from "../../../api/queries/daily-challenge";
 import { getQuestionBySlug } from "../../../db/questions";
 import { getRecents, recordRecent } from "../../../db/recents";
-import { fetchLatestRelease } from "../../../core/update";
+import { fetchReleases } from "../../../core/update";
 import { handleEnterProblemView } from "../../problem/handlers";
 import { info, loading } from "../resultView";
 import { reportError } from "./shared";
 
-// Command-palette "What's new": fetch the **latest** release's notes on demand
-// and open the changelog popup. Un-gated (works on dev/from-source builds too,
-// unlike the boot auto-popup). Deliberately shows the latest — the most useful
-// answer when you're behind — distinct from the post-update auto-popup, which
-// shows the version you just installed. A brief loading result covers the fetch;
-// a failure surfaces a clean error.
+// Command-palette "What's new": fetch the recent releases on demand and open the
+// changelog popup with the **latest** emphasized. Un-gated (works on dev/from-source
+// builds too, unlike the boot auto-popup). Deliberately highlights the latest — the
+// most useful answer when you're behind — distinct from the post-update auto-popup,
+// which highlights the version you just installed; past releases scroll below either
+// way. A brief loading result covers the fetch; a failure surfaces a clean error.
 export async function handleViewChangelog(): Promise<void> {
   const { showResult, showChangelog } = useAppStore.getState();
   showResult(loading("Fetching what's new…"));
   try {
-    showChangelog(await fetchLatestRelease());
+    const releases = await fetchReleases(10);
+    showChangelog({ releases, highlightTag: releases[0]!.tag });
   } catch (e) {
     reportError(showResult, "", "handleViewChangelog", "Couldn't fetch the changelog", e);
   }

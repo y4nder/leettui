@@ -16,12 +16,22 @@ import { runSolution, submitSolution } from "../core/submission";
 import type { ParsedResponse } from "../api/types";
 import { fetchEditorData } from "../api/queries/editor-data";
 import { fetchConsolePanelConfig } from "../api/queries/console-panel-config";
-import { createSolutionWithHarness, getSolutionPath, solutionExists } from "../core/solutions";
+import {
+  addCase,
+  createSolutionWithHarness,
+  getSolutionPath,
+  getTestsDir,
+  saveGoldenOutputs,
+  solutionExists,
+} from "../core/solutions";
 import { buildLocalRunView, buildResultView } from "../views/browse/resultView";
 import {
   presentResultView,
   exitCodeForLocalRun,
   exitCodeForResultView,
+  exitCodeForSave,
+  presentSaveSummary,
+  saveReminder,
   brandHeader,
   formatTargetError,
   startStatus,
@@ -66,13 +76,35 @@ export function verbArg(argv: string[], verb: CliVerb): string | undefined {
   return undefined;
 }
 
+// A boolean flag anywhere in argv (`--save`) — an exact-element check, mirroring
+// `matchCliVerb`'s exact-token matching so a path/arg that merely contains the
+// flag text never trips it.
+export function hasFlag(argv: string[], flag: string): boolean {
+  return argv.includes(flag);
+}
+
+// The first non-flag token after `flag` (e.g. `--add-case cases.txt` → the file
+// arg), mirroring `verbArg`'s "first non-flag token after X" shape.
+export function flagValue(argv: string[], flag: string): string | undefined {
+  const i = argv.indexOf(flag);
+  if (i < 0) return undefined;
+  for (let j = i + 1; j < argv.length; j++) {
+    const tok = argv[j];
+    if (tok && !tok.startsWith("-")) return tok;
+  }
+  return undefined;
+}
+
 export async function runCli(
   verb: CliVerb,
   cwd: string = process.cwd(),
-  arg?: string,
+  argv: string[] = process.argv,
 ): Promise<number> {
   loadConfig();
   openDatabase(getDbPath());
+
+  const arg = verbArg(argv, verb);
+  const save = hasFlag(argv, "--save");
 
   // `new` resolves at the **problem** level (no langSlug from cwd — it takes the
   // language as `arg`) and fetches the snippet over the network, so it branches
@@ -91,9 +123,45 @@ export async function runCli(
 
   switch (verb) {
     case "test": {
+      // `--add-case` is an alternate mode of `test` that writes a new case
+      // input and exits — it never runs the solution. Handled before
+      // `runLocalTests` so it short-circuits the normal run/save path.
+      if (hasFlag(argv, "--add-case")) {
+        const filePath = flagValue(argv, "--add-case");
+        const input = filePath ? await Bun.file(filePath).text() : await Bun.stdin.text();
+        if (input.trim() === "") {
+          console.error(
+            formatTargetError(
+              "No case input — pipe it on stdin (leettui test --add-case < input.txt) or pass a file.",
+            ),
+          );
+          return 2;
+        }
+        const testsDir = getTestsDir(question.id, question.title_slug);
+        const path = addCase(testsDir, input);
+        process.stdout.write(`${header}\n\n  created: ${path}\n`);
+        return 0;
+      }
+      // Always run the cases first (D-12) — `--save` consumes this same
+      // `LocalCaseResult[]`, never re-running/re-compiling.
       const report = await runLocalTests(question, langSlug);
-      process.stdout.write(`${header}\n${presentResultView(buildLocalRunView(report))}\n`);
-      return exitCodeForLocalRun(report);
+      if (!save) {
+        process.stdout.write(`${header}\n${presentResultView(buildLocalRunView(report))}\n`);
+        return exitCodeForLocalRun(report);
+      }
+      // Nothing to bless (unsupported/no-harness/no-cases/compile-error) — show
+      // the normal view and exit exactly as plain `test` would.
+      if (report.kind !== "ran") {
+        process.stdout.write(`${header}\n${presentResultView(buildLocalRunView(report))}\n`);
+        return exitCodeForLocalRun(report);
+      }
+      const testsDir = getTestsDir(question.id, question.title_slug);
+      const results = saveGoldenOutputs(testsDir, report.cases);
+      const written = results.filter((r) => r.outcome !== "skipped").length;
+      const lines = [`${header}\n${presentSaveSummary(results)}`];
+      if (written > 0) lines.push(saveReminder(written));
+      process.stdout.write(`${lines.join("\n")}\n`);
+      return exitCodeForSave(results);
     }
     case "run":
       return runApiVerb(header, "Running against example cases on LeetCode…", () =>
@@ -222,7 +290,7 @@ export function bootstrapApiClient(
 async function runApiVerb(
   header: string,
   status: string,
-  action: () => Promise<ParsedResponse>,
+  action: () => Promise<{ response: ParsedResponse; captureNotes: string[] }>,
 ): Promise<number> {
   const boot = bootstrapApiClient();
   if (!boot.ok) {
@@ -234,7 +302,8 @@ async function runApiVerb(
   process.stdout.write(`${header}\n`);
   const stopStatus = startStatus(status);
   try {
-    const view = buildResultView(await action());
+    const { response, captureNotes } = await action();
+    const view = { ...buildResultView(response), notes: captureNotes };
     stopStatus();
     process.stdout.write(`${presentResultView(view)}\n`);
     return exitCodeForResultView(view);

@@ -91,10 +91,29 @@ export function isNewerVersion(latest: string, current: string): boolean {
   return aPatch > bPatch;
 }
 
-/** A published release's tag and its (markdown) notes body. */
+/** A published release's tag, its (markdown) notes body, and when it shipped. */
 export interface ReleaseInfo {
   tag: string;
   body: string;
+  /** ISO 8601 `published_at` from the GitHub API, absent when the API omits it. */
+  publishedAt?: string;
+}
+
+/**
+ * The changelog popup's payload: the recent releases newest-first plus which
+ * tag to emphasize — the installed VERSION at boot (post-update), the latest
+ * tag via the command palette. Lives here (not in the UI) so both openers and
+ * the store share one shape without core importing UI.
+ */
+export interface ChangelogPayload {
+  releases: ReleaseInfo[];
+  highlightTag: string;
+}
+
+/** "YYYY-MM-DD" from an ISO `published_at`, or "" when absent/malformed. */
+export function formatReleaseDate(iso: string | undefined): string {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return "";
+  return iso.slice(0, 10);
 }
 
 /**
@@ -138,22 +157,38 @@ export function shouldShowChangelog(
   return mode === "browse";
 }
 
+const RELEASE_API_HEADERS = {
+  "User-Agent": "leettui",
+  Accept: "application/vnd.github+json",
+};
+
+// The subset of the GitHub release JSON the changelog cares about.
+interface ReleaseJson {
+  tag_name?: string;
+  body?: string;
+  published_at?: string;
+  prerelease?: boolean;
+}
+
+/** Map one release JSON entry to a ReleaseInfo, or null when it has no tag_name. */
+function parseRelease(json: ReleaseJson): ReleaseInfo | null {
+  if (!json.tag_name) return null;
+  return { tag: json.tag_name, body: json.body ?? "", publishedAt: json.published_at };
+}
+
 /** Shared release fetch from the GitHub API. `pathSuffix` is e.g. "latest" or "tags/v1.2.3". */
 async function fetchRelease(pathSuffix: string): Promise<ReleaseInfo> {
   const res = await fetch(`https://api.github.com/repos/${REPO}/releases/${pathSuffix}`, {
-    headers: {
-      "User-Agent": "leettui",
-      Accept: "application/vnd.github+json",
-    },
+    headers: RELEASE_API_HEADERS,
   });
   if (!res.ok) {
     throw new Error(`GitHub API returned ${res.status} ${res.statusText}`);
   }
-  const json = (await res.json()) as { tag_name?: string; body?: string };
-  if (!json.tag_name) {
+  const release = parseRelease((await res.json()) as ReleaseJson);
+  if (!release) {
     throw new Error("release has no tag_name");
   }
-  return { tag: json.tag_name, body: json.body ?? "" };
+  return release;
 }
 
 /** Fetch the latest published release (tag + notes body). Throws on network/shape error. */
@@ -164,6 +199,34 @@ export function fetchLatestRelease(): Promise<ReleaseInfo> {
 /** Fetch a specific release by tag — the post-update popup fetches the running VERSION. */
 export function fetchReleaseByTag(tag: string): Promise<ReleaseInfo> {
   return fetchRelease(`tags/${encodeURIComponent(tag)}`);
+}
+
+/**
+ * Fetch the most recent published releases, newest-first, in one API call
+ * (`/releases?per_page=N`). Backs the multi-release changelog popup. Skips
+ * prereleases and malformed entries (the unauthenticated list endpoint includes
+ * prereleases, never drafts); throws on network/shape error or an empty result,
+ * mirroring fetchRelease's strictness — callers already have error paths.
+ */
+export async function fetchReleases(limit = 10): Promise<ReleaseInfo[]> {
+  const res = await fetch(`https://api.github.com/repos/${REPO}/releases?per_page=${limit}`, {
+    headers: RELEASE_API_HEADERS,
+  });
+  if (!res.ok) {
+    throw new Error(`GitHub API returned ${res.status} ${res.statusText}`);
+  }
+  const json = (await res.json()) as ReleaseJson[];
+  if (!Array.isArray(json)) {
+    throw new Error("release list is not an array");
+  }
+  const releases = json
+    .filter((r) => !r.prerelease)
+    .map(parseRelease)
+    .filter((r): r is ReleaseInfo => r !== null);
+  if (releases.length === 0) {
+    throw new Error("no published releases");
+  }
+  return releases;
 }
 
 /** The GitHub release-page URL for a tag — the changelog popup's "open on GitHub" (`o`). */

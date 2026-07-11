@@ -95,6 +95,11 @@ export interface ProblemViewState {
   // langSlug captured at open time (used at confirm, NOT re-read from focus), so a
   // focus change behind the modal can't retarget the irreversible delete.
   deleteConfirm: { langSlug: string } | null;
+  // Full-screen results takeover: auto-opens on run/submit/test (the detached-editor
+  // loop — flip to the TUI, hit one key, read the whole result), reopened manually
+  // with `o` / Enter on the Result panel. A problem sub-modal like help: true while
+  // open, closes back to the problem view.
+  resultFullscreen: boolean;
 }
 
 export interface ProblemSlice {
@@ -151,6 +156,11 @@ export interface ProblemSlice {
   // langSlug to remove; `closeDeleteConfirm` is the cancel/after-delete no-op closer.
   openDeleteConfirm: (langSlug: string) => void;
   closeDeleteConfirm: () => void;
+  // Full-screen results sub-modal. The open action owns the exclusivity guard
+  // (no-op while picker/notes float over the view) for both the auto-open and
+  // manual call sites.
+  openResultFullscreen: () => void;
+  closeResultFullscreen: () => void;
 }
 
 export const createProblemSlice: StateCreator<AppStore, [], [], ProblemSlice> = (set) => ({
@@ -174,6 +184,7 @@ export const createProblemSlice: StateCreator<AppStore, [], [], ProblemSlice> = 
         notes: null,
         help: false,
         deleteConfirm: null,
+        resultFullscreen: false,
       },
     }),
 
@@ -356,5 +367,21 @@ export const createProblemSlice: StateCreator<AppStore, [], [], ProblemSlice> = 
     set((state) => {
       if (!state.problem) return {};
       return { problem: { ...state.problem, deleteConfirm: null } };
+    }),
+
+  openResultFullscreen: () =>
+    set((state) => {
+      if (!state.problem) return {};
+      // Modals are exclusive: a run fired while the picker/notes float over the
+      // view (their layers don't shadow shift+r/t/s) lands in the inline panel
+      // instead of fighting the overlay.
+      if (state.problem.solutionPicker || state.problem.notes) return {};
+      return { problem: { ...state.problem, resultFullscreen: true } };
+    }),
+
+  closeResultFullscreen: () =>
+    set((state) => {
+      if (!state.problem) return {};
+      return { problem: { ...state.problem, resultFullscreen: false } };
     }),
 });

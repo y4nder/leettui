@@ -100,6 +100,7 @@ export function problemPanelMouseEnabled(): boolean {
     !p.solutionPicker &&
     !p.notes &&
     !p.help &&
-    !p.deleteConfirm
+    !p.deleteConfirm &&
+    !p.resultFullscreen
   );
 }

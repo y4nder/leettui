@@ -13,6 +13,7 @@ import {
   historyPanelBindings,
   questionPanelBindings,
   relatedPanelBindings,
+  resultPanelBindings,
   scrollPanelBindings,
   solutionsPanelBindings,
   topicPanelBindings,
@@ -48,7 +49,8 @@ export function panelBindings(panel: BrowsePanel): Binding<Renderable, KeyEvent>
 }
 
 // The static binding spec for a ProblemView panel's local keys (help popup Local Keys).
-// Description and Result share the scroll layer; Solutions and Related have their own.
+// Description and Result share the scroll layer (Result adds its Enter-to-expand);
+// Solutions, Related, and History have their own.
 export function problemPanelBindings(panel: ProblemPanel): Binding<Renderable, KeyEvent>[] {
   switch (panel) {
     case "solutions":
@@ -57,6 +59,8 @@ export function problemPanelBindings(panel: ProblemPanel): Binding<Renderable, K
       return relatedPanelBindings;
     case "history":
       return historyPanelBindings;
+    case "result":
+      return [...scrollPanelBindings, ...resultPanelBindings];
     default:
       return scrollPanelBindings;
   }

@@ -14,6 +14,7 @@
 import type { DbQuestion } from "../db/questions";
 import type { ResultView, ResultKind } from "../views/browse/resultView";
 import type { CaseStatus, LocalRunReport } from "../core/testRunner";
+import type { SaveOutcome, SaveResult } from "../core/solutions";
 
 // ── ANSI ────────────────────────────────────────────────────────────────────
 
@@ -191,6 +192,11 @@ export function presentResultView(view: ResultView): string {
     for (const line of view.error.split("\n")) lines.push(`${INDENT}${c.red(line)}`);
   }
 
+  if (view.notes?.length) {
+    lines.push("");
+    for (const note of view.notes) lines.push(`${INDENT}${c.dim(note)}`);
+  }
+
   return lines.join("\n");
 }
 
@@ -245,4 +251,58 @@ export function exitCodeForResultView(view: ResultView): number {
     case "loading":
       return 1;
   }
+}
+
+// ── `leettui test --save` reporting (Phase 2.1, TCASE-01) ─────────────────────
+
+// Glyph per save outcome, alongside `caseGlyph`'s style: created is a genuinely
+// new golden (green), changed is a re-bless overwriting a prior golden (cyan —
+// notable but not an error), unchanged confirms nothing moved (dim), skipped
+// means a crash/timeout was never blessed (red — the D-02 safety signal).
+function saveOutcomeGlyph(outcome: SaveOutcome): string {
+  switch (outcome) {
+    case "created":
+      return c.green("+");
+    case "changed":
+      return c.cyan("~");
+    case "unchanged":
+      return c.dim("=");
+    case "skipped":
+      return c.red("!");
+  }
+}
+
+// An indented block (mirrors `presentResultView`'s `lines` composition): a
+// count line ("N written · M skipped", written = every non-skipped outcome),
+// then one row per case.
+export function presentSaveSummary(results: SaveResult[]): string {
+  const skipped = results.filter((r) => r.outcome === "skipped").length;
+  const written = results.length - skipped;
+  const lines: string[] = ["", `${INDENT}${c.dim(`${written} written · ${skipped} skipped`)}`, ""];
+  for (const r of results) {
+    lines.push(`${INDENT}${saveOutcomeGlyph(r.outcome)} ${r.name}  ${c.dim(r.outcome)}`);
+  }
+  return lines.join("\n");
+}
+
+// D-07: trust-the-user, no blocking guard — just a plain reminder that a
+// blessed output isn't automatically *correct*, only what the current solution
+// happened to print.
+export function saveReminder(written: number): string {
+  return (
+    `${INDENT}Blessed ${written} output(s) from the current solution — ` +
+    "make sure it's actually correct, e.g. accepted on LeetCode."
+  );
+}
+
+// Exit code for `leettui test --save`, following the same 0/1/2 family as
+// `exitCodeForLocalRun`:
+//   - 0: at least one case was writable (created/changed/unchanged) — the
+//     verb did what it was asked, whether or not anything actually changed.
+//   - 2: every case was skipped — nothing was writable (all error/timeout, or
+//     no cases at all), the "couldn't run the verb" family (D-10). `--save`
+//     never itself represents a ran-but-failed test (1) — a case's pass/fail
+//     verdict is `test`'s concern, not the blessing verb's.
+export function exitCodeForSave(results: SaveResult[]): number {
+  return results.some((r) => r.outcome !== "skipped") ? 0 : 2;
 }
