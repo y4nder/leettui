@@ -151,10 +151,17 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
 
-- [ ] 03-01: Pure, unit-tested analytics module (streak/consistency/date-bucketing, timezone-correct via `toLocaleDateString('en-CA')`) + `dashboardStats` aggregate queries and slice (DASH-02, DASH-03, DASH-04, DASH-07)
-- [ ] 03-02: `DashboardView` + `app.tsx` routing + dashboard commands/bindings + global open keybinding (DASH-01)
-- [ ] 03-03: Activity heatmap grid + problems-per-week trend sparkline rendered with OpenTUI primitives (DASH-05, DASH-06)
+- [ ] 03-01-PLAN.md — TDD analytics foundation: `getFirstAcSummary()` first-AC join query + pure, unit-tested `analytics.ts` (first-time-solve unit D-01, timezone-correct `toLocaleDateString('en-CA')`, streak/consistency/counts/breakdown) (DASH-02, DASH-03, DASH-04, DASH-07)
+
+**Wave 2** *(blocked on Wave 1 — consumes `computeDashboardStats`)*
+
+- [ ] 03-02-PLAN.md — First visible slice: `"dashboard"` AppMode + return-mode wiring + `dashboardSlice` + `DashboardView` (summary block + empty-state) + `app.tsx` route + `dashboard.open`/`close` commands + global `p` binding (browse+problem) (DASH-01)
+
+**Wave 3** *(blocked on Wave 2 — extends `DashboardView` + `analytics.ts`)*
+
+- [ ] 03-03-PLAN.md — Trajectory widgets: `buildHeatmapGrid`/`buildWeeklyBuckets`/`buildSparkline` (tested) + 52-week × 7-day activity heatmap + ~12-week trend sparkline rendered with OpenTUI primitives + theme tokens (DASH-05, DASH-06)
 
 **UI hint**: yes
 
