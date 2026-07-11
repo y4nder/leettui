@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Submission Store & Backfill** - Resumable, idempotent import of LeetCode history into the local store, plus append-on-submit (all 3 plans complete, Task 4 human-verify checkpoint approved 2026-07-01)
 - [x] **Phase 2: Per-Problem History & Browse Badge** - Attempt history surfaced in ProblemView and a "worked-on-before" badge in the browse list (completed 2026-07-01)
 - [x] **Phase 2.1: Local Test-Case Output Management** *(INSERTED 2026-07-01)* - Populate/edit `case-NN.out` (accept-current-output / add-case) so local `leettui test` actually grades pass/fail — via a CLI verb and/or a ProblemView surface (completed 2026-07-10)
-- [ ] **Phase 2.2: Auto-Capture Failing Cases** *(INSERTED 2026-07-01)* - On a wrong-answer run/submit, auto-write the failing LeetCode input + expected output into `tests/` as a reproducible offline regression case (feeds 2.1's grading)
+- [x] **Phase 2.2: Auto-Capture Failing Cases** *(INSERTED 2026-07-01)* - On a wrong-answer run/submit, auto-write the failing LeetCode input + expected output into `tests/` as a reproducible offline regression case (feeds 2.1's grading) (completed 2026-07-11)
 - [ ] **Phase 3: Progress Dashboard** *(deferred behind 2.1/2.2)* - A new full-screen view: streak, recent counts, difficulty breakdown, consistency score, heatmap, and trend
 
 ## Phase Details
@@ -122,7 +122,7 @@ Plans:
 
 **Requirements**: TCASE-04, TCASE-05 *(formalized in REQUIREMENTS.md by plan 02.2-01)*
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans complete
 
 Plans:
 **Wave 1**
@@ -131,7 +131,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 — imports the capture writers + `normalize`)*
 
-- [ ] 02.2-02-PLAN.md — Wire capture into run/submit + surface feedback: hook writers into `submission.ts` (`{ response, captureNotes }` return + never-throws guard D-08), thread `captureNotes` through both TUI call sites + CLI `runApiVerb`, add `notes?: string[]` to `ResultView`, render dim notes in `ResultBody.tsx` + `present.ts` (D-10) (TCASE-04, TCASE-05)
+- [x] 02.2-02-PLAN.md — Wire capture into run/submit + surface feedback: hook writers into `submission.ts` (`{ response, captureNotes }` return + never-throws guard D-08), thread `captureNotes` through both TUI call sites + CLI `runApiVerb`, add `notes?: string[]` to `ResultView`, render dim notes in `ResultBody.tsx` + `present.ts` (D-10) (TCASE-04, TCASE-05)
 
 **Design note**: The failing-case fields (`last_testcase`/`input`, `expected_output`, `code_output`) live in the `CheckResponse` already parsed by `src/core/submission.ts`; the write path is the same tests-dir seam introduced in 2.1. Touches the run/submit handlers in `views/problem`.
 
@@ -168,5 +168,5 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 2.2 → 3
 | 1. Submission Store & Backfill | 3/3 | Complete    | 2026-07-01 |
 | 2. Per-Problem History & Browse Badge | 3/3 | Complete    | 2026-07-01 |
 | 2.1 Local Test-Case Output Management | 2/2 | Complete    | 2026-07-10 |
-| 2.2 Auto-Capture Failing Cases | 1/2 | In Progress|  |
+| 2.2 Auto-Capture Failing Cases | 2/2 | Complete   | 2026-07-11 |
 | 3. Progress Dashboard | 0/3 | Deferred behind 2.1/2.2 | - |
