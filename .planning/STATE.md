@@ -5,7 +5,7 @@ milestone_name: milestone
 current_phase: 3
 current_phase_name: Progress Dashboard
 status: ready-to-plan
-stopped_at: Phase 2.2 complete, ready to plan Phase 3
+stopped_at: Phase 2.2 complete; Phase 3 deferred pending feat/test-case-management wrap-up
 last_updated: "2026-07-11T00:54:13.894Z"
 last_activity: 2026-07-11
 last_activity_desc: Phase 02.2 complete, transitioned to Phase 3
@@ -24,13 +24,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core value:** A LeetCode user grinding in the terminal can open one view and instantly see whether they're improving and keeping it up — solve streak, recent counts, and breakdown by difficulty/topic — backed by their real submission history, owned locally.
-**Current focus:** Phase 3 — Progress Dashboard
+**Current focus:** Wrap up feat/test-case-management (PR/merge); Phase 3 (Progress Dashboard) deferred by user decision 2026-07-11 — different feature, starts after this branch lands
 
 ## Current Position
 
 Phase: 3 — Progress Dashboard
 Plan: Not started
-Status: Ready to plan (Phase 2.2 verified, UAT passed, transitioned)
+Status: Phase 3 deferred (user decision 2026-07-11) — finish feat/test-case-management branch (PR/merge) before starting the dashboard feature
 Last activity: 2026-07-11 — Phase 02.2 complete, transitioned to Phase 3
 
 Progress: [████████████████████] 10/10 plans (100%) — 4/5 phases complete
@@ -121,5 +121,5 @@ Items acknowledged and carried forward from previous milestone close:
 ## Session Continuity
 
 Last session: 2026-07-11T00:55:12Z
-Stopped at: Phase 2.2 complete, ready to plan Phase 3
+Stopped at: Phase 2.2 complete; Phase 3 deferred — wrap up feat/test-case-management first
 Resume file: None
