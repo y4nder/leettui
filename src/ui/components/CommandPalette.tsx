@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTerminalDimensions } from "@opentui/react";
 import { useBindings, useKeymap } from "@opentui/keymap/react";
 import { formatCommandBindings } from "@opentui/keymap/extras";
 import type { CommandEntry } from "@opentui/keymap";
@@ -6,6 +7,8 @@ import type { KeyEvent, Renderable } from "@opentui/core";
 import { colors } from "../theme";
 import { fuzzyMatch } from "../../core/search";
 import { useAppStore } from "../store";
+import { useListMouse } from "../useListMouse";
+import { useScrollableList } from "../useScrollableList";
 
 type Entry = CommandEntry<Renderable, KeyEvent>;
 
@@ -38,6 +41,7 @@ function filterRows(rows: PaletteRow[], needle: string): PaletteRow[] {
 
 export function CommandPalette() {
   const keymap = useKeymap();
+  const { height } = useTerminalDimensions();
   const [needle, setNeedle] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -46,21 +50,30 @@ export function CommandPalette() {
 
   const clampedIndex = filtered.length === 0 ? 0 : Math.min(selectedIndex, filtered.length - 1);
 
+  // Window the list like RecentPopup so the selection always stays in view — the full
+  // command catalog overflows the popup, and a scrollbox doesn't follow a cursor.
+  // Popup is 70% tall; reserve border (2) + title (1) + needle row (1) + footer (1).
+  const visibleCount = Math.max(1, Math.floor(height * 0.7) - 5);
+  const list = useScrollableList(clampedIndex, filtered.length, visibleCount);
+  const scrollOffset = list.scrollOffset;
+  const visible = filtered.slice(scrollOffset, scrollOffset + visibleCount);
+
+  // Shared by the Enter binding and the mouse activate: close first, then run on a
+  // microtask so the command executes against the restored (palette-free) mode.
+  const runRow = (index: number) => {
+    const row = filtered[index];
+    if (!row) return;
+    useAppStore.getState().hidePalette();
+    queueMicrotask(() => {
+      keymap.runCommand(row.name);
+    });
+  };
+
   useBindings(
     () => ({
       bindings: [
         { key: "escape", cmd: () => useAppStore.getState().hidePalette() },
-        {
-          key: "return",
-          cmd: () => {
-            if (filtered.length === 0) return;
-            const row = filtered[clampedIndex]!;
-            useAppStore.getState().hidePalette();
-            queueMicrotask(() => {
-              keymap.runCommand(row.name);
-            });
-          },
-        },
+        { key: "return", cmd: () => runRow(clampedIndex) },
         {
           key: "down",
           cmd: () => setSelectedIndex((i) => Math.min(i + 1, Math.max(filtered.length - 1, 0))),
@@ -77,6 +90,20 @@ export function CommandPalette() {
     }),
     [filtered, clampedIndex, keymap],
   );
+
+  // Click to select, click the selected command again to run it (≡ Enter), wheel to
+  // scroll the viewport (the highlight is dragged along only when it would leave the
+  // window). Indices always refer to the currently rendered `filtered` array, so
+  // filter churn can't misroute a click.
+  const mouse = useListMouse({
+    getSelectedIndex: () => clampedIndex,
+    select: setSelectedIndex,
+    activate: runRow,
+    onWheel: (d) => {
+      const dragged = list.scrollBy(d);
+      if (dragged !== null) setSelectedIndex(dragged);
+    },
+  });
 
   // Printable-char fallthrough: any unbound 1-char press extends the needle.
   useEffect(() => {
@@ -106,6 +133,7 @@ export function CommandPalette() {
       borderColor={colors.borderFocused}
       backgroundColor={colors.bgPopup}
       flexDirection="column"
+      {...mouse.containerProps}
     >
       <text fg={colors.fgAccent}> Command Palette </text>
       <box flexDirection="row" height={1} backgroundColor={colors.statusBar}>
@@ -113,24 +141,30 @@ export function CommandPalette() {
         <text fg={colors.fg}>{needle}</text>
         <text fg={colors.fgDim}>█</text>
       </box>
-      <scrollbox flexGrow={1}>
-        {filtered.length === 0 ? (
+      {/* A plain column, not a scrollbox: the list is windowed (useScrollableList
+          slices to visibleCount), so the content never overflows — and the wheel
+          drives our viewport. Container props sit on the popup box so the wheel
+          works anywhere over the modal. */}
+      <box flexDirection="column" flexGrow={1}>
+        {visible.length === 0 ? (
           <text fg={colors.fgDim}> (no matches)</text>
         ) : (
-          filtered.map((r, i) => {
-            const selected = i === clampedIndex;
+          visible.map((r, i) => {
+            const realIndex = scrollOffset + i;
+            const selected = realIndex === clampedIndex;
             return (
               <text
                 key={r.name}
                 fg={selected ? colors.fgAccent : colors.fg}
                 bg={selected ? colors.bgHighlight : undefined}
+                {...mouse.rowProps(realIndex)}
               >
                 {`${selected ? " ► " : "   "}${r.title.padEnd(40)}  ${r.display}`}
               </text>
             );
           })
         )}
-      </scrollbox>
+      </box>
       <text fg={colors.fgDim}> Type:Filter ↑↓:Navigate Enter:Run Esc:Cancel</text>
     </box>
   );

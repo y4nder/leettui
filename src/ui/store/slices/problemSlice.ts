@@ -118,6 +118,13 @@ export interface ProblemSlice {
   // Driven by j/k while the Solutions panel is focused; the active solution is what
   // e/R/s/t target, so cycling re-points those actions.
   moveFocusedSolution: (delta: number) => void;
+  // Absolute-index siblings of the move* actions (clamped, no-op when empty/absent).
+  // Driven by row clicks (useListMouse) — a click lands on a known real index, so it
+  // sets rather than deltas. Same clamp discipline as selectionSlice's set*Index.
+  setFocusedSolutionIndex: (index: number) => void;
+  setFocusedRelatedIndex: (index: number) => void;
+  setFocusedHistoryIndex: (index: number) => void;
+  setPickerIndex: (index: number) => void;
   // Move the cursor within the Related Questions list (clamped, no-op when empty).
   // Driven by j/k while the Related panel is focused. The cursor moves freely over
   // non-navigable entries; Enter is what gates on navigability.
@@ -204,6 +211,41 @@ export const createProblemSlice: StateCreator<AppStore, [], [], ProblemSlice> = 
       if (n === 0) return {};
       const next = Math.max(0, Math.min(n - 1, state.problem.focusedSolutionIndex + delta));
       return { problem: { ...state.problem, focusedSolutionIndex: next } };
+    }),
+
+  setFocusedSolutionIndex: (index) =>
+    set((state) => {
+      if (!state.problem) return {};
+      const n = state.problem.solutions.length;
+      if (n === 0) return {};
+      const next = Math.max(0, Math.min(n - 1, index));
+      return { problem: { ...state.problem, focusedSolutionIndex: next } };
+    }),
+
+  setFocusedRelatedIndex: (index) =>
+    set((state) => {
+      if (!state.problem) return {};
+      const n = state.problem.related.length;
+      if (n === 0) return {};
+      const next = Math.max(0, Math.min(n - 1, index));
+      return { problem: { ...state.problem, focusedRelatedIndex: next } };
+    }),
+
+  setFocusedHistoryIndex: (index) =>
+    set((state) => {
+      if (!state.problem) return {};
+      const n = state.problemSubmissions.length;
+      if (n === 0) return {};
+      const next = Math.max(0, Math.min(n - 1, index));
+      return { problem: { ...state.problem, focusedHistoryIndex: next } };
+    }),
+
+  setPickerIndex: (index) =>
+    set((state) => {
+      const picker = state.problem?.solutionPicker;
+      if (!state.problem || !picker || picker.snippets.length === 0) return {};
+      const next = Math.max(0, Math.min(picker.snippets.length - 1, index));
+      return { problem: { ...state.problem, solutionPicker: { ...picker, index: next } } };
     }),
 
   moveFocusedRelated: (delta) =>

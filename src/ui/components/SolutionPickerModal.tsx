@@ -3,7 +3,8 @@ import { useBindings } from "@opentui/keymap/react";
 
 import { useAppStore } from "../store";
 import { colors } from "../theme";
-import { pickerBindings } from "../keymap";
+import { getKeymap, pickerBindings } from "../keymap";
+import { useListMouse } from "../useListMouse";
 import { getExtension } from "../../api/types";
 import { readSolutionFile } from "../../core/solutions";
 
@@ -17,6 +18,17 @@ export function SolutionPickerModal() {
   useBindings(() => ({ bindings: pickerBindings }), []);
 
   const problem = useAppStore((s) => s.problem);
+
+  // Click to focus a language, click the focused one again to confirm (≡ Enter — the
+  // command opens the file in $EDITOR, creating it from the snippet first if needed),
+  // wheel to move the cursor. A modal is always "focused": pure select/activate.
+  const mouse = useListMouse({
+    getSelectedIndex: () => useAppStore.getState().problem?.solutionPicker?.index ?? 0,
+    select: (i) => useAppStore.getState().setPickerIndex(i),
+    activate: () => getKeymap().runCommand("picker.confirm"),
+    onWheel: (d) => useAppStore.getState().movePicker(d),
+  });
+
   if (!problem?.solutionPicker) return null;
 
   const { snippets, existing, index } = problem.solutionPicker;
@@ -50,23 +62,30 @@ export function SolutionPickerModal() {
       <box flexDirection="row" flexGrow={1}>
         <box flexDirection="column" width="38%" borderStyle="single" borderColor={colors.border}>
           <scrollbox flexGrow={1}>
-            {snippets.map((s, i) => {
-              const isSelected = i === index;
-              const hasSolution = existing.has(s.langSlug);
-              const marker = hasSolution ? "●" : " ";
-              const cursor = isSelected ? "►" : " ";
-              const langCol = s.lang.padEnd(14, " ");
-              return (
-                <text
-                  key={s.langSlug}
-                  fg={isSelected ? colors.fgAccent : hasSolution ? colors.fg : colors.fgDim}
-                  bg={isSelected ? colors.bgHighlight : undefined}
-                >
-                  {" "}
-                  {cursor} {marker} {langCol}
-                </text>
-              );
-            })}
+            {/* The rows wrapper sits INSIDE the scrollbox so its wheel handler runs
+                first (descendant order) and stopPropagation suppresses the native
+                content scroll — the wheel drives the language cursor like j/k. The
+                right-hand preview scrollbox keeps its native wheel scroll. */}
+            <box flexDirection="column" width="100%" {...mouse.containerProps}>
+              {snippets.map((s, i) => {
+                const isSelected = i === index;
+                const hasSolution = existing.has(s.langSlug);
+                const marker = hasSolution ? "●" : " ";
+                const cursor = isSelected ? "►" : " ";
+                const langCol = s.lang.padEnd(14, " ");
+                return (
+                  <text
+                    key={s.langSlug}
+                    fg={isSelected ? colors.fgAccent : hasSolution ? colors.fg : colors.fgDim}
+                    bg={isSelected ? colors.bgHighlight : undefined}
+                    {...mouse.rowProps(i)}
+                  >
+                    {" "}
+                    {cursor} {marker} {langCol}
+                  </text>
+                );
+              })}
+            </box>
           </scrollbox>
         </box>
 

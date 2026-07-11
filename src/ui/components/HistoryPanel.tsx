@@ -3,6 +3,9 @@ import type { AcRuntimeSummary } from "../verdict";
 import { langAbbrev, parseRuntimeMs, verdictColor, verdictGlyph } from "../verdict";
 import { formatRelative } from "../relativeTime";
 import { colors } from "../theme";
+import { useAppStore } from "../store";
+import { problemPanelMouseEnabled, useListMouse } from "../useListMouse";
+import { useScrollableList } from "../useScrollableList";
 
 interface HistoryPanelProps {
   submissions: DbSubmission[];
@@ -42,15 +45,30 @@ export function HistoryPanel({
   tag,
   maxRows,
 }: HistoryPanelProps) {
-  const selectedBg = focused ? colors.bgHighlight : colors.surface;
-  const selectedFg = focused ? colors.fgAccent : colors.mutedAccent;
-
   // Window the list so the focused row stays visible (mirrors RelatedPanel/QuestionList).
   const visibleCount = Math.max(1, Math.min(maxRows, submissions.length));
-  let scrollOffset = 0;
-  if (focusedIndex >= scrollOffset + visibleCount) scrollOffset = focusedIndex - visibleCount + 1;
-  if (focusedIndex < scrollOffset) scrollOffset = focusedIndex;
+  const list = useScrollableList(focusedIndex, submissions.length, visibleCount);
+  const scrollOffset = list.scrollOffset;
   const visible = submissions.slice(scrollOffset, scrollOffset + visibleCount);
+
+  // Click to move the cursor (focusing the panel first if needed), wheel to scroll the
+  // viewport (the cursor is dragged along only when it would leave the window).
+  // Navigate-only (D-10 — Enter reserved), so there's no activate: a second click on
+  // the focused row is deliberately a no-op.
+  const mouse = useListMouse({
+    enabled: problemPanelMouseEnabled,
+    isFocused: () => useAppStore.getState().problem?.focusedPanel === "history",
+    focus: () => useAppStore.getState().setProblemFocusedPanel("history"),
+    getSelectedIndex: () => useAppStore.getState().problem?.focusedHistoryIndex ?? 0,
+    select: (i) => useAppStore.getState().setFocusedHistoryIndex(i),
+    onWheel: (d) => {
+      const dragged = list.scrollBy(d);
+      if (dragged !== null) useAppStore.getState().setFocusedHistoryIndex(dragged);
+    },
+  });
+
+  const selectedBg = focused ? colors.bgHighlight : colors.surface;
+  const selectedFg = focused ? colors.fgAccent : colors.mutedAccent;
 
   const arrow =
     summary?.direction === "improved" ? "↓" : summary?.direction === "regressed" ? "↑" : "=";
@@ -70,6 +88,7 @@ export function HistoryPanel({
       // flexShrink:0 (like RelatedPanel): the windowed content is a fixed row count, so
       // shrinking the box would overlap the rows.
       flexShrink={0}
+      {...mouse.containerProps}
     >
       <box flexDirection="row">
         <text fg={focused ? colors.accent : colors.fgDim}> [{tag}]</text>
@@ -100,6 +119,7 @@ export function HistoryPanel({
               backgroundColor={isSelected ? selectedBg : undefined}
               width="100%"
               height={1}
+              {...mouse.rowProps(realIndex)}
             >
               <text fg={glyphFg}> {verdictGlyph(row.statusDisplay)} </text>
               <text fg={textFg}>{langAbbrev(row.lang)} </text>

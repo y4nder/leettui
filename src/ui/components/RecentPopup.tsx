@@ -6,7 +6,8 @@ import { colors, difficultyColor, statusColor, statusIcon } from "../theme";
 import { useAppStore } from "../store";
 import { handleEnterProblemView } from "../../views/problem/handlers";
 import { formatRelative } from "../relativeTime";
-import { useScrollOffset } from "../useScrollOffset";
+import { useScrollableList } from "../useScrollableList";
+import { useListMouse } from "../useListMouse";
 
 // "Recently viewed" history modal (Stage 20), opened with `h` from browse. A
 // recency-sorted list of the questions you've opened (detail popup or ProblemView),
@@ -21,8 +22,8 @@ export function RecentPopup() {
   const { height } = useTerminalDimensions();
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const open = () => {
-    const q = recents[selectedIndex];
+  const open = (index: number) => {
+    const q = recents[index];
     hideRecent();
     if (q) void handleEnterProblemView(q, "h");
   };
@@ -34,7 +35,7 @@ export function RecentPopup() {
         { key: "down", cmd: () => setSelectedIndex((i) => Math.min(i + 1, recents.length - 1)) },
         { key: "k", cmd: () => setSelectedIndex((i) => Math.max(i - 1, 0)) },
         { key: "up", cmd: () => setSelectedIndex((i) => Math.max(i - 1, 0)) },
-        { key: "return", cmd: open },
+        { key: "return", cmd: () => open(selectedIndex) },
         { key: "escape", cmd: () => hideRecent() },
         { key: "h", cmd: () => hideRecent() },
       ],
@@ -45,8 +46,22 @@ export function RecentPopup() {
   // Window the list like QuestionList so the selection never scrolls out of view.
   // Popup is 60% tall; reserve border (2) + title (1) + footer (1).
   const visibleCount = Math.max(1, Math.floor(height * 0.6) - 4);
-  const scrollOffset = useScrollOffset(selectedIndex, recents.length, visibleCount);
+  const list = useScrollableList(selectedIndex, recents.length, visibleCount);
+  const scrollOffset = list.scrollOffset;
   const visible = recents.slice(scrollOffset, scrollOffset + visibleCount);
+
+  // Click to select, click the selected row again to open (≡ Enter), wheel to scroll
+  // the viewport (the highlight is dragged along only when it would leave the window).
+  // A modal is always "focused", so it gets pure select/activate semantics.
+  const mouse = useListMouse({
+    getSelectedIndex: () => selectedIndex,
+    select: setSelectedIndex,
+    activate: open,
+    onWheel: (d) => {
+      const dragged = list.scrollBy(d);
+      if (dragged !== null) setSelectedIndex(dragged);
+    },
+  });
 
   return (
     <box
@@ -59,6 +74,7 @@ export function RecentPopup() {
       borderColor={colors.borderFocused}
       backgroundColor={colors.bgPopup}
       flexDirection="column"
+      {...mouse.containerProps}
     >
       <text fg={colors.fgAccent} attributes={TextAttributes.BOLD}>
         {` Recently viewed (${recents.length}) `}
@@ -68,7 +84,11 @@ export function RecentPopup() {
           <text fg={colors.fgDim}>No recently viewed questions yet.</text>
         </box>
       ) : (
-        <scrollbox flexGrow={1}>
+        // A plain column, not a scrollbox: the list is already windowed
+        // (useScrollableList slices to visibleCount), so the content never overflows —
+        // and the wheel drives our viewport, not a scrollbox's. Container props sit on
+        // the popup box so the wheel works anywhere over the modal.
+        <box flexDirection="column" flexGrow={1}>
           {visible.map((q, i) => {
             const realIndex = scrollOffset + i;
             const isSelected = realIndex === selectedIndex;
@@ -78,6 +98,7 @@ export function RecentPopup() {
                 flexDirection="row"
                 backgroundColor={isSelected ? colors.bgHighlight : undefined}
                 width="100%"
+                {...mouse.rowProps(realIndex)}
               >
                 <text fg={isSelected ? colors.fgAccent : colors.fg}>
                   {isSelected ? " ► " : "   "}
@@ -94,7 +115,7 @@ export function RecentPopup() {
               </box>
             );
           })}
-        </scrollbox>
+        </box>
       )}
       <text fg={colors.fgDim}> j/k:Navigate Enter:Open Esc/h:Close </text>
     </box>
