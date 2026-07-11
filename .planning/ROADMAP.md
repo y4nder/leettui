@@ -122,12 +122,12 @@ Plans:
 
 **Requirements**: TCASE-04, TCASE-05 *(formalized in REQUIREMENTS.md by plan 02.2-01)*
 
-**Plans**: 2 plans
+**Plans**: 1/2 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 02.2-01-PLAN.md — Capture engine + requirements: pure never-throws `capture.ts` (`captureFailingCase` submit-side new-case capture with dedup/fill/mismatch D-01/D-03/D-04/D-05/D-06 + `blessRunOutputs` run-side content-matched `.out` blessing D-02/D-07) + `capture.test.ts` round-trip/path-safety proof + export `normalize` + formalize TCASE-04/TCASE-05 (TCASE-04, TCASE-05)
+- [x] 02.2-01-PLAN.md — Capture engine + requirements: pure never-throws `capture.ts` (`captureFailingCase` submit-side new-case capture with dedup/fill/mismatch D-01/D-03/D-04/D-05/D-06 + `blessRunOutputs` run-side content-matched `.out` blessing D-02/D-07) + `capture.test.ts` round-trip/path-safety proof + export `normalize` + formalize TCASE-04/TCASE-05 (TCASE-04, TCASE-05)
 
 **Wave 2** *(blocked on Wave 1 — imports the capture writers + `normalize`)*
 
@@ -168,5 +168,5 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 2.2 → 3
 | 1. Submission Store & Backfill | 3/3 | Complete    | 2026-07-01 |
 | 2. Per-Problem History & Browse Badge | 3/3 | Complete    | 2026-07-01 |
 | 2.1 Local Test-Case Output Management | 2/2 | Complete    | 2026-07-10 |
-| 2.2 Auto-Capture Failing Cases | 0/2 | Planned (INSERTED) | - |
+| 2.2 Auto-Capture Failing Cases | 1/2 | In Progress|  |
 | 3. Progress Dashboard | 0/3 | Deferred behind 2.1/2.2 | - |

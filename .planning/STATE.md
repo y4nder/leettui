@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 02.2
-current_phase_name: Auto-Capture Failing Cases **
+current_phase_name: auto-capture-failing-cases-from-run-submit-into-offline-regr
 status: executing
 stopped_at: Phase 2.2 context gathered
-last_updated: "2026-07-11T00:01:49.403Z"
-last_activity: 2026-07-10
-last_activity_desc: Phase 02.1 complete, transitioned to Phase 02.2
+last_updated: "2026-07-11T00:19:53.873Z"
+last_activity: 2026-07-11
+last_activity_desc: Phase 02.2 execution started
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
-  percent: 60
+  total_plans: 10
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-26)
 
 **Core value:** A LeetCode user grinding in the terminal can open one view and instantly see whether they're improving and keeping it up — solve streak, recent counts, and breakdown by difficulty/topic — backed by their real submission history, owned locally.
-**Current focus:** Phase 02.1 — manage-local-test-case-expected-outputs-golden-snapshot-work
+**Current focus:** Phase 02.2 — auto-capture-failing-cases-from-run-submit-into-offline-regr
 
 ## Current Position
 
-Phase: 02.2 — Auto-Capture Failing Cases **
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-10 — Phase 02.1 complete, transitioned to Phase 02.2
+Phase: 02.2 (auto-capture-failing-cases-from-run-submit-into-offline-regr) — EXECUTING
+Plan: 2 of 2
+Status: Plan 01 complete (capture engine); Plan 02 (submission.ts hook + result rendering) pending
+Last activity: 2026-07-11 — Phase 02.2 plan 01 complete
 
-Progress: [████░░░░░░] 40%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -65,6 +65,7 @@ Progress: [████░░░░░░] 40%
 | Phase 02 P03 | 5min | 2 tasks | 2 files |
 | Phase 02.1 P01 | 35min | 3 tasks | 8 files |
 | Phase 02.1 P02 | 15min | 2 tasks | 5 files |
+| Phase 02.2 P01 | 6min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Recent decisions affecting current work:
 - [Phase 02.1]: 02.1-01: save-output.ts uses synchronous node:fs readFileSync/writeFileSync instead of Bun.write's unawaited promise — so the create-vs-overwrite decision and the write complete within one synchronous call, needed for in-process temp-dir unit tests
 - [Phase 02.1]: 02.1-02: nextCaseName/addCase are dir-injected (testsDir: string) matching discoverCases/saveGoldenOutputs' shape, and nextCaseName is strictly max+1 (never gap-fill) so numbering stays monotonic and collision-free even after a manual case deletion
 - [Phase 02.1]: 02.1-02: --add-case is handled as an early branch inside the existing test case in cli/index.ts (before runLocalTests), since it's an alternate mode of test that writes an input and exits rather than running the solution
+- [Phase 02.2]: 02.2-01: TDD RED phase shipped capture.ts as a type-checking stub (throws not-implemented) rather than omitting the file, so capture.test.ts fails on assertions instead of a missing-module compile error under the repo's zero-tolerance tsc pre-commit gate
+- [Phase 02.2]: 02.2-01: captureFailingCase/blessRunOutputs reuse addCase/discoverCases/compareOutput/normalize verbatim rather than inventing a new capture-engine abstraction
 
 ### Pending Todos
 
@@ -114,6 +117,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-10T23:35:22.433Z
+Last session: 2026-07-11T00:18:31.604Z
 Stopped at: Phase 2.2 context gathered
 Resume file: .planning/phases/02.2-auto-capture-failing-cases-from-run-submit-into-offline-regr/02.2-CONTEXT.md

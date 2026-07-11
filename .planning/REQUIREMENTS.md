@@ -45,8 +45,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Auto-Capture Failing Cases (Phase 2.2)
 
-- [ ] **TCASE-04**: Submit WA/RE/TLE/MLE responses auto-capture `last_testcase` (plus `expected_output` when present) into a new `tests/case-NN.txt` (+ sibling `.out`), de-duplicated by normalized input match and non-destructive — a missing sibling `.out` is filled (never a duplicate), a disagreeing `.out` is surfaced not overwritten (D-01, D-03, D-04, D-05, D-06)
-- [ ] **TCASE-05**: Run responses (accepted or wrong-answer) bless missing `.out`s for existing seeded cases from `expected_code_answer[]`, matched to the local case by normalized `exampleTestcaseList[i]` content, never by array index (D-02, D-07)
+- [x] **TCASE-04**: Submit WA/RE/TLE/MLE responses auto-capture `last_testcase` (plus `expected_output` when present) into a new `tests/case-NN.txt` (+ sibling `.out`), de-duplicated by normalized input match and non-destructive — a missing sibling `.out` is filled (never a duplicate), a disagreeing `.out` is surfaced not overwritten (D-01, D-03, D-04, D-05, D-06)
+- [x] **TCASE-05**: Run responses (accepted or wrong-answer) bless missing `.out`s for existing seeded cases from `expected_code_answer[]`, matched to the local case by normalized `exampleTestcaseList[i]` content, never by array index (D-02, D-07)
 
 TCASE-04 and TCASE-05 jointly satisfy all four ROADMAP Phase 2.2 success criteria (capture, non-destructive dedup, offline gradeability, never-destabilize run/submit).
 
@@ -105,8 +105,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TCASE-01 | Phase 2.1 | Complete |
 | TCASE-02 | Phase 2.1 | Complete |
 | TCASE-03 | Phase 2.1 | Complete |
-| TCASE-04 | Phase 2.2 | Pending |
-| TCASE-05 | Phase 2.2 | Pending |
+| TCASE-04 | Phase 2.2 | Complete |
+| TCASE-05 | Phase 2.2 | Complete |
 
 **Coverage:**
 
