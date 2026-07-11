@@ -21,7 +21,7 @@ import { migrateSolutionsLayout } from "../../../core/migration";
 import { detectSolutionsRelocation, type RelocationPlan } from "../../../core/relocate";
 import {
   checkForUpdate,
-  fetchReleaseByTag,
+  fetchReleases,
   setPendingUpdate,
   shouldShowChangelog,
 } from "../../../core/update";
@@ -136,20 +136,24 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
           })
           .catch(() => {});
         // Post-update "What's new" (Stage 18): on the first launch after an
-        // update, pop the *running* version's release notes once, into a calm
-        // browse view. A fresh install is seeded "caught up" so it doesn't pop on
-        // first launch; recording VERSION unconditionally (below) keeps it
-        // strictly once-per-version. The decision lives in the pure, tested
+        // update, pop the release notes once — the *running* version emphasized,
+        // past releases scrolling below — into a calm browse view. A fresh
+        // install is seeded "caught up" so it doesn't pop on first launch;
+        // recording VERSION unconditionally (below) keeps it strictly
+        // once-per-version. The decision lives in the pure, tested
         // shouldShowChangelog; this block only owns the IS_RELEASE gate + fetch.
+        // No per-tag fallback: the list endpoint fails under the same conditions
+        // and this path is already fail-silent; if VERSION isn't in the first 10
+        // the list still renders, just without the installed emphasis.
         if (IS_RELEASE) {
           const lastShown = getLastShownChangelogVersion();
           if (shouldShowChangelog(VERSION, lastShown, useAppStore.getState().mode)) {
-            fetchReleaseByTag(VERSION)
-              .then((release) => {
+            fetchReleases(10)
+              .then((releases) => {
                 // Re-validate mode (the fetch was async) so we don't pop over a
                 // problem/modal the user opened meanwhile.
                 if (useAppStore.getState().mode === "browse") {
-                  useAppStore.getState().showChangelog(release);
+                  useAppStore.getState().showChangelog({ releases, highlightTag: VERSION });
                 }
               })
               .catch(() => {});
