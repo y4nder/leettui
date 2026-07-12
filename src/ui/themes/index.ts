@@ -1,5 +1,21 @@
 import type { RGBA } from "@opentui/core";
-import { TERMCN_NAMES, TERMCN_PRESETS } from "@/ui/themes/termcn";
+import { tokyoNight } from "@/ui/themes/tokyo-night";
+import { catppuccin } from "@/ui/themes/catppuccin";
+import { rosePine } from "@/ui/themes/rose-pine";
+import { nord } from "@/ui/themes/nord";
+import { dracula } from "@/ui/themes/dracula";
+import { gruvbox } from "@/ui/themes/gruvbox";
+import { everforest } from "@/ui/themes/everforest";
+import { kanagawa } from "@/ui/themes/kanagawa";
+import { oneDark } from "@/ui/themes/one-dark";
+import { solarized } from "@/ui/themes/solarized";
+import { ayu } from "@/ui/themes/ayu";
+import { monokai } from "@/ui/themes/monokai";
+import { nightowl } from "@/ui/themes/nightowl";
+import { catppuccinMacchiato } from "@/ui/themes/catppuccin-macchiato";
+import { github } from "@/ui/themes/github";
+import { vesper } from "@/ui/themes/vesper";
+import { synthwave84 } from "@/ui/themes/synthwave84";
 import { buildSystemTheme } from "@/ui/themes/system";
 
 export type ThemeColor = string | RGBA;
@@ -45,14 +61,51 @@ export interface Theme {
   statusBarFg: ThemeColor;
 }
 
-// Every static preset is derived from the termcn registry (see `themes/termcn.ts`).
-// `system` is built lazily because its RGBA values must be constructed at runtime
-// (after `@opentui/core` is loaded). The build is cheap, so we just re-invoke on each
-// resolve.
-export const PRESET_NAMES = [...TERMCN_NAMES, "system"] as const;
-export type PresetName = string;
+// Every static preset is expanded from a compact `Palette` via `fromPalette`
+// (see `themes/palette.ts`) in its own file. `system` is built lazily because its RGBA
+// values must be constructed at runtime (after `@opentui/core` is loaded). The build is
+// cheap, so we just re-invoke on each resolve.
+export const PRESET_NAMES = [
+  "tokyo-night",
+  "catppuccin",
+  "rose-pine",
+  "nord",
+  "dracula",
+  "gruvbox",
+  "everforest",
+  "kanagawa",
+  "one-dark",
+  "solarized",
+  "ayu",
+  "monokai",
+  "nightowl",
+  "catppuccin-macchiato",
+  "github",
+  "vesper",
+  "synthwave84",
+  "system",
+] as const;
+export type PresetName = (typeof PRESET_NAMES)[number];
 
-const STATIC_PRESETS: Record<string, Theme> = TERMCN_PRESETS;
+const STATIC_PRESETS: Record<string, Theme> = {
+  "tokyo-night": tokyoNight,
+  catppuccin,
+  "rose-pine": rosePine,
+  nord,
+  dracula,
+  gruvbox,
+  everforest,
+  kanagawa,
+  "one-dark": oneDark,
+  solarized,
+  ayu,
+  monokai,
+  nightowl,
+  "catppuccin-macchiato": catppuccinMacchiato,
+  github,
+  vesper,
+  synthwave84,
+};
 
 const DEFAULT = "tokyo-night";
 
