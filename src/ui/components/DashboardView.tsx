@@ -113,34 +113,41 @@ export function DashboardView({
       </text>
 
       <scrollbox ref={registerPopupScroller} flexGrow={1} paddingLeft={1} paddingRight={1}>
-        {isEmpty || dashboardStats === null ? (
-          // D-13: empty-state CTA instead of a wall of zeros
-          <text fg={colors.fgDim}>{"No submission history yet — run backfill from Ctrl+P"}</text>
-        ) : (
-          <box flexDirection="column">
-            {/* (1) Streak line — leading (D-06 order) */}
-            <text fg={colors.fgAccent}>
-              {`🔥 ${dashboardStats.currentStreak}-day streak (best ${dashboardStats.longestStreak})`}
-            </text>
+        {/* Center the whole dashboard block within the scroll viewport — horizontally
+            AND vertically — so it sits in the middle of the screen instead of the
+            top-left corner. flexGrow can't shrink below content height, so once the
+            content is taller than the viewport this top-anchors and scrolling still
+            reaches every row (the block stays left-aligned internally; only the block
+            as a unit is centered). */}
+        <box flexGrow={1} justifyContent="center" alignItems="center">
+          {isEmpty || dashboardStats === null ? (
+            // D-13: empty-state CTA instead of a wall of zeros
+            <text fg={colors.fgDim}>{"No submission history yet — run backfill from Ctrl+P"}</text>
+          ) : (
+            <box flexDirection="column">
+              {/* (1) Streak line — leading (D-06 order) */}
+              <text fg={colors.fgAccent}>
+                {`🔥 ${dashboardStats.currentStreak}-day streak (best ${dashboardStats.longestStreak})`}
+              </text>
 
-            {/* (2) Total solved + colored E/M/H breakdown (QuestionList per-segment pattern) */}
-            <box flexDirection="row">
-              <text fg={colors.fg}>{`${dashboardStats.totalSolved} solved   `}</text>
-              <text fg={difficultyColor("Easy")}>{`E ${dashboardStats.byDifficulty.Easy}`}</text>
-              <text fg={colors.fgDim}>{" · "}</text>
-              <text
-                fg={difficultyColor("Medium")}
-              >{`M ${dashboardStats.byDifficulty.Medium}`}</text>
-              <text fg={colors.fgDim}>{" · "}</text>
-              <text fg={difficultyColor("Hard")}>{`H ${dashboardStats.byDifficulty.Hard}`}</text>
-            </box>
+              {/* (2) Total solved + colored E/M/H breakdown (QuestionList per-segment pattern) */}
+              <box flexDirection="row">
+                <text fg={colors.fg}>{`${dashboardStats.totalSolved} solved   `}</text>
+                <text fg={difficultyColor("Easy")}>{`E ${dashboardStats.byDifficulty.Easy}`}</text>
+                <text fg={colors.fgDim}>{" · "}</text>
+                <text
+                  fg={difficultyColor("Medium")}
+                >{`M ${dashboardStats.byDifficulty.Medium}`}</text>
+                <text fg={colors.fgDim}>{" · "}</text>
+                <text fg={difficultyColor("Hard")}>{`H ${dashboardStats.byDifficulty.Hard}`}</text>
+              </box>
 
-            {/* (3) Recent counts + consistency */}
-            <text fg={colors.fg}>
-              {`7d: ${dashboardStats.last7}   30d: ${dashboardStats.last30}   consistency: ${Math.round(dashboardStats.consistency * 100)}%`}
-            </text>
+              {/* (3) Recent counts + consistency */}
+              <text fg={colors.fg}>
+                {`7d: ${dashboardStats.last7}   30d: ${dashboardStats.last30}   consistency: ${Math.round(dashboardStats.consistency * 100)}%`}
+              </text>
 
-            {/* ----------------------------------------------------------------
+              {/* ----------------------------------------------------------------
                 (4) Activity heatmap — DASH-05, D-05 order (below summary)
                 52 weeks × 7 days. 7 rows (one per weekday, dow 0=Sun..6=Sat);
                 each row is a flexDirection="row" box of run-length-encoded
@@ -151,26 +158,26 @@ export function DashboardView({
                 different character (D-12). No Date.now() / date math here —
                 all computation lives in buildHeatmapGrid (pure analytics module).
                 ---------------------------------------------------------------- */}
-            <text fg={colors.fgDim} flexShrink={0}>
-              {"Activity (52 wk)"}
-            </text>
-            <box flexDirection="column">
-              {
-                // Render 7 weekday rows (dow 0..6).
-                // Access pattern: heatmapGrid[weekIndex][dow] (not transposed — Pitfall 3).
-                // For each dow, collect cell counts across all 52 weekIndices (0..51).
-                Array.from({ length: 7 }, (_, dow) => {
-                  // Extract the 52 per-week counts for this day-of-week.
-                  const weekCounts = dashboardStats.heatmapGrid.map((week) => week[dow] ?? 0);
-                  return (
-                    // biome-ignore lint/correctness/useJsxKeyInIterable: static 7-row list, never reordered
-                    <box flexDirection="row">{buildHeatmapRow(weekCounts)}</box>
-                  );
-                })
-              }
-            </box>
+              <text fg={colors.fgDim} flexShrink={0}>
+                {"Activity (52 wk)"}
+              </text>
+              <box flexDirection="column">
+                {
+                  // Render 7 weekday rows (dow 0..6).
+                  // Access pattern: heatmapGrid[weekIndex][dow] (not transposed — Pitfall 3).
+                  // For each dow, collect cell counts across all 52 weekIndices (0..51).
+                  Array.from({ length: 7 }, (_, dow) => {
+                    // Extract the 52 per-week counts for this day-of-week.
+                    const weekCounts = dashboardStats.heatmapGrid.map((week) => week[dow] ?? 0);
+                    return (
+                      // biome-ignore lint/correctness/useJsxKeyInIterable: static 7-row list, never reordered
+                      <box flexDirection="row">{buildHeatmapRow(weekCounts)}</box>
+                    );
+                  })
+                }
+              </box>
 
-            {/* ----------------------------------------------------------------
+              {/* ----------------------------------------------------------------
                 (5) Trend sparkline — DASH-06, D-05 order (below heatmap)
                 ~12-week problems-per-week trend as Unicode block glyphs.
                 buildSparkline(sparklineWeeks) maps weekly counts to bar heights
@@ -178,12 +185,13 @@ export function DashboardView({
                 glyph run (a full per-bar ramp is out of scope per D-12 — that
                 ramp is the heatmap's). No date math in the component.
                 ---------------------------------------------------------------- */}
-            <box flexDirection="row">
-              <text fg={colors.fgDim}>{"Trend (12 wk) "}</text>
-              <text fg={colors.accent}>{buildSparkline(dashboardStats.sparklineWeeks)}</text>
+              <box flexDirection="row">
+                <text fg={colors.fgDim}>{"Trend (12 wk) "}</text>
+                <text fg={colors.accent}>{buildSparkline(dashboardStats.sparklineWeeks)}</text>
+              </box>
             </box>
-          </box>
-        )}
+          )}
+        </box>
       </scrollbox>
 
       {/* Footer — flexShrink={0} is MANDATORY (Pitfall 5): same reason as header. */}
