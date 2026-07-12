@@ -7,6 +7,7 @@ import { createUiSlice } from "./slices/uiSlice";
 import { createProblemSlice } from "./slices/problemSlice";
 import { createSyncSlice } from "./slices/syncSlice";
 import { createSubmissionsSlice } from "./slices/submissionsSlice";
+import { createDashboardSlice } from "./slices/dashboardSlice";
 import type { QuestionsSlice } from "./slices/questionsSlice";
 import type { SelectionSlice } from "./slices/selectionSlice";
 import type { SearchSlice } from "./slices/searchSlice";
@@ -15,6 +16,7 @@ import type { UiSlice } from "./slices/uiSlice";
 import type { ProblemSlice } from "./slices/problemSlice";
 import type { SyncSlice } from "./slices/syncSlice";
 import type { SubmissionsSlice } from "./slices/submissionsSlice";
+import type { DashboardSlice } from "./slices/dashboardSlice";
 
 export type AppStore = QuestionsSlice &
   SelectionSlice &
@@ -23,7 +25,8 @@ export type AppStore = QuestionsSlice &
   UiSlice &
   ProblemSlice &
   SyncSlice &
-  SubmissionsSlice;
+  SubmissionsSlice &
+  DashboardSlice;
 
 export const useAppStore = create<AppStore>()((...a) => ({
   ...createQuestionsSlice(...a),
@@ -34,6 +37,7 @@ export const useAppStore = create<AppStore>()((...a) => ({
   ...createProblemSlice(...a),
   ...createSyncSlice(...a),
   ...createSubmissionsSlice(...a),
+  ...createDashboardSlice(...a),
 }));
 
 export type { AppMode, BrowsePanel } from "./slices/uiSlice";

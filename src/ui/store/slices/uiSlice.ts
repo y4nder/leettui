@@ -36,7 +36,8 @@ export type AppMode =
   | "gitSync"
   | "config"
   | "backfillNudge"
-  | "easterEgg";
+  | "easterEgg"
+  | "dashboard"; // Phase 3
 
 // Which remote→local direction the GitSyncPrompt runs: clone a fresh/empty dir, or
 // fast-forward pull an already-tracked one. Decided by handleOpenGitSync's dir probe.
@@ -67,6 +68,10 @@ export interface UiSlice {
   // Which direction the GitSyncPrompt runs (clone vs fast-forward pull), or null when
   // closed. Set by handleOpenGitSync's dir probe before opening the wizard (Stage 24).
   gitSyncMode: GitSyncMode | null;
+  // The mode to restore when the dashboard is closed. Initialized to "browse";
+  // showDashboard stashes the pre-open mode here so hideDashboard can return to it.
+  // showDashboard writes ONLY mode + dashboardReturnMode — never touches problem state (D-11).
+  dashboardReturnMode: AppMode;
   // Per-panel "please glide the next scroll" nonces, bumped by the half-page
   // commands. The list components feed their panel's nonce to useGlide; a bump
   // animates the offset change, an unchanged nonce snaps. Per-panel (not one
@@ -112,6 +117,10 @@ export interface UiSlice {
   hideBackfillNudge: () => void;
   showEasterEgg: () => void;
   hideEasterEgg: () => void;
+  // Progress dashboard (Phase 3). showDashboard stashes the pre-open mode so
+  // hideDashboard can return to it — browse→browse, problem→problem (D-11).
+  showDashboard: (returnMode: AppMode) => void;
+  hideDashboard: () => void;
 }
 
 export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => ({
@@ -129,6 +138,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   changelog: null,
   recents: [],
   gitSyncMode: null,
+  dashboardReturnMode: "browse",
   topicScrollNonce: 0,
   questionScrollNonce: 0,
 
@@ -214,4 +224,10 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   // Easter egg: a full-screen ASCII art reveal that lingers until any key is pressed.
   showEasterEgg: () => set({ mode: "easterEgg" }),
   hideEasterEgg: () => set({ mode: "browse" }),
+
+  // Progress dashboard (Phase 3). showDashboard writes ONLY mode + dashboardReturnMode —
+  // never touches problem state (D-11: problem context is preserved while in dashboard,
+  // returning is a plain mode flip via dashboardReturnMode).
+  showDashboard: (returnMode) => set({ mode: "dashboard", dashboardReturnMode: returnMode }),
+  hideDashboard: () => set((s) => ({ mode: s.dashboardReturnMode })),
 });
