@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Per-Problem History & Browse Badge** - Attempt history surfaced in ProblemView and a "worked-on-before" badge in the browse list (completed 2026-07-01)
 - [x] **Phase 2.1: Local Test-Case Output Management** *(INSERTED 2026-07-01)* - Populate/edit `case-NN.out` (accept-current-output / add-case) so local `leettui test` actually grades pass/fail — via a CLI verb and/or a ProblemView surface (completed 2026-07-10)
 - [x] **Phase 2.2: Auto-Capture Failing Cases** *(INSERTED 2026-07-01)* - On a wrong-answer run/submit, auto-write the failing LeetCode input + expected output into `tests/` as a reproducible offline regression case (feeds 2.1's grading) (completed 2026-07-11)
-- [ ] **Phase 3: Progress Dashboard** *(deferred behind 2.1/2.2)* - A new full-screen view: streak, recent counts, difficulty breakdown, consistency score, heatmap, and trend
+- [x] **Phase 3: Progress Dashboard** *(deferred behind 2.1/2.2)* - A new full-screen view: streak, recent counts, difficulty breakdown, consistency score, heatmap, and trend (completed 2026-07-12)
 
 ## Phase Details
 
@@ -148,7 +148,7 @@ Plans:
   3. The dashboard shows current and longest streak computed against the user's local day boundaries (timezone-correct), alongside a rolling 30-day consistency score.
   4. The dashboard renders an activity heatmap (52-week × 7-day grid) and a ~12-week problems-per-week trend sparkline using OpenTUI primitives and Unicode glyphs — no new dependencies.
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans complete
 
 Plans:
 **Wave 1**
@@ -161,7 +161,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 — extends `DashboardView` + `analytics.ts`)*
 
-- [ ] 03-03-PLAN.md — Trajectory widgets: `buildHeatmapGrid`/`buildWeeklyBuckets`/`buildSparkline` (tested) + 52-week × 7-day activity heatmap + ~12-week trend sparkline rendered with OpenTUI primitives + theme tokens (DASH-05, DASH-06)
+- [x] 03-03-PLAN.md — Trajectory widgets: `buildHeatmapGrid`/`buildWeeklyBuckets`/`buildSparkline` (tested) + 52-week × 7-day activity heatmap + ~12-week trend sparkline rendered with OpenTUI primitives + theme tokens (DASH-05, DASH-06)
 
 **UI hint**: yes
 
@@ -176,4 +176,4 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 2.2 → 3
 | 2. Per-Problem History & Browse Badge | 3/3 | Complete    | 2026-07-01 |
 | 2.1 Local Test-Case Output Management | 2/2 | Complete    | 2026-07-10 |
 | 2.2 Auto-Capture Failing Cases | 2/2 | Complete    | 2026-07-11 |
-| 3. Progress Dashboard | 2/3 | In Progress|  |
+| 3. Progress Dashboard | 3/3 | Complete    | 2026-07-12 |
