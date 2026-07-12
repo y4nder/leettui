@@ -65,6 +65,21 @@ name = "tokyo-night"  # my pick
     const next = upsertSectionString(FRESH, "paths", "solutions", 'C:\\Users\\a "b"');
     expect((parse(next).paths as { solutions: string }).solutions).toBe('C:\\Users\\a "b"');
   });
+
+  test("replaces a previously BARE scalar with a quoted one (detach cycle bug)", () => {
+    // editor.detach flips writers: true/false persist bare (upsertSectionRaw),
+    // "auto" persists a quoted string (this fn). Cycling false → "auto" must
+    // REPLACE the bare value, not append a duplicate detach key (which produced a
+    // "redefine an already defined value" TOML crash on the next load).
+    const withBare = `[editor]
+detach = false  # forced blocking
+`;
+    const next = upsertSectionString(withBare, "editor", "detach", "auto");
+    expect((parse(next).editor as { detach: string }).detach).toBe("auto");
+    expect(next).toContain("# forced blocking");
+    // Exactly one detach line survives.
+    expect(next.match(/^\s*detach\s*=/gm)).toHaveLength(1);
+  });
 });
 
 describe("upsertSectionRaw — bare (unquoted) scalars", () => {

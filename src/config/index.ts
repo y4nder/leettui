@@ -309,7 +309,16 @@ export function upsertSectionString(
   const escaped = escapeTomlString(value);
   const sectionRe = new RegExp(`^\\s*\\[${section}\\]`, "m");
   const hasSection = sectionRe.test(content);
-  const keyRe = new RegExp(`(^\\s*\\[${section}\\][\\s\\S]*?^\\s*)${key}\\s*=\\s*"[^"]*"`, "m");
+  // Match an existing value that's either quoted ("…") or a bare scalar, mirroring
+  // upsertSectionRaw. Without the bare arm, a key currently written as a bare
+  // scalar (e.g. `detach = false` from upsertSectionRaw) wouldn't be found, and we
+  // would insert a duplicate quoted key alongside it → a "redefine" TOML crash.
+  // `editor.detach` is the one setting that flips between the two writers ("auto"
+  // is a string, true/false are bare booleans), so it's the case that hit this.
+  const keyRe = new RegExp(
+    `(^\\s*\\[${section}\\][\\s\\S]*?^\\s*)${key}\\s*=\\s*(?:"[^"]*"|[^\\s#]+)`,
+    "m",
+  );
   const hasKey = hasSection && keyRe.test(content);
 
   if (hasKey) return content.replace(keyRe, `$1${key} = "${escaped}"`);
