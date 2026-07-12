@@ -28,7 +28,7 @@
 
 **Testing:**
 - Bun test (built-in) - Run with `bun test`
-- Unit + integration tests in `*.test.ts` files co-located with source
+- Unit + integration tests in `*.test.ts` files under a top-level `tests/` tree mirroring `src/` (imported via the `@/*` → `src/*` alias)
 
 **Build/Dev:**
 - Biome `2.5.0` - Linting + formatting (zero-tolerance warnings via `--error-on-warnings`)

@@ -20,26 +20,23 @@ bun run check                  # Full gate: lint + typecheck + test
 ## Test File Organization
 
 **Location:**
-- Co-located with source: `src/{module}/{file}.test.ts` in the same directory as `{file}.ts`
+- A top-level `tests/` tree mirroring `src/` one-to-one: `tests/{module}/{file}.test.ts` tests `src/{module}/{file}.ts`. Tests are **not** co-located — `src/` is pure production code.
+
+**Imports:**
+- Tests reach source through the `@/*` → `src/*` path alias (`tsconfig.json` `paths`), e.g. `import { filterTopics } from "@/core/search"`. Deep cross-module imports stay flat (`@/db/questions`, not `../../../db/questions`). The alias is honored natively by `bun test`, `tsc`, and `bun build` (all-Bun toolchain). It also applies to `mock.module()` and dynamic `import()` specifiers.
 
 **Naming:**
-- Pattern: `{name}.test.ts` (one test file per module being tested, not per scenario)
+- Pattern: `{name}.test.ts` (one test file per module being tested, not per scenario; `config/` splits `index.ts` across several concern-named files like `editorCommand.test.ts`).
 
 **Structure:**
 ```
-src/
-├── config/
-│   ├── index.ts
-│   └── persist.test.ts          # Tests for config/index.ts
-├── core/
-│   ├── git.ts
-│   └── git.test.ts              # Tests for core/git.ts
-└── core/harness/
-    ├── rust.ts
-    └── rust.test.ts             # Tests for the rust harness generator
+src/                             tests/
+├── config/index.ts        →     ├── config/persist.test.ts       # imports @/config/index
+├── core/git.ts            →     ├── core/git.test.ts             # imports @/core/git
+└── core/harness/rust.ts   →     └── core/harness/rust.test.ts    # imports @/core/harness/*
 ```
 
-**29 test files total**, covering:
+**43 test files total**, covering:
 - `src/config/` — config persistence, path resolution, editor-command parsing
 - `src/core/` — sync, search, session, migration, relocate, git, testRunner, update, submission
 - `src/core/auth/` — paste parsing
@@ -125,7 +122,7 @@ beforeEach(() => { dir = mkdtempSync(join(tmpdir(), "leettui-test-")); });
 afterEach(() => rmSync(dir, { recursive: true, force: true }));
 ```
 
-Fixtures are created in `beforeEach` with unique names (e.g. the `freshDir(tag)` helper in `src/core/git.test.ts`).
+Fixtures are created in `beforeEach` with unique names (e.g. the `freshDir(tag)` helper in `tests/core/git.test.ts`).
 
 ## Coverage
 
@@ -141,20 +138,22 @@ Fixtures are created in `beforeEach` with unique names (e.g. the `freshDir(tag)`
 ## Test Types
 
 **Unit tests** — pure functions, single-responsibility modules. Direct calls with predefined inputs.
-- `src/config/persist.test.ts` (TOML rewrite with comment preservation)
-- `src/config/editorCommand.test.ts` (command-line parsing with quotes/backslashes)
-- `src/ui/progress.test.ts` (bar geometry with fractional characters)
-- `src/core/update.test.ts` (semver comparison)
-- `src/core/auth/paste.test.ts` (cookie parsing)
+- `tests/config/persist.test.ts` (TOML rewrite with comment preservation)
+- `tests/config/editorCommand.test.ts` (command-line parsing with quotes/backslashes)
+- `tests/ui/progress.test.ts` (bar geometry with fractional characters)
+- `tests/core/update.test.ts` (semver comparison)
+- `tests/core/auth/paste.test.ts` (cookie parsing)
 
 **Integration tests** — multiple modules together; set up a temp dir, call the integration point, verify filesystem state.
-- `src/core/solutions.test.ts` (end-to-end create-flow with template overlays)
-- `src/core/git.test.ts` (git ops + defensive `.gitignore` secrets validation)
-- `src/core/testRunner.test.ts` (case pairing + output normalization)
+- `tests/core/solutions.test.ts` (end-to-end create-flow with template overlays)
+- `tests/core/git.test.ts` (git ops + defensive `.gitignore` secrets validation)
+- `tests/core/testRunner.test.ts` (case pairing + output normalization)
 
 **Subprocess E2E tests** — cross-boot state (`session.json`), runtime-fixed paths (`os.homedir()`). Create a temp `$HOME`, spawn a child with that env, inspect the result. Necessary because Bun fixes `os.homedir()` at process launch.
-- `src/core/session.test.ts` — session merge invariants over two spawns sharing one `session.json`
-- `src/core/harness/rust.test.ts` — a real `cargo` build in a subprocess to prove the feature-on harness compiles
+- `tests/core/session.test.ts` — session merge invariants over two spawns sharing one `session.json`
+- `tests/core/harness/rust.test.ts` — a real `cargo` build in a subprocess to prove the feature-on harness compiles
+
+**Path caveat:** a child script that `import()`s a real source module must build the path from `process.cwd()` (repo root, where `bun test` runs) — e.g. `join(process.cwd(), "src/core/session.ts")` — **not** `import.meta.dir`, since the test now lives under `tests/`, not beside its source.
 
 **Conditional (gated) tests** — `test.if` / `describe.if` / `describe.skipIf` gate on `Bun.which(tool)` so a missing toolchain skips rather than fails.
 ```typescript

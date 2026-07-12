@@ -87,7 +87,7 @@
 4. Local relative imports (e.g., `import { useAppStore } from "../store"`, `import { colors } from "../theme"`)
 
 **Path Aliases:**
-- None configured — all imports are relative paths
+- `@/*` → `src/*` (`tsconfig.json` `paths`), used by **test files** in `tests/` to import source (e.g. `import { filterTopics } from "@/core/search"`). Source files under `src/` still use relative imports among themselves.
 - Exception: Bun/Node.js namespaced imports (`bun:sqlite`, `node:fs`, `node:path`, etc.)
 
 **Example block:**
