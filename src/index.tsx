@@ -11,6 +11,13 @@ import { initDebug } from "@/debug";
 import { loadConfig, getThemeName } from "@/config";
 import { setTheme } from "@/ui/theme";
 import { attachPaletteListener } from "@/ui/palette";
+import { installCrashHandlers } from "@/core/crash";
+import { ErrorBoundary } from "@/ui/components/ErrorBoundary";
+
+// Make otherwise-invisible failures observable: a throw with the TUI on the
+// alternate screen and nothing catching it renders as a black screen (the
+// Windows-release bug). Install before anything else can throw.
+installCrashHandlers();
 
 // Debug overlay is dev-only. Bun statically inlines NODE_ENV as "production" in the
 // compiled binary, so this branch is dead-code-eliminated from the production build.
@@ -78,6 +85,8 @@ installKeymap(keymap, renderer);
 
 createRoot(renderer).render(
   <KeymapProvider keymap={keymap}>
-    <BootFlow renderer={renderer} force={force} />
+    <ErrorBoundary>
+      <BootFlow renderer={renderer} force={force} />
+    </ErrorBoundary>
   </KeymapProvider>,
 );
