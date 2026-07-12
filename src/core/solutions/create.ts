@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { getLanguageTemplateDir } from "@/config";
 import { generateHarness, prepareSolutionSnippet } from "@/core/harness";
@@ -22,7 +22,7 @@ export function ensureNotesFile(id: number, titleSlug: string, title?: string): 
   if (!existsSync(path)) {
     mkdirSync(dirname(path), { recursive: true });
     const heading = title ? `# ${id}. ${title}` : `# ${id}`;
-    Bun.write(path, `${heading}\n\n`);
+    writeFileSync(path, `${heading}\n\n`);
   }
   return path;
 }
@@ -52,7 +52,7 @@ export function ensureProblemMd(
   if (!existsSync(path)) {
     mkdirSync(dirname(path), { recursive: true });
     const heading = title ? `# ${id}. ${title}` : `# ${id}`;
-    Bun.write(path, `${heading}\n\n${descriptionMarkdown}\n`);
+    writeFileSync(path, `${heading}\n\n${descriptionMarkdown}\n`);
   }
   return path;
 }
@@ -65,7 +65,7 @@ export function createSolutionFile(
 ): string {
   const path = getSolutionPath(id, titleSlug, langSlug);
   if (!existsSync(path)) {
-    Bun.write(path, code);
+    writeFileSync(path, code);
   }
   return path;
 }
@@ -81,7 +81,7 @@ export function createHarnessFile(
 ): string {
   const path = getHarnessPath(id, titleSlug, langSlug, filename);
   if (!existsSync(path)) {
-    Bun.write(path, content);
+    writeFileSync(path, content);
   }
   return path;
 }
@@ -98,7 +98,7 @@ export function seedTests(id: number, titleSlug: string, exampleTestcases: strin
     const name = `case-${String(i + 1).padStart(2, "0")}.txt`;
     const path = join(dir, name);
     if (!existsSync(path)) {
-      Bun.write(path, testcase);
+      writeFileSync(path, testcase);
     }
   });
 }

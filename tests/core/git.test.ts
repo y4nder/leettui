@@ -29,10 +29,14 @@ function git(args: string[], cwd: string): void {
 }
 
 // init a repo with a repo-local identity (so commits don't depend on global config).
+// core.autocrlf is forced off so content assertions see the bytes we wrote —
+// Git for Windows installs a system-level autocrlf=true that would otherwise
+// rewrite LF to CRLF on checkout.
 function initRepo(dir: string): void {
   git(["init"], dir);
   git(["config", "user.email", "t@t.test"], dir);
   git(["config", "user.name", "Test"], dir);
+  git(["config", "core.autocrlf", "false"], dir);
 }
 
 function freshDir(tag: string): string {
@@ -218,8 +222,10 @@ describe.skipIf(!HAS_GIT)("git e2e", () => {
       git(["commit", "-m", "first"], src);
 
       // Clone into the existing, empty dir (the exact case the feature relies on);
-      // the clone tracks src as origin.
-      git(["clone", src, clone], tmpdir());
+      // the clone tracks src as origin. autocrlf must be off AT CLONE TIME (-c
+      // lands in the new repo's config before checkout) — set afterwards, the
+      // already-CRLF checkout reads as locally modified and the pull refuses.
+      git(["clone", "-c", "core.autocrlf=false", src, clone], tmpdir());
 
       // A new upstream commit → the ff pull brings it in.
       writeFileSync(join(src, "a.txt"), "two\n");

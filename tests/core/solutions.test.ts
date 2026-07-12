@@ -143,7 +143,14 @@ describe("createSolutionWithHarness with template overrides", () => {
     const res = Bun.spawnSync(["bun", childScript, JSON.stringify(spec)], {
       // Clear XDG overrides so the child's DATA_DIR derives from the temp $HOME
       // regardless of the dev/CI environment (paths.ts honors $XDG_DATA_HOME).
-      env: { ...process.env, HOME: home, XDG_DATA_HOME: undefined, XDG_CONFIG_HOME: undefined },
+      // USERPROFILE is what os.homedir() reads on Windows; HOME covers POSIX.
+      env: {
+        ...process.env,
+        HOME: home,
+        USERPROFILE: home,
+        XDG_DATA_HOME: undefined,
+        XDG_CONFIG_HOME: undefined,
+      },
     });
     if (res.exitCode !== 0) {
       throw new Error(`child failed: ${res.stderr.toString()}`);
@@ -368,7 +375,13 @@ describe("ensureProblemMd + workspace seam (Stage 13)", () => {
 
   test("creating problem.md + notes.md does not flip the 'has solution' marker", () => {
     const res = Bun.spawnSync(["bun", script], {
-      env: { ...process.env, HOME: home, XDG_DATA_HOME: undefined, XDG_CONFIG_HOME: undefined },
+      env: {
+        ...process.env,
+        HOME: home,
+        USERPROFILE: home,
+        XDG_DATA_HOME: undefined,
+        XDG_CONFIG_HOME: undefined,
+      },
     });
     if (res.exitCode !== 0) throw new Error(`child failed: ${res.stderr.toString()}`);
     // The config bootstrap may print a "Created config…" line; our JSON is last.
@@ -502,7 +515,13 @@ describe("deleteSolution (Stage 16)", () => {
 
   test("removes only the lang subfolder; shared files + other langs survive; clears id on last", () => {
     const res = Bun.spawnSync(["bun", script], {
-      env: { ...process.env, HOME: home, XDG_DATA_HOME: undefined, XDG_CONFIG_HOME: undefined },
+      env: {
+        ...process.env,
+        HOME: home,
+        USERPROFILE: home,
+        XDG_DATA_HOME: undefined,
+        XDG_CONFIG_HOME: undefined,
+      },
     });
     if (res.exitCode !== 0) throw new Error(`child failed: ${res.stderr.toString()}`);
     const lines = res.stdout.toString().trim().split("\n");

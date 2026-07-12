@@ -23,7 +23,7 @@
 // only ever written as file CONTENT, never interpolated into a path segment.
 
 import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { addCase } from "@/core/solutions/add-case";
 import { compareOutput, discoverCases, normalize } from "@/core/testRunner";
 
@@ -67,7 +67,7 @@ export function captureFailingCase(
 
   if (!existing) {
     const path = addCase(testsDir, input);
-    const name = path.split("/").pop()?.replace(".txt", "") ?? "";
+    const name = basename(path, ".txt");
     if (expectedOutput !== undefined) {
       writeFileSync(join(testsDir, `${name}.out`), expectedOutput);
       return { name, outcome: "captured", note: `Captured ${name} (input + expected)` };
