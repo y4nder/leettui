@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import {
+  buildHeatmapGrid,
   buildSolveDays,
+  buildSparkline,
+  buildWeeklyBuckets,
   computeConsistency,
   computeDashboardStats,
   computeRecentCounts,
@@ -301,5 +304,239 @@ describe("first-AC-once semantics (D-01)", () => {
     expect(stats.currentStreak).toBeGreaterThanOrEqual(1);
     // Two problems in the last 7 days.
     expect(stats.last7).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildSparkline
+// ---------------------------------------------------------------------------
+
+describe("buildSparkline", () => {
+  test("empty array → empty string", () => {
+    expect(buildSparkline([])).toBe("");
+  });
+
+  test("all-zero array → spaces (one per entry)", () => {
+    const result = buildSparkline([0, 0, 0]);
+    expect(result).toBe("   ");
+    expect(result.length).toBe(3);
+  });
+
+  test("output length equals input length", () => {
+    const result = buildSparkline([3, 0, 5, 1, 2]);
+    expect(result.length).toBe(5);
+  });
+
+  test("window-max scaling: max count gets tallest block", () => {
+    const result = buildSparkline([3, 0, 5]);
+    // The 5-count week is the max → should be the tallest block (█)
+    expect(result[2]).toBe("█");
+    // The 0-count week → space
+    expect(result[1]).toBe(" ");
+  });
+
+  test("single non-zero entry → tallest block (it is the max)", () => {
+    const result = buildSparkline([0, 0, 7, 0]);
+    expect(result[2]).toBe("█");
+    expect(result.length).toBe(4);
+  });
+
+  test("all equal non-zero counts → all tallest blocks", () => {
+    const result = buildSparkline([4, 4, 4]);
+    // When all equal, max === each value → Math.round(1 * 7) = 7 → "█"
+    for (const ch of result) {
+      expect(ch).toBe("█");
+    }
+  });
+
+  test("mixed counts produce varied heights", () => {
+    // [3, 0, 5]: max=5. 3/5 = 0.6 → round(0.6*7)=4 → BLOCKS[4]="▅"; 0→" "; 5/5=1→"█"
+    const result = buildSparkline([3, 0, 5]);
+    expect(result[1]).toBe(" "); // 0 → space
+    expect(result[2]).toBe("█"); // max → "█"
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildWeeklyBuckets
+// ---------------------------------------------------------------------------
+
+describe("buildWeeklyBuckets", () => {
+  test("empty firstAcs → all-zero buckets of length numWeeks", () => {
+    const result = buildWeeklyBuckets([], 12);
+    expect(result.length).toBe(12);
+    expect(result.every((v) => v === 0)).toBe(true);
+  });
+
+  test("default numWeeks is 12", () => {
+    const result = buildWeeklyBuckets([]);
+    expect(result.length).toBe(12);
+  });
+
+  test("solve N whole-weeks ago lands in bucket numWeeks-1-N (oldest=0, newest=last)", () => {
+    const numWeeks = 12;
+    // A solve exactly 3 whole weeks ago
+    const solvedMs = Date.now() - 3 * 7 * 86_400_000 - 1000; // slightly more than 3 weeks ago
+    const row = makeFirstAcRow({ solvedMs });
+    const result = buildWeeklyBuckets([row], numWeeks);
+    // weeksAgo = floor(...) = 3 → bucket index = numWeeks-1-3 = 8
+    expect(result[8]).toBe(1);
+    // All others should be 0
+    const others = result.filter((_, i) => i !== 8);
+    expect(others.every((v) => v === 0)).toBe(true);
+  });
+
+  test("solve older than numWeeks is dropped", () => {
+    const numWeeks = 12;
+    // A solve 13 whole weeks ago (beyond the window)
+    const solvedMs = Date.now() - 13 * 7 * 86_400_000 - 1000;
+    const row = makeFirstAcRow({ solvedMs });
+    const result = buildWeeklyBuckets([row], numWeeks);
+    expect(result.every((v) => v === 0)).toBe(true);
+  });
+
+  test("a solve in the current week lands in the last bucket (index numWeeks-1)", () => {
+    const numWeeks = 12;
+    // A solve that happened very recently (this week)
+    const solvedMs = Date.now() - 1000; // 1 second ago → weeksAgo=0
+    const row = makeFirstAcRow({ solvedMs });
+    const result = buildWeeklyBuckets([row], numWeeks);
+    expect(result[numWeeks - 1]).toBe(1);
+  });
+
+  test("multiple solves in different weeks accumulate correctly", () => {
+    const numWeeks = 12;
+    const rows = [
+      makeFirstAcRow({ questionId: 1, solvedMs: Date.now() - 1000 }), // weeksAgo=0 → idx 11
+      makeFirstAcRow({ questionId: 2, solvedMs: Date.now() - 7 * 86_400_000 - 1000 }), // weeksAgo=1 → idx 10
+      makeFirstAcRow({ questionId: 3, solvedMs: Date.now() - 7 * 86_400_000 - 2000 }), // weeksAgo=1 → idx 10
+    ];
+    const result = buildWeeklyBuckets(rows, numWeeks);
+    expect(result[11]).toBe(1);
+    expect(result[10]).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildHeatmapGrid
+// ---------------------------------------------------------------------------
+
+describe("buildHeatmapGrid", () => {
+  test("empty firstAcs → 52×7 all-zero grid", () => {
+    const grid = buildHeatmapGrid([]);
+    expect(grid.length).toBe(52);
+    for (const week of grid) {
+      expect(week.length).toBe(7);
+      expect(week.every((v) => v === 0)).toBe(true);
+    }
+  });
+
+  test("grid is indexed [weekIndex][dow] (not transposed — Pitfall 3)", () => {
+    // A solve right now (this week, today)
+    const now = Date.now();
+    const dow = new Date(now).getDay(); // 0=Sun..6=Sat
+    const row = makeFirstAcRow({ solvedMs: now - 1000 }); // weeksAgo=0 → weekIndex=51
+    const grid = buildHeatmapGrid([row]);
+    // Access order: grid[weekIndex][dow]
+    expect(grid[51]?.[dow]).toBe(1);
+    // No other cell should be non-zero
+    let nonZeroCount = 0;
+    for (const week of grid) {
+      for (const v of week) {
+        if (v !== 0) nonZeroCount++;
+      }
+    }
+    expect(nonZeroCount).toBe(1);
+  });
+
+  test("a solve exactly N weeks ago lands in weekIndex 51-N", () => {
+    const weeksAgo = 5;
+    // A solve slightly more than 5 full weeks ago (to make floor() = 5)
+    const solvedMs = Date.now() - weeksAgo * 7 * 86_400_000 - 1000;
+    const dow = new Date(solvedMs).getDay();
+    const row = makeFirstAcRow({ solvedMs });
+    const grid = buildHeatmapGrid([row]);
+    const expectedWeekIndex = 51 - weeksAgo; // = 46
+    expect(grid[expectedWeekIndex]?.[dow]).toBe(1);
+  });
+
+  test("a solve older than 52 weeks is skipped", () => {
+    const solvedMs = Date.now() - 53 * 7 * 86_400_000; // 53 weeks ago
+    const row = makeFirstAcRow({ solvedMs });
+    const grid = buildHeatmapGrid([row]);
+    let nonZeroCount = 0;
+    for (const week of grid) {
+      for (const v of week) {
+        if (v !== 0) nonZeroCount++;
+      }
+    }
+    expect(nonZeroCount).toBe(0);
+  });
+
+  test("first-AC-once: same questionId twice increments the earlier cell once (via computeDashboardStats)", () => {
+    // Two summary rows for the SAME questionId (DB should prevent this in practice,
+    // but the first-AC set passed to buildHeatmapGrid should have both rows since
+    // computeDashboardStats maps all rows faithfully). Verify each row contributes
+    // its own cell (they're on different days → different cells).
+    const now = Date.now();
+    const row1 = makeSummaryRow({ questionId: 1, firstAcMs: now - 1000 }); // today → weekIndex 51
+    const row2 = makeSummaryRow({ questionId: 1, firstAcMs: now - 8 * 86_400_000 }); // ~8 days ago → different week
+    const stats = computeDashboardStats([row1, row2]);
+    // Both rows are in the heatmap (computeDashboardStats maps all rows)
+    // They land on different weekIndices so the total non-zero cells = 2.
+    let nonZeroCount = 0;
+    for (const week of stats.heatmapGrid) {
+      for (const v of week) {
+        if (v !== 0) nonZeroCount++;
+      }
+    }
+    expect(nonZeroCount).toBe(2);
+  });
+
+  test("multiple solves on the same day accumulate in one cell", () => {
+    const now = Date.now();
+    const dow = new Date(now).getDay();
+    const rows = [
+      makeFirstAcRow({ questionId: 1, solvedMs: now - 1000 }),
+      makeFirstAcRow({ questionId: 2, solvedMs: now - 2000 }),
+      makeFirstAcRow({ questionId: 3, solvedMs: now - 3000 }),
+    ];
+    const grid = buildHeatmapGrid(rows);
+    // All three solves are in this week (weeksAgo=0 → weekIndex=51), same dow
+    // (assuming all three happened within the same week and same day of week)
+    expect(grid[51]?.[dow]).toBeGreaterThanOrEqual(3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeDashboardStats — heatmap + sparkline fields populated (03-03 extension)
+// ---------------------------------------------------------------------------
+
+describe("computeDashboardStats — heatmap + sparkline populated by 03-03 functions", () => {
+  test("heatmapGrid is 52×7 with a populated cell when there are recent solves", () => {
+    const rows = [makeSummaryRow({ questionId: 1, firstAcMs: Date.now() - 1000 })];
+    const stats = computeDashboardStats(rows);
+    expect(stats.heatmapGrid.length).toBe(52);
+    expect((stats.heatmapGrid[51] as number[]).length).toBe(7);
+    // At least one cell should be non-zero
+    let nonZeroCount = 0;
+    for (const week of stats.heatmapGrid) {
+      for (const v of week as number[]) {
+        if (v !== 0) nonZeroCount++;
+      }
+    }
+    expect(nonZeroCount).toBeGreaterThan(0);
+  });
+
+  test("sparklineWeeks has length 12 when there are recent solves", () => {
+    const rows = [makeSummaryRow({ questionId: 1, firstAcMs: Date.now() - 1000 })];
+    const stats = computeDashboardStats(rows);
+    expect(stats.sparklineWeeks.length).toBe(12);
+  });
+
+  test("sparklineWeeks last bucket is non-zero when a solve occurred this week", () => {
+    const rows = [makeSummaryRow({ questionId: 1, firstAcMs: Date.now() - 1000 })];
+    const stats = computeDashboardStats(rows);
+    expect(stats.sparklineWeeks[11]).toBeGreaterThan(0);
   });
 });

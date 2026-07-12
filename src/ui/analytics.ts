@@ -138,6 +138,34 @@ export function computeConsistency(solveDays: Set<string>): number {
   return count / 30;
 }
 
+// Block glyph constants for the sparkline (mirrors progress.ts's EIGHTHS pattern).
+// Prefixed with underscore here (stub phase); will become BLOCKS in GREEN implementation.
+const _BLOCKS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"] as const;
+
+// Build a 52×7 grid of first-solve counts, indexed [weekIndex][dow].
+// weekIndex 0 = 52 weeks ago, weekIndex 51 = current week.
+// dow: 0=Sunday..6=Saturday (matching Date.prototype.getDay() local time).
+// Access pattern for rendering: grid[weekIndex][dow], where weekIndex iterates 0..51
+// (left to right = oldest to newest) and dow iterates 0..6 (rows, top to bottom).
+// Pitfall 3 guard: the grid is [weekIndex][dow], NOT [dow][weekIndex].
+export function buildHeatmapGrid(_firstAcs: FirstAcRow[]): number[][] {
+  throw new Error("buildHeatmapGrid: not implemented (03-03 GREEN)");
+}
+
+// Build a numWeeks-length array of first-solve counts per week.
+// index 0 = oldest week, last index = most recent (current) week.
+// Solves older than numWeeks are dropped.
+export function buildWeeklyBuckets(_firstAcs: FirstAcRow[], _numWeeks = 12): number[] {
+  throw new Error("buildWeeklyBuckets: not implemented (03-03 GREEN)");
+}
+
+// Convert weekly counts to a sparkline string of Unicode block glyphs.
+// Empty array → "". 0-count week → space " ". Max-count week → tallest block "█".
+// Output length always equals input length (one glyph per week).
+export function buildSparkline(_weeklyCounts: number[]): string {
+  throw new Error("buildSparkline: not implemented (03-03 GREEN)");
+}
+
 // Main entry point called by dashboardSlice.loadDashboardStats().
 // Accepts the raw DB summary rows and returns all dashboard statistics.
 export function computeDashboardStats(rows: FirstAcSummaryRow[]): DashboardStats {
