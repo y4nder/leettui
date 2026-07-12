@@ -31,7 +31,7 @@
     "@opentui/core": "^0.2.16",
     "@opentui/keymap": "^0.2.16",
     "@opentui/react": "^0.2.16",
-    "drizzle-orm": "0.44.4",
+    "drizzle-orm": "0.45.2",
     "node-html-markdown": "^2.0.0",
     "react": "^19.2.6",
     "smol-toml": "^1.6.1",

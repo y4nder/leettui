@@ -1,0 +1,9 @@
+# Normalize every text file to LF in the repo and on checkout — even on Windows.
+# Without this, git's autocrlf default gives a Windows checkout a CRLF working tree,
+# which Biome's LF formatter flags as errors and makes `bun run check` (and the
+# pre-commit/pre-push Husky hooks) false-fail. The committed content is already LF,
+# so no renormalization commit is needed; this just pins the policy going forward.
+* text=auto eol=lf
+
+# install.sh is a shell script — LF is required, made explicit here.
+*.sh text eol=lf
