@@ -65,7 +65,14 @@ describe("session merge", () => {
     backfillNudgeShown?: boolean;
   } {
     const res = Bun.spawnSync(["bun", childScript, JSON.stringify(ops)], {
-      env: { ...process.env, HOME: home, XDG_DATA_HOME: undefined, XDG_CONFIG_HOME: undefined },
+      // USERPROFILE is what os.homedir() reads on Windows; HOME covers POSIX.
+      env: {
+        ...process.env,
+        HOME: home,
+        USERPROFILE: home,
+        XDG_DATA_HOME: undefined,
+        XDG_CONFIG_HOME: undefined,
+      },
     });
     if (res.exitCode !== 0) throw new Error(`child failed: ${res.stderr.toString()}`);
     return JSON.parse(res.stdout.toString());

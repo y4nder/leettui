@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 // Variables substituted into per-language template files. `functionName` comes
@@ -49,7 +49,7 @@ export function overlayTemplates(srcDir: string, destDir: string, vars: Template
     const destPath = join(destDir, name);
     if (!existsSync(destPath)) {
       mkdirSync(destDir, { recursive: true });
-      Bun.write(destPath, renderTemplate(raw, vars));
+      writeFileSync(destPath, renderTemplate(raw, vars));
     }
   }
   return applied;

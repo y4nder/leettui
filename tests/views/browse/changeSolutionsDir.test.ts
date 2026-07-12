@@ -41,10 +41,12 @@ describe("changeSolutionsDir", () => {
     expect(out.status).toBe("changed");
     // The invariant: get happens before persist (a reorder would no-op the move).
     expect(calls).toEqual(["get", "persist", "relocate", "setLastKnown"]);
-    // relocate moves FROM the pre-persist dir TO the resolved new dir.
+    // relocate moves FROM the pre-persist dir TO the resolved new dir. The
+    // target goes through resolve(), which is platform-shaped (drive letter +
+    // backslashes on Windows), so compare against the same resolution.
     expect(args.from).toBe("/home/u/.local/share/leettui/solutions");
-    expect(args.to).toBe("/home/u/leetcode");
-    expect(out.toDir).toBe("/home/u/leetcode");
+    expect(args.to).toBe(resolve("/home/u/leetcode"));
+    expect(out.toDir).toBe(resolve("/home/u/leetcode"));
   });
 
   it("persists the raw input verbatim but migrates to the resolved absolute path", () => {

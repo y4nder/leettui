@@ -4,10 +4,10 @@
 // `discoverCases`/`pairCases` on the next run with zero runner changes (D-06).
 //
 // Mirrors `create.ts`'s `seedTests` never-throws / best-effort idiom — no
-// try/catch, since `mkdirSync`/`Bun.write` on a resolvable path don't throw in
-// practice.
+// try/catch, since `mkdirSync`/`writeFileSync` on a resolvable path don't throw
+// in practice.
 
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { discoverCases } from "@/core/testRunner";
 
@@ -31,6 +31,8 @@ export function nextCaseName(testsDir: string): string {
 export function addCase(testsDir: string, input: string): string {
   mkdirSync(testsDir, { recursive: true });
   const path = join(testsDir, `${nextCaseName(testsDir)}.txt`);
-  Bun.write(path, input);
+  // Synchronous on purpose: callers read/discover the file immediately after
+  // this returns (an unawaited async write loses that race on Windows).
+  writeFileSync(path, input);
   return path;
 }
