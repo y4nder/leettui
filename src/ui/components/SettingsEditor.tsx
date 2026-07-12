@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
 
-import { colors, getCurrentThemeName, listThemeNames, setTheme } from "@/ui/theme";
+import { colors, getCurrentThemeName, listThemeNames } from "@/ui/theme";
 import { useAppStore } from "@/ui/store";
 import { useListMouse } from "@/ui/useListMouse";
 import { persistSetting } from "@/config";
@@ -10,8 +10,8 @@ import { SETTINGS, type SettingSpec } from "@/config/settings";
 // In-TUI settings editor (opened with `,` or the command palette → mode "config").
 // A single scrollable list: each row shows a setting's label + current value. On the
 // selected row, Enter/Space cycles an enum in place or opens an inline text/number
-// edit; the write goes through persistSetting (comment-preserving) or, for the theme,
-// setTheme (which also live-repaints the whole tree via the themeVersion bump).
+// edit; the write goes through persistSetting (comment-preserving). The Theme row is a
+// launcher: activating it closes this editor and opens the searchable ThemePickerPopup.
 //
 // Works alongside the live keymap because no key-bearing layer mounts in "config"
 // mode — every key falls through to this component's useKeyboard / the <input>, the
@@ -47,14 +47,21 @@ export function SettingsEditor() {
 
   const close = () => useAppStore.getState().hideConfig();
 
+  // The theme row is a launcher for the searchable picker (which supersedes the old
+  // in-place cycle now that there are 16+ themes). Close config first, then open the
+  // picker on a microtask so the config layer tears down before the picker mounts.
+  const openThemePicker = () => {
+    close();
+    queueMicrotask(() => useAppStore.getState().showThemePicker());
+  };
+
   const applyValue = (spec: SettingSpec, raw: string) => {
     const v = spec.coerce(raw);
     if (v === null) {
       setEditError("Invalid value");
       return;
     }
-    if (spec.id === "theme.name") setTheme(String(v), { persist: true });
-    else persistSetting(spec.section, spec.key, v);
+    persistSetting(spec.section, spec.key, v);
     setEditError(null);
     setPhase("list");
     setRev((r) => r + 1);
@@ -83,7 +90,8 @@ export function SettingsEditor() {
     const spec = specs[i];
     if (!spec) return;
     setSelectedIndex(i);
-    if (spec.kind === "enum") cycleEnum(spec, 1);
+    if (spec.id === "theme.name") openThemePicker();
+    else if (spec.kind === "enum") cycleEnum(spec, 1);
     else beginEdit(spec);
   };
 
@@ -102,6 +110,11 @@ export function SettingsEditor() {
     if (name === "k" || name === "up") return move(-1);
     const spec = specs[selectedIndex];
     if (!spec) return;
+    if (spec.id === "theme.name") {
+      if (name === "return" || name === "space" || name === "l" || name === "h")
+        return openThemePicker();
+      return;
+    }
     if (spec.kind === "enum") {
       if (name === "return" || name === "space" || name === "l") cycleEnum(spec, 1);
       else if (name === "h") cycleEnum(spec, -1);

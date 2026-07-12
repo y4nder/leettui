@@ -1,8 +1,5 @@
 import type { RGBA } from "@opentui/core";
-import { tokyoNight } from "@/ui/themes/tokyo-night";
-import { catppuccin } from "@/ui/themes/catppuccin";
-import { rosePine } from "@/ui/themes/rose-pine";
-import { nord } from "@/ui/themes/nord";
+import { TERMCN_NAMES, TERMCN_PRESETS } from "@/ui/themes/termcn";
 import { buildSystemTheme } from "@/ui/themes/system";
 
 export type ThemeColor = string | RGBA;
@@ -48,20 +45,16 @@ export interface Theme {
   statusBarFg: ThemeColor;
 }
 
-// `system` is built lazily because its RGBA values must be constructed at
-// runtime (after `@opentui/core` is loaded). The build is cheap, so we just
-// re-invoke on each resolve.
-export const PRESET_NAMES = ["tokyo-night", "catppuccin", "rose-pine", "nord", "system"] as const;
-export type PresetName = (typeof PRESET_NAMES)[number];
+// Every static preset is derived from the termcn registry (see `themes/termcn.ts`).
+// `system` is built lazily because its RGBA values must be constructed at runtime
+// (after `@opentui/core` is loaded). The build is cheap, so we just re-invoke on each
+// resolve.
+export const PRESET_NAMES = [...TERMCN_NAMES, "system"] as const;
+export type PresetName = string;
 
-const STATIC_PRESETS: Partial<Record<PresetName, Theme>> = {
-  "tokyo-night": tokyoNight,
-  catppuccin: catppuccin,
-  "rose-pine": rosePine,
-  nord: nord,
-};
+const STATIC_PRESETS: Record<string, Theme> = TERMCN_PRESETS;
 
-const DEFAULT: PresetName = "tokyo-night";
+const DEFAULT = "tokyo-night";
 
 export function listThemeNames(): string[] {
   return [...PRESET_NAMES];
@@ -70,7 +63,7 @@ export function listThemeNames(): string[] {
 export function resolveTheme(name?: string): Theme {
   if (!name) return STATIC_PRESETS[DEFAULT]!;
   if (name === "system") return buildSystemTheme();
-  const preset = STATIC_PRESETS[name as PresetName];
+  const preset = STATIC_PRESETS[name];
   if (preset) return preset;
   console.warn(
     `Unknown theme "${name}". Available: ${PRESET_NAMES.join(", ")}. Falling back to ${DEFAULT}.`,

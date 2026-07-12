@@ -24,12 +24,15 @@ export function buildSystemTheme(): Theme {
     border: RGBA.fromIndex(8),
     borderFocused: RGBA.fromIndex(4),
 
-    // Surfaces defer to the terminal background; highlight/popup use the
-    // black/bright-black slots so they read regardless of light/dark mode.
+    // Surfaces defer to the terminal background. The selected-row highlights
+    // (bgHighlight = focused, surface = unfocused) use bright-black (index 8) rather
+    // than black (index 0): index 0 is ~equal to a dark terminal's background, so the
+    // selection was invisible; index 8 is the conventional selection gray and stands
+    // out against the default background in both light and dark terminals.
     bg: RGBA.defaultBackground(),
-    bgHighlight: RGBA.fromIndex(0),
+    bgHighlight: RGBA.fromIndex(8),
     bgPopup: RGBA.defaultBackground(),
-    surface: RGBA.fromIndex(0),
+    surface: RGBA.fromIndex(8),
     surfaceAlt: RGBA.defaultBackground(),
 
     fg: RGBA.defaultForeground(),

@@ -45,6 +45,9 @@ export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor
   // Comma opens the in-TUI settings editor (the conventional "preferences" key);
   // also reachable from the palette. Plain `,` is otherwise unused in browse.
   "config.open": ",",
+  // `t` opens the searchable theme picker (Stage: themes). Free in browse; mnemonic for
+  // "theme". Problem-view `t` (test-local) is a separate layer/mode, so no collision.
+  "theme.open": "t",
   // Ctrl+g opens the git UI (lazygit) in the solutions dir — the version-control
   // escape hatch (Stage 22). Plain `g`/`G` are taken (gg/G jumps); ctrl+g is the
   // idiomatic lazygit-launch binding.

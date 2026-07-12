@@ -109,7 +109,7 @@ export function QuestionList({
             >
               <text fg={sColor}> {icon} </text>
               <text fg={colors.accent}>{markerStr}</text>
-              <text fg={colors.fgDim}> {idStr} </text>
+              <text fg={isSelected ? selectedFg : colors.fgDim}> {idStr} </text>
               <text fg={isSelected ? selectedFg : colors.fg} flexGrow={1}>
                 {q.title}
                 {paidStr}
