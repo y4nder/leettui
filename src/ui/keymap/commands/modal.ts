@@ -105,6 +105,13 @@ export const modalCommands: CommandEntry[] = [
     run: () => useAppStore.getState().hideChangelog(),
   }),
   makeCommand({
+    name: "dashboard.close",
+    title: "Close dashboard",
+    category: "View",
+    group: "modal",
+    run: () => useAppStore.getState().hideDashboard(),
+  }),
+  makeCommand({
     name: "changelog.openGithub",
     title: "Open release on GitHub",
     category: "View",

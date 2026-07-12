@@ -35,13 +35,14 @@ difficulty/topic — backed by their real submission history, owned locally.
 - ✓ Browse question list shows a "solved/attempted before" attempt-count badge derived from submission history — Validated in Phase 2: Per-Problem History & Browse Badge
 - ✓ Local test-case expected outputs manageable without hand-writing files: `leettui test --save` blesses the current run's stdout into `case-NN.out` (golden snapshot) and `leettui test --add-case` writes the next sequential input from stdin/file, so offline `leettui test` grades real pass/fail — Validated in Phase 2.1: Local Test-Case Output Management
 - ✓ Failing run/submit cases auto-captured into offline regression tests: a wrong-answer (or RE/TLE/MLE) verdict writes the failing LeetCode input + expected output into `tests/case-NN.txt`/`case-NN.out` (deduped, never-overwriting), completed runs bless missing `.out`s from LeetCode's authoritative outputs, and a dim capture note surfaces in both TUI and CLI result views (TCASE-04/TCASE-05) — Validated in Phase 2.2: Auto-Capture Failing Cases
+- ✓ Global progress dashboard as a new top-level view (`p` from browse or problem view → full-screen `"dashboard"` mode, returns to origin), north-starred on consistency & trajectory (DASH-01) — Validated in Phase 3: Progress Dashboard
+- ✓ Dashboard shows solve streak (current + longest), recent 7d/30d solve counts, a rolling 30-day consistency score, a 52-week × 7-day activity heatmap, a 12-week problems-per-week trend sparkline, and a solved-by-difficulty (Easy/Medium/Hard) breakdown — all from the local store, offline (DASH-02–DASH-07) — Validated in Phase 3: Progress Dashboard. Note: the early hypothesis's "breakdown by topic" was not part of the shipped requirement set (difficulty breakdown only); topic breakdown remains a possible later addition.
 
 ### Active
 
 <!-- This milestone. Hypotheses until shipped and validated. -->
 
-- [ ] Global progress dashboard as a new top-level view, north-starred on consistency & trajectory
-- [ ] Dashboard shows: solve streak, recent (week/month) solve counts, problems-over-time trend, breakdown by difficulty and by topic
+- _(none — all v1.0 milestone requirements are validated; see Validated above. Phase 3 was the final phase of this milestone.)_
 
 ### Out of Scope
 
@@ -95,4 +96,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-11 after Phase 2.2 (Auto-Capture Failing Cases) completion*
+*Last updated: 2026-07-12 after Phase 3 (Progress Dashboard) completion — final phase of the v1.0 milestone*

@@ -9,6 +9,7 @@ import { makeCommand, type CommandEntry } from "../command";
 import { getRenderer } from "../runtime";
 import { cycleTheme, listThemeNames, setTheme } from "../../theme";
 import { isDebugEnabled } from "../../../debug";
+import type { AppMode } from "../../store/slices/uiSlice";
 import {
   handleCancelBackfill,
   handleOpenGitSync,
@@ -165,6 +166,19 @@ export const systemCommands: CommandEntry[] = [
     title: "✦ Reveal the leettui logo",
     category: "View",
     run: () => useAppStore.getState().showEasterEgg(),
+  }),
+  makeCommand({
+    name: "dashboard.open",
+    title: "Open progress dashboard",
+    category: "View",
+    short: "Dashboard",
+    // Loads stats synchronously then flips to dashboard mode, stashing the
+    // current mode as the return target (D-11: Esc/q returns to origin mode).
+    run: () => {
+      const s = useAppStore.getState();
+      s.loadDashboardStats();
+      s.showDashboard(s.mode as AppMode);
+    },
   }),
   makeCommand({
     name: "app.quit",

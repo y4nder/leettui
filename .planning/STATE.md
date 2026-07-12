@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 3
-current_phase_name: Progress Dashboard
-status: ready-to-plan
-stopped_at: Phase 2.2 complete; Phase 3 deferred pending feat/test-case-management wrap-up
-last_updated: "2026-07-11T00:54:13.894Z"
-last_activity: 2026-07-11
-last_activity_desc: Phase 02.2 complete, transitioned to Phase 3
+current_phase: 03
+status: completed
+stopped_at: Completed 03-03-PLAN.md (Phase 3 — Progress Dashboard complete; all 5 phases and 13 plans done)
+last_updated: "2026-07-12T01:14:20.841Z"
+last_activity: 2026-07-12
+last_activity_desc: Phase 03 complete
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
-  percent: 80
+  completed_phases: 5
+  total_plans: 13
+  completed_plans: 13
+  percent: 100
+current_phase_name: progress-dashboard
 ---
 
 # Project State
@@ -24,22 +24,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core value:** A LeetCode user grinding in the terminal can open one view and instantly see whether they're improving and keeping it up — solve streak, recent counts, and breakdown by difficulty/topic — backed by their real submission history, owned locally.
-**Current focus:** Wrap up feat/test-case-management (PR/merge); Phase 3 (Progress Dashboard) deferred by user decision 2026-07-11 — different feature, starts after this branch lands
+**Current focus:** Phase 03 — progress-dashboard
 
 ## Current Position
 
-Phase: 3 — Progress Dashboard
+Phase: 03
 Plan: Not started
-Status: Phase 3 deferred (user decision 2026-07-11) — finish feat/test-case-management branch (PR/merge) before starting the dashboard feature
-Last activity: 2026-07-11 — Phase 02.2 complete, transitioned to Phase 3
+Status: Complete — all plans done
+Last activity: 2026-07-12 — Phase 03 complete
 
-Progress: [████████████████████] 10/10 plans (100%) — 4/5 phases complete
+Progress: [████████████████████] 13/13 plans (100%) — 5/5 phases complete
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 10
+- Total plans completed: 13
 - Average duration: — min
 - Total execution time: 0.0 hours
 
@@ -51,6 +51,7 @@ Progress: [████████████████████] 10/10 p
 | 02 | 3 | - | - |
 | 02.1 | 2 | - | - |
 | 02.2 | 2 | - | - |
+| 03 | 3 | - | - |
 
 **Recent Trend:**
 
@@ -68,6 +69,9 @@ Progress: [████████████████████] 10/10 p
 | Phase 02.1 P02 | 15min | 2 tasks | 5 files |
 | Phase 02.2 P01 | 6min | 2 tasks | 5 files |
 | Phase 02.2 P02 | 15min | 2 tasks | 7 files |
+| Phase 03 P01 | 6 | 2 tasks | 3 files |
+| Phase 03 P02 | 35 | 4 tasks | 9 files |
+| Phase 03 P03 | 30 | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -96,6 +100,12 @@ Recent decisions affecting current work:
 - [Phase 02.2]: 02.2-01: TDD RED phase shipped capture.ts as a type-checking stub (throws not-implemented) rather than omitting the file, so capture.test.ts fails on assertions instead of a missing-module compile error under the repo's zero-tolerance tsc pre-commit gate
 - [Phase 02.2]: 02.2-01: captureFailingCase/blessRunOutputs reuse addCase/discoverCases/compareOutput/normalize verbatim rather than inventing a new capture-engine abstraction
 - [Phase 02.2]: 02.2-02: captureFromSubmitResult/captureFromRunResult are testsDir-injected (not internally resolving getTestsDir), mirroring capture.ts's own dir-injected shape — keeps them pure/config-free and unit-testable against a temp dir with zero network/config mocking
+- [Phase ?]: [Phase 03]: 03-01: computeStreaks today-grace: streak through yesterday stays current without inflating count; getFirstAcSummary uses LIKE substring match per verdict.ts:16 convention
+- [Phase ?]: [Phase 03]: 03-02: showDashboard writes ONLY mode + dashboardReturnMode — never touches problem state (D-11); unit test pins the return-mode round-trip invariant
+- [Phase ?]: [Phase 03]: 03-02: dashboard.open calls loadDashboardStats() then showDashboard(currentMode) — stats populated before view mounts, no load flash; bare p chosen (Ctrl+P is palette; p was unbound in browse + problem global layers)
+- [Phase 03]: 03-03: buildHeatmapGrid uses rolling Date.now() anchor (not calendar-week snapping) — rightmost column = last 7 days from now; user confirmed this behavior at human-verify and chose to keep it
+- [Phase 03]: 03-03: buildSparkline uses window-max scaling (max week always renders as tallest block); called from DashboardView at render, not from computeDashboardStats, so raw numeric sparklineWeeks stays testable
+- [Phase 03]: 03-03: centering wrapper <box flexGrow={1} justifyContent="center" alignItems="center"> added to DashboardView scrollbox body per user request at human-verify (commit 3961358)
 
 ### Pending Todos
 
@@ -120,6 +130,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-11T00:55:12Z
-Stopped at: Phase 2.2 complete; Phase 3 deferred — wrap up feat/test-case-management first
+Last session: 2026-07-12T01:00:00.000Z
+Stopped at: Completed 03-03-PLAN.md (Phase 3 — Progress Dashboard complete; all 5 phases and 13 plans done)
 Resume file: None

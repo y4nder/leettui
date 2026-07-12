@@ -1,4 +1,4 @@
-import { count, desc, eq } from "drizzle-orm";
+import { count, desc, eq, like, min } from "drizzle-orm";
 import { getDb } from "./index";
 import { questions, submissions } from "./schema";
 
@@ -65,6 +65,32 @@ export function setSubmissionsFetchedAt(questionId: number, now: number = Date.n
     .set({ submissionsFetchedAt: now })
     .where(eq(questions.id, questionId))
     .run();
+}
+
+// One first-AC row per solved problem, joined to questions.difficulty.
+// Used by the analytics module to compute the progress dashboard stats (Phase 3).
+// firstAcMs is unix milliseconds — MIN(submittedAt) for this questionId over AC rows only.
+// Uses LIKE '%Accepted%' (not exact eq) to mirror verdict.ts:16's substring check across
+// both API surfaces (live submit vs. backfill). Cast to FirstAcSummaryRow[] because
+// drizzle infers min() as number | null; the WHERE filter guarantees a non-null match.
+export interface FirstAcSummaryRow {
+  questionId: number;
+  difficulty: string;
+  firstAcMs: number; // unix milliseconds
+}
+
+export function getFirstAcSummary(): FirstAcSummaryRow[] {
+  return getDb()
+    .select({
+      questionId: submissions.questionId,
+      difficulty: questions.difficulty,
+      firstAcMs: min(submissions.submittedAt),
+    })
+    .from(submissions)
+    .innerJoin(questions, eq(submissions.questionId, questions.id))
+    .where(like(submissions.statusDisplay, "%Accepted%"))
+    .groupBy(submissions.questionId)
+    .all() as FirstAcSummaryRow[];
 }
 
 // Browse attempt-count badge (BROWSE-01, D-12): a per-question total across

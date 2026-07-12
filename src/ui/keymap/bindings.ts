@@ -53,6 +53,9 @@ export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor
   // (which opens one problem's folder). Global, not panel-scoped: it isn't tied to the
   // selected question. Distinct key from `w` (like shift+g vs the gg chord).
   "solutions.openWorkspace": "shift+w",
+  // `p` opens the progress dashboard (Stage 3 / D-09). Free: Ctrl+p is the palette;
+  // bare `p` was unbound in browse. Globally available from the browse layer.
+  "dashboard.open": "p",
   "update.dismiss": "x",
   "app.quit": "q",
 });
@@ -164,6 +167,10 @@ export const problemGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFo
   // Free here — only pickerBindings binds `o`, a mutually exclusive modal layer.
   "problem.resultExpand": "o",
   "problem.help": "?",
+  // `p` opens the progress dashboard (Stage 3 / D-10, truly global). Free: Ctrl+p
+  // is the palette; bare `p` was unbound in problem view. One command + two bindings
+  // (browse + problem global layers), like solutions.openWorkspace/W.
+  "dashboard.open": "p",
   "update.dismiss": "x",
   "problem.escape": ["escape", "q"],
 });
@@ -262,4 +269,17 @@ export const pickerBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "picker.confirm": "return",
   "picker.openEditor": "o",
   "picker.cancel": ["escape", "q"],
+});
+
+// Mounted by DashboardView while open (Phase 3 / DASH-01). j/k + Ctrl+d/u scroll
+// the content (reusing the shared popup scroller), Esc/q close back to the origin
+// mode (dashboardReturnMode — D-11). `p` in browse/problem global layers opens the
+// dashboard; it is NOT bound here (the browse/problem layers are unmounted while
+// mode === "dashboard", so it is inert — that is correct and matches the footer hint).
+export const dashboardBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "popup.scrollDown": ["j", "down"],
+  "popup.scrollUp": ["k", "up"],
+  "popup.scrollHalfDown": "ctrl+d",
+  "popup.scrollHalfUp": "ctrl+u",
+  "dashboard.close": ["escape", "q"],
 });
