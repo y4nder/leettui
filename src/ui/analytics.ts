@@ -139,8 +139,8 @@ export function computeConsistency(solveDays: Set<string>): number {
 }
 
 // Block glyph constants for the sparkline (mirrors progress.ts's EIGHTHS pattern).
-// Prefixed with underscore here (stub phase); will become BLOCKS in GREEN implementation.
-const _BLOCKS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"] as const;
+// 8 levels from shortest bar to full block.
+const BLOCKS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"] as const;
 
 // Build a 52×7 grid of first-solve counts, indexed [weekIndex][dow].
 // weekIndex 0 = 52 weeks ago, weekIndex 51 = current week.
@@ -148,22 +148,53 @@ const _BLOCKS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"] as cons
 // Access pattern for rendering: grid[weekIndex][dow], where weekIndex iterates 0..51
 // (left to right = oldest to newest) and dow iterates 0..6 (rows, top to bottom).
 // Pitfall 3 guard: the grid is [weekIndex][dow], NOT [dow][weekIndex].
-export function buildHeatmapGrid(_firstAcs: FirstAcRow[]): number[][] {
-  throw new Error("buildHeatmapGrid: not implemented (03-03 GREEN)");
+export function buildHeatmapGrid(firstAcs: FirstAcRow[]): number[][] {
+  const grid: number[][] = Array.from({ length: 52 }, () => new Array<number>(7).fill(0));
+  const nowMs = Date.now();
+  const msPerWeek = 7 * 86_400_000;
+
+  for (const row of firstAcs) {
+    const weeksAgo = Math.floor((nowMs - row.solvedMs) / msPerWeek);
+    if (weeksAgo >= 52) continue; // older than 52 weeks — skip
+    const weekIndex = 51 - weeksAgo; // most recent = index 51
+    const dow = new Date(row.solvedMs).getDay(); // 0=Sun..6=Sat local time
+    grid[weekIndex]![dow]!++;
+  }
+  return grid;
 }
 
 // Build a numWeeks-length array of first-solve counts per week.
 // index 0 = oldest week, last index = most recent (current) week.
 // Solves older than numWeeks are dropped.
-export function buildWeeklyBuckets(_firstAcs: FirstAcRow[], _numWeeks = 12): number[] {
-  throw new Error("buildWeeklyBuckets: not implemented (03-03 GREEN)");
+export function buildWeeklyBuckets(firstAcs: FirstAcRow[], numWeeks = 12): number[] {
+  const buckets = new Array<number>(numWeeks).fill(0);
+  const nowMs = Date.now();
+  const msPerWeek = 7 * 86_400_000;
+
+  for (const row of firstAcs) {
+    const weeksAgo = Math.floor((nowMs - row.solvedMs) / msPerWeek);
+    if (weeksAgo < numWeeks) {
+      buckets[numWeeks - 1 - weeksAgo]!++;
+    }
+  }
+  return buckets;
 }
 
 // Convert weekly counts to a sparkline string of Unicode block glyphs.
 // Empty array → "". 0-count week → space " ". Max-count week → tallest block "█".
 // Output length always equals input length (one glyph per week).
-export function buildSparkline(_weeklyCounts: number[]): string {
-  throw new Error("buildSparkline: not implemented (03-03 GREEN)");
+// Uses window-max scaling: the tallest bar is always "█", making trend shape visible
+// even at low volume (1-2 solves/week). A minimum scale of 1 avoids div-by-zero.
+export function buildSparkline(weeklyCounts: number[]): string {
+  if (weeklyCounts.length === 0) return "";
+  const max = Math.max(...weeklyCounts, 1); // min scale of 1 to avoid div/0
+  return weeklyCounts
+    .map((n) => {
+      if (n === 0) return " "; // empty week → space
+      const level = Math.round((n / max) * (BLOCKS.length - 1));
+      return BLOCKS[level] ?? "█";
+    })
+    .join("");
 }
 
 // Main entry point called by dashboardSlice.loadDashboardStats().
@@ -196,7 +227,14 @@ export function computeDashboardStats(rows: FirstAcSummaryRow[]): DashboardStats
   // 6. Consistency
   const consistency = computeConsistency(solveDays);
 
-  // heatmapGrid and sparklineWeeks are populated in plan 03-03.
+  // 7. Heatmap grid — 52×7, indexed [weekIndex][dow] (see buildHeatmapGrid comment)
+  const heatmapGrid = buildHeatmapGrid(firstAcs);
+
+  // 8. Weekly sparkline buckets — 12 weeks, index 0 = oldest, last = most recent.
+  // NOTE: buildSparkline is NOT called here. The stats object carries raw numeric buckets
+  // so they remain testable; the view component calls buildSparkline at render time.
+  const sparklineWeeks = buildWeeklyBuckets(firstAcs, 12);
+
   return {
     totalSolved,
     byDifficulty,
@@ -205,7 +243,7 @@ export function computeDashboardStats(rows: FirstAcSummaryRow[]): DashboardStats
     last7,
     last30,
     consistency,
-    heatmapGrid: [],
-    sparklineWeeks: [],
+    heatmapGrid,
+    sparklineWeeks,
   };
 }
