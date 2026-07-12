@@ -4,7 +4,7 @@
 
 > Overall the codebase is **healthy**: zero stray `TODO`/`FIXME`/`HACK` markers in
 > source, a zero-tolerance Biome gate (`--error-on-warnings`), strict TypeScript,
-> 29 co-located test files, and per-directory `CLAUDE.md` docs. The items below are
+> 43 test files in a top-level `tests/` tree, and per-directory `CLAUDE.md` docs. The items below are
 > genuine risks and constraints, ranked by likely impact — not evidence of neglect.
 
 ## High — External Dependency Fragility

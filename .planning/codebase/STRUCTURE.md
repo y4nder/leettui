@@ -7,6 +7,7 @@
 ```
 leettui/
 ├── src/                  # All application source (TypeScript/TSX)
+├── tests/                # Test suite mirroring src/ (imports via @/* alias)
 ├── drizzle/              # Versioned SQLite migrations + meta
 ├── scripts/              # build.ts (release build), smoke.sh
 ├── docs/                 # scratchpad notes / design docs
@@ -117,7 +118,7 @@ src/
 | A new async action | `src/views/{browse,problem}/handlers/` (then wire a command to it) |
 | A new popup/modal | `src/ui/components/` (own its `useBindings` layer); gate render on a `mode` |
 | A new store field | The matching slice in `src/ui/store/slices/` (respect ui/domain split) |
-| A new language harness | `src/core/harness/<lang>.ts` (+ register in `harness/index.ts`) + a `.test.ts` |
+| A new language harness | `src/core/harness/<lang>.ts` (+ register in `harness/index.ts`) + `tests/core/harness/<lang>.test.ts` |
 | A new LeetCode query | `src/api/queries/` (GraphQL) or `src/api/rest/` (REST) |
 | A new DB table/column | `src/db/schema.ts` → `bun run db:generate` → migration in `drizzle/` |
 | A new headless verb | `src/cli/index.ts` (dispatch) + `cli/present.ts` |
@@ -127,7 +128,9 @@ src/
 
 - **Files:** `camelCase.ts` for modules (`testRunner.ts`, `topicLoad.ts`);
   `PascalCase.tsx` for React components (`ProblemView.tsx`, `SolutionsPanel.tsx`).
-- **Tests:** `{name}.test.ts` co-located beside the module under test.
+- **Tests:** `{name}.test.ts` in a top-level `tests/` tree mirroring `src/`
+  (`tests/core/git.test.ts` tests `src/core/git.ts`); imports source via the
+  `@/*` → `src/*` alias.
 - **Store slices:** `{domain}Slice.ts`, each opening with `// type: ui` or
   `// type: domain`.
 - **Handlers:** `handle<Action>` functions (`handleEnterProblemView`,
