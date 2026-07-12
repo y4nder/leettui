@@ -53,6 +53,9 @@ export const browseGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFor
   // (which opens one problem's folder). Global, not panel-scoped: it isn't tied to the
   // selected question. Distinct key from `w` (like shift+g vs the gg chord).
   "solutions.openWorkspace": "shift+w",
+  // `p` opens the progress dashboard (Stage 3 / D-09). Free: Ctrl+p is the palette;
+  // bare `p` was unbound in browse. Globally available from the browse layer.
+  "dashboard.open": "p",
   "update.dismiss": "x",
   "app.quit": "q",
 });
@@ -164,6 +167,10 @@ export const problemGlobalBindings: Binding<Renderable, KeyEvent>[] = bindingsFo
   // Free here — only pickerBindings binds `o`, a mutually exclusive modal layer.
   "problem.resultExpand": "o",
   "problem.help": "?",
+  // `p` opens the progress dashboard (Stage 3 / D-10, truly global). Free: Ctrl+p
+  // is the palette; bare `p` was unbound in problem view. One command + two bindings
+  // (browse + problem global layers), like solutions.openWorkspace/W.
+  "dashboard.open": "p",
   "update.dismiss": "x",
   "problem.escape": ["escape", "q"],
 });
