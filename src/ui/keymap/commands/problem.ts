@@ -3,9 +3,9 @@
 // hidden from the browse command palette; the ProblemView help popup surfaces them via its
 // own scope filter.
 
-import { useAppStore } from "../../store";
-import { makeCommand, type CommandEntry } from "../command";
-import { getRenderer, scrollFocusedProblemPanel } from "../runtime";
+import { useAppStore } from "@/ui/store";
+import { makeCommand, type CommandEntry } from "@/ui/keymap/command";
+import { getRenderer, scrollFocusedProblemPanel } from "@/ui/keymap/runtime";
 import {
   handleCloseNotes,
   handleEditNotes,
@@ -26,8 +26,8 @@ import {
   handleRequestDeleteSolution,
   handleConfirmDeleteSolution,
   handleCancelDeleteSolution,
-} from "../../../views/problem/handlers";
-import { handleViewDailyChallenge } from "../../../views/browse/handlers";
+} from "@/views/problem/handlers";
+import { handleViewDailyChallenge } from "@/views/browse/handlers";
 
 export const problemCommands: CommandEntry[] = [
   makeCommand({

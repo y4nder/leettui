@@ -7,7 +7,7 @@
 // Asks the domain slice to recompute the projections; never reads the DB itself.
 
 import type { StateCreator } from "zustand";
-import type { AppStore } from "../index";
+import type { AppStore } from "@/ui/store/index";
 
 export interface SearchSlice {
   searchNeedle: string;

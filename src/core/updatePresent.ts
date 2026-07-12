@@ -5,7 +5,7 @@
 // (which serves the headless verbs); kept here in `core/` because `update.ts`
 // already owns the `update` subcommand's stdout.
 
-import { VERSION } from "./version";
+import { VERSION } from "@/core/version";
 
 const COLOR = Boolean(process.stdout.isTTY) && !process.env.NO_COLOR;
 

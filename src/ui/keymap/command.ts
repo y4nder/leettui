@@ -7,8 +7,8 @@
 import type { KeyEvent, Renderable } from "@opentui/core";
 import type { Command } from "@opentui/keymap";
 
-import { useAppStore } from "../store";
-import { logKey } from "../../debug";
+import { useAppStore } from "@/ui/store";
+import { logKey } from "@/debug";
 
 export type ActionCategory = "Navigation" | "Solve" | "View" | "Search" | "System";
 

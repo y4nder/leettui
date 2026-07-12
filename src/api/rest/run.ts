@@ -1,5 +1,5 @@
-import { getClient } from "../client";
-import type { RunCodeResponse } from "../types";
+import { getClient } from "@/api/client";
+import type { RunCodeResponse } from "@/api/types";
 
 export async function runCode(
   slug: string,

@@ -1,15 +1,15 @@
 import { useRef, useState } from "react";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
 
-import { Logo } from "./Logo";
-import { colors } from "../../theme";
-import { getSolutionsDir } from "../../../config";
-import type { GitOpResult } from "../../../core/git";
+import { Logo } from "@/ui/components/onboarding/Logo";
+import { colors } from "@/ui/theme";
+import { getSolutionsDir } from "@/config";
+import type { GitOpResult } from "@/core/git";
 import {
   runRemoteSync,
   scaffoldSolutionsGit,
   type RemoteSyncResult,
-} from "../../../views/browse/handlers";
+} from "@/views/browse/handlers";
 
 interface GitInitOnboardingProps {
   /** Called once the user resolves the step (initialized, cloned, or skipped). */

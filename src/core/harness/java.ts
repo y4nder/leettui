@@ -15,7 +15,7 @@
 // etc. are valid Java, so all array generality lives in the fixed helper block,
 // not in per-type codegen.
 
-import { type HarnessFile, type MetaData, DEFERRED_TYPES, baseType } from "./meta";
+import { type HarnessFile, type MetaData, DEFERRED_TYPES, baseType } from "@/core/harness/meta";
 
 // LeetCode scalar metaData types → their concrete Java types. A JSON number/
 // string/bool parses into these via the embedded parser: a 1-char JSON string

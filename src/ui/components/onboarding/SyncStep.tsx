@@ -4,11 +4,11 @@ import { useTerminalDimensions } from "@opentui/react";
 // internal it uses exists in 0.2.16 — verified rendering + animating.
 import "opentui-spinner/react";
 
-import { Logo } from "./Logo";
-import { colors } from "../../theme";
-import { useAppStore } from "../../store";
-import { useTick } from "../Spinner";
-import { smoothBar, sweepBar } from "../../progress";
+import { Logo } from "@/ui/components/onboarding/Logo";
+import { colors } from "@/ui/theme";
+import { useAppStore } from "@/ui/store";
+import { useTick } from "@/ui/components/Spinner";
+import { smoothBar, sweepBar } from "@/ui/progress";
 
 // Shown while the DB is opened and (on first run) the problem set is synced. Reads
 // the same `syncProgress` slice that drives the rest of the app. Before a total is

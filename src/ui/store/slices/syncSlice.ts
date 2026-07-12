@@ -2,7 +2,7 @@
 // Owns the sync progress indicator's transient state.
 
 import type { StateCreator } from "zustand";
-import type { AppStore } from "../index";
+import type { AppStore } from "@/ui/store/index";
 
 export interface SyncSlice {
   syncProgress: { current: number; total: number } | null;

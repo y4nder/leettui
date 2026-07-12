@@ -5,9 +5,9 @@
 // Split by concern into sibling modules; this barrel preserves the
 // `views/browse/handlers` import path every consumer uses.
 
-export * from "./daily";
-export * from "./editor";
-export * from "./solve";
-export * from "./location";
-export * from "./git";
-export * from "./backfill";
+export * from "@/views/browse/handlers/daily";
+export * from "@/views/browse/handlers/editor";
+export * from "@/views/browse/handlers/solve";
+export * from "@/views/browse/handlers/location";
+export * from "@/views/browse/handlers/git";
+export * from "@/views/browse/handlers/backfill";

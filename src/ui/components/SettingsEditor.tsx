@@ -1,11 +1,11 @@
 import { useMemo, useRef, useState } from "react";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
 
-import { colors, getCurrentThemeName, listThemeNames, setTheme } from "../theme";
-import { useAppStore } from "../store";
-import { useListMouse } from "../useListMouse";
-import { persistSetting } from "../../config";
-import { SETTINGS, type SettingSpec } from "../../config/settings";
+import { colors, getCurrentThemeName, listThemeNames, setTheme } from "@/ui/theme";
+import { useAppStore } from "@/ui/store";
+import { useListMouse } from "@/ui/useListMouse";
+import { persistSetting } from "@/config";
+import { SETTINGS, type SettingSpec } from "@/config/settings";
 
 // In-TUI settings editor (opened with `,` or the command palette → mode "config").
 // A single scrollable list: each row shows a setting's label + current value. On the

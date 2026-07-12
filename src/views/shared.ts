@@ -6,10 +6,10 @@ import { dirname } from "node:path";
 
 import type { createCliRenderer } from "@opentui/core";
 
-import { useAppStore } from "../ui/store";
-import { errMessage, logError } from "../debug";
-import { getEditorArgv, getEditorDetach, shouldDetachEditor } from "../config";
-import { errorView, type ResultView } from "./browse/resultView";
+import { useAppStore } from "@/ui/store";
+import { errMessage, logError } from "@/debug";
+import { getEditorArgv, getEditorDetach, shouldDetachEditor } from "@/config";
+import { errorView, type ResultView } from "@/views/browse/resultView";
 
 export type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
 

@@ -2,14 +2,14 @@
 // global modal-openers (palette/help/debug/search start) live in system.ts; this file is the
 // popup/result *closers* and scroll + the search edit keys only.
 
-import { useAppStore } from "../../store";
-import { getScrollJumpRows } from "../../../config";
-import { makeCommand, type CommandEntry } from "../command";
-import { scrollActivePopup } from "../runtime";
-import { dumpToString } from "../../../debug";
-import { openInBrowser } from "../../../core/auth";
-import { releaseUrl } from "../../../core/update";
-import { handleEnterPopupProblem } from "../../../views/browse/handlers";
+import { useAppStore } from "@/ui/store";
+import { getScrollJumpRows } from "@/config";
+import { makeCommand, type CommandEntry } from "@/ui/keymap/command";
+import { scrollActivePopup } from "@/ui/keymap/runtime";
+import { dumpToString } from "@/debug";
+import { openInBrowser } from "@/core/auth";
+import { releaseUrl } from "@/core/update";
+import { handleEnterPopupProblem } from "@/views/browse/handlers";
 
 export const modalCommands: CommandEntry[] = [
   // Modal-only commands. Hidden from the palette via group: "modal".

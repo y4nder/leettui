@@ -1,8 +1,8 @@
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
 
-import { colors } from "../theme";
-import { useAppStore } from "../store";
-import { handleStartBackfill } from "../../views/browse/handlers";
+import { colors } from "@/ui/theme";
+import { useAppStore } from "@/ui/store";
+import { handleStartBackfill } from "@/views/browse/handlers";
 
 // One-time first-run nudge (D-01/D-02/D-03) offering to import LeetCode submission
 // history. A LIGHT, dismissible popup — NOT a blocking gate — mounted only while

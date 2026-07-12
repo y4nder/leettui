@@ -4,11 +4,11 @@
 // write it, while the browse modal closers here also touch it.
 
 import type { StateCreator } from "zustand";
-import type { AppStore } from "../index";
-import type { ResultView } from "../../../views/browse/resultView";
-import type { ChangelogPayload } from "../../../core/update";
-import type { RecentQuestion } from "../../../db/recents";
-import type { DbQuestion } from "../../../db/questions";
+import type { AppStore } from "@/ui/store/index";
+import type { ResultView } from "@/views/browse/resultView";
+import type { ChangelogPayload } from "@/core/update";
+import type { RecentQuestion } from "@/db/recents";
+import type { DbQuestion } from "@/db/questions";
 
 // Which browse-view panel currently holds focus (lazygit-style). Only meaningful
 // while mode === "browse"; panel-relative bindings (j/k, Enter) are mounted per panel.

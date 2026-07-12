@@ -4,10 +4,10 @@
 
 import { resolve } from "node:path";
 
-import { relocateSolutions, type RelocateResult } from "../../../core/relocate";
-import { setLastKnownSolutionsDir } from "../../../core/session";
-import { getSolutionsDir, persistSolutionsDir } from "../../../config";
-import { resolveConfigPath } from "../../../config/resolvePath";
+import { relocateSolutions, type RelocateResult } from "@/core/relocate";
+import { setLastKnownSolutionsDir } from "@/core/session";
+import { getSolutionsDir, persistSolutionsDir } from "@/config";
+import { resolveConfigPath } from "@/config/resolvePath";
 
 export interface ChangeLocationOutcome {
   /** "unchanged" when the resolved target equals the current dir (nothing written). */

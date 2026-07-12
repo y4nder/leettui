@@ -5,8 +5,8 @@
 // heterogeneous layouts and closure-scoped real indices, so there's no y-coordinate math.
 
 import type { MouseEvent } from "@opentui/core";
-import { resolveRowClick, wheelRows } from "./mouse";
-import { useAppStore } from "./store";
+import { resolveRowClick, wheelRows } from "@/ui/mouse";
+import { useAppStore } from "@/ui/store";
 
 export interface ListMouseOptions {
   // Live guard evaluated per event (mode / sub-modal checks). Default: always on.

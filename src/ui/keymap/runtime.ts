@@ -14,10 +14,10 @@ import type { CliRenderer, KeyEvent, Renderable, ScrollBoxRenderable } from "@op
 import type { Command, Keymap } from "@opentui/keymap";
 import { registerDefaultKeys, registerMetadataFields } from "@opentui/keymap/addons";
 
-import { useAppStore } from "../store";
-import type { ProblemPanel } from "../store";
-import { logKey } from "../../debug";
-import { COMMANDS } from "./commands";
+import { useAppStore } from "@/ui/store";
+import type { ProblemPanel } from "@/ui/store";
+import { logKey } from "@/debug";
+import { COMMANDS } from "@/ui/keymap/commands";
 
 export type AppKeymap = Keymap<Renderable, KeyEvent>;
 

@@ -23,10 +23,10 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import type { DbQuestion } from "../db/questions";
-import { getProblemDir, getTestsDir } from "./solutions";
-import { getRunnerSpec, type RunnerSpec } from "./harness";
-import { errMessage } from "../debug";
+import type { DbQuestion } from "@/db/questions";
+import { getProblemDir, getTestsDir } from "@/core/solutions";
+import { getRunnerSpec, type RunnerSpec } from "@/core/harness";
+import { errMessage } from "@/debug";
 
 // Kill a case that runs too long (an accidental infinite loop) so the handler
 // never hangs forever.

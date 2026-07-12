@@ -1,4 +1,4 @@
-import { gqlQuery } from "../graphql";
+import { gqlQuery } from "@/api/graphql";
 
 // Field names, types, and units below were reverse-engineered from the
 // JacobLinCool/LeetCode-Query community library (RESEARCH.md §Pattern 3) and

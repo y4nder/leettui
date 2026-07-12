@@ -1,10 +1,10 @@
 import { useTerminalDimensions } from "@opentui/react";
-import type { RelatedQuestion } from "../store";
-import { useAppStore } from "../store";
-import { colors } from "../theme";
-import { getKeymap } from "../keymap";
-import { problemPanelMouseEnabled, useListMouse } from "../useListMouse";
-import { useScrollableList } from "../useScrollableList";
+import type { RelatedQuestion } from "@/ui/store";
+import { useAppStore } from "@/ui/store";
+import { colors } from "@/ui/theme";
+import { getKeymap } from "@/ui/keymap";
+import { problemPanelMouseEnabled, useListMouse } from "@/ui/useListMouse";
+import { useScrollableList } from "@/ui/useScrollableList";
 
 interface RelatedPanelProps {
   related: RelatedQuestion[];

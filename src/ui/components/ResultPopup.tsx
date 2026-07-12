@@ -1,8 +1,8 @@
 import { useBindings } from "@opentui/keymap/react";
-import { colors } from "../theme";
-import { resultBindings } from "../keymap";
-import type { ResultView } from "../../views/browse/resultView";
-import { ResultBody } from "./ResultBody";
+import { colors } from "@/ui/theme";
+import { resultBindings } from "@/ui/keymap";
+import type { ResultView } from "@/views/browse/resultView";
+import { ResultBody } from "@/ui/components/ResultBody";
 
 interface ResultPopupProps {
   view: ResultView;

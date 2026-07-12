@@ -1,11 +1,11 @@
-import type { DbSubmission } from "../../db/submissions";
-import type { AcRuntimeSummary } from "../verdict";
-import { langAbbrev, parseRuntimeMs, verdictColor, verdictGlyph } from "../verdict";
-import { formatRelative } from "../relativeTime";
-import { colors } from "../theme";
-import { useAppStore } from "../store";
-import { problemPanelMouseEnabled, useListMouse } from "../useListMouse";
-import { useScrollableList } from "../useScrollableList";
+import type { DbSubmission } from "@/db/submissions";
+import type { AcRuntimeSummary } from "@/ui/verdict";
+import { langAbbrev, parseRuntimeMs, verdictColor, verdictGlyph } from "@/ui/verdict";
+import { formatRelative } from "@/ui/relativeTime";
+import { colors } from "@/ui/theme";
+import { useAppStore } from "@/ui/store";
+import { problemPanelMouseEnabled, useListMouse } from "@/ui/useListMouse";
+import { useScrollableList } from "@/ui/useScrollableList";
 
 interface HistoryPanelProps {
   submissions: DbSubmission[];

@@ -5,9 +5,9 @@
 // the last-viewed position survives restarts.
 
 import type { StateCreator } from "zustand";
-import type { AppStore } from "../index";
-import { loadSession, saveSession } from "../../../core/session";
-import { scheduleTopicLoad } from "../topicLoad";
+import type { AppStore } from "@/ui/store/index";
+import { loadSession, saveSession } from "@/core/session";
+import { scheduleTopicLoad } from "@/ui/store/topicLoad";
 
 export interface SelectionSlice {
   selectedTopicIndex: number;

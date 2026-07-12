@@ -1,16 +1,16 @@
 // Browse handlers for the daily-challenge popup, the "What's new" changelog, and
 // the recently-viewed history modal — the read-mostly overlays opened from browse.
 
-import { useAppStore } from "../../../ui/store";
-import { htmlToMarkdown } from "../../../core/markdown";
-import { fetchQuestionContent } from "../../../api/queries/question-content";
-import { fetchDailyChallenge } from "../../../api/queries/daily-challenge";
-import { getQuestionBySlug } from "../../../db/questions";
-import { getRecents, recordRecent } from "../../../db/recents";
-import { fetchReleases } from "../../../core/update";
-import { handleEnterProblemView } from "../../problem/handlers";
-import { info, loading } from "../resultView";
-import { reportError } from "./shared";
+import { useAppStore } from "@/ui/store";
+import { htmlToMarkdown } from "@/core/markdown";
+import { fetchQuestionContent } from "@/api/queries/question-content";
+import { fetchDailyChallenge } from "@/api/queries/daily-challenge";
+import { getQuestionBySlug } from "@/db/questions";
+import { getRecents, recordRecent } from "@/db/recents";
+import { fetchReleases } from "@/core/update";
+import { handleEnterProblemView } from "@/views/problem/handlers";
+import { info, loading } from "@/views/browse/resultView";
+import { reportError } from "@/views/browse/handlers/shared";
 
 // Command-palette "What's new": fetch the recent releases on demand and open the
 // changelog popup with the **latest** emphasized. Un-gated (works on dev/from-source

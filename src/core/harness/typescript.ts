@@ -15,8 +15,8 @@
 // caveat as `node` (JS) / `python3` (Python). A missing interpreter degrades to
 // a per-case `error` in the runner, not a crash.
 
-import type { MetaData } from "./meta";
-import { generateEcmaHarness } from "./ecma";
+import type { MetaData } from "@/core/harness/meta";
+import { generateEcmaHarness } from "@/core/harness/ecma";
 
 export function generateTypescriptHarness(meta: MetaData): string {
   const loadSolution = `// Load the bare LeetCode function from solution.ts without requiring it to

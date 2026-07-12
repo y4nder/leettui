@@ -2,12 +2,12 @@ import { useState } from "react";
 import { TextAttributes } from "@opentui/core";
 import { useTerminalDimensions } from "@opentui/react";
 import { useBindings } from "@opentui/keymap/react";
-import { colors, difficultyColor, statusColor, statusIcon } from "../theme";
-import { useAppStore } from "../store";
-import { handleEnterProblemView } from "../../views/problem/handlers";
-import { formatRelative } from "../relativeTime";
-import { useScrollableList } from "../useScrollableList";
-import { useListMouse } from "../useListMouse";
+import { colors, difficultyColor, statusColor, statusIcon } from "@/ui/theme";
+import { useAppStore } from "@/ui/store";
+import { handleEnterProblemView } from "@/views/problem/handlers";
+import { formatRelative } from "@/ui/relativeTime";
+import { useScrollableList } from "@/ui/useScrollableList";
+import { useListMouse } from "@/ui/useListMouse";
 
 // "Recently viewed" history modal (Stage 20), opened with `h` from browse. A
 // recency-sorted list of the questions you've opened (detail popup or ProblemView),

@@ -1,4 +1,4 @@
-import type { Theme } from "./index";
+import type { Theme } from "@/ui/themes/index";
 
 // Catppuccin Mocha
 export const catppuccin: Theme = {

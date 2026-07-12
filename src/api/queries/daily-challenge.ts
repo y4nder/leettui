@@ -1,5 +1,5 @@
-import { gqlQuery } from "../graphql";
-import type { DailyChallengeData } from "../types";
+import { gqlQuery } from "@/api/graphql";
+import type { DailyChallengeData } from "@/api/types";
 
 const QUERY = `
 query questionOfToday {

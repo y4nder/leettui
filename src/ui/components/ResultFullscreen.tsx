@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { ScrollBoxRenderable } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/react";
-import { colors, difficultyColor } from "../theme";
-import { useAppStore } from "../store";
-import { registerPopupScroller, resultFullscreenBindings } from "../keymap";
-import { ResultBody } from "./ResultBody";
+import { colors, difficultyColor } from "@/ui/theme";
+import { useAppStore } from "@/ui/store";
+import { registerPopupScroller, resultFullscreenBindings } from "@/ui/keymap";
+import { ResultBody } from "@/ui/components/ResultBody";
 
 // Full-screen takeover for run/submit/test results (the detached-editor loop:
 // solve in the GUI editor, flip to the TUI, hit one key, read the whole result).

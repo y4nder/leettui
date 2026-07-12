@@ -7,15 +7,15 @@
 // language as an argument) — wired through one matcher here so `src/index.tsx`
 // only learns the CLI seam once.
 
-import { loadConfig, getDbPath, hasTokens } from "../config";
-import type { Config } from "../config/types";
-import { openDatabase } from "../db";
-import { initClient, AuthError } from "../api/client";
-import { runLocalTests } from "../core/testRunner";
-import { runSolution, submitSolution } from "../core/submission";
-import type { ParsedResponse } from "../api/types";
-import { fetchEditorData } from "../api/queries/editor-data";
-import { fetchConsolePanelConfig } from "../api/queries/console-panel-config";
+import { loadConfig, getDbPath, hasTokens } from "@/config";
+import type { Config } from "@/config/types";
+import { openDatabase } from "@/db";
+import { initClient, AuthError } from "@/api/client";
+import { runLocalTests } from "@/core/testRunner";
+import { runSolution, submitSolution } from "@/core/submission";
+import type { ParsedResponse } from "@/api/types";
+import { fetchEditorData } from "@/api/queries/editor-data";
+import { fetchConsolePanelConfig } from "@/api/queries/console-panel-config";
 import {
   addCase,
   createSolutionWithHarness,
@@ -23,8 +23,8 @@ import {
   getTestsDir,
   saveGoldenOutputs,
   solutionExists,
-} from "../core/solutions";
-import { buildLocalRunView, buildResultView } from "../views/browse/resultView";
+} from "@/core/solutions";
+import { buildLocalRunView, buildResultView } from "@/views/browse/resultView";
 import {
   presentResultView,
   exitCodeForLocalRun,
@@ -35,8 +35,8 @@ import {
   brandHeader,
   formatTargetError,
   startStatus,
-} from "./present";
-import { resolveProblemTarget, resolveTarget } from "./target";
+} from "@/cli/present";
+import { resolveProblemTarget, resolveTarget } from "@/cli/target";
 
 // Shown when there's no usable saved session. Headless verbs never launch the
 // interactive Firefox-import/paste flow from a non-TTY editor child — they tell

@@ -4,11 +4,11 @@ import { useBindings, useKeymap } from "@opentui/keymap/react";
 import { formatCommandBindings } from "@opentui/keymap/extras";
 import type { CommandEntry } from "@opentui/keymap";
 import type { KeyEvent, Renderable } from "@opentui/core";
-import { colors } from "../theme";
-import { fuzzyMatch } from "../../core/search";
-import { useAppStore } from "../store";
-import { useListMouse } from "../useListMouse";
-import { useScrollableList } from "../useScrollableList";
+import { colors } from "@/ui/theme";
+import { fuzzyMatch } from "@/core/search";
+import { useAppStore } from "@/ui/store";
+import { useListMouse } from "@/ui/useListMouse";
+import { useScrollableList } from "@/ui/useScrollableList";
 
 type Entry = CommandEntry<Renderable, KeyEvent>;
 

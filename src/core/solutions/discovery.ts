@@ -1,7 +1,12 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { getSolutionsDir } from "../../config";
-import { getNotesPath, getProblemDir, getProblemMdPath, solutionFilePath } from "./paths";
+import { getSolutionsDir } from "@/config";
+import {
+  getNotesPath,
+  getProblemDir,
+  getProblemMdPath,
+  solutionFilePath,
+} from "@/core/solutions/paths";
 
 // Returns the shared `notes.md` content, or null if it doesn't exist yet (so
 // the view can show a placeholder). No side effects.

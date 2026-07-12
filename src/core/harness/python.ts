@@ -9,7 +9,7 @@
 // (`python3 main.py < tests/case-01.txt`) with cwd set to the language folder
 // so `from solution import Solution` resolves.
 
-import type { MetaData } from "./meta";
+import type { MetaData } from "@/core/harness/meta";
 
 // Only called for a signature of round-trippable types (scalars/arrays) — the
 // dispatcher (`index.ts`) refuses `ListNode`/`TreeNode` before reaching here, so

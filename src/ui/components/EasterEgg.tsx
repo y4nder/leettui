@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useKeyboard, useTimeline } from "@opentui/react";
 
-import { Logo } from "./onboarding/Logo";
-import { colors } from "../theme";
-import { useAppStore } from "../store";
-import { VERSION } from "../../core/version";
+import { Logo } from "@/ui/components/onboarding/Logo";
+import { colors } from "@/ui/theme";
+import { useAppStore } from "@/ui/store";
+import { VERSION } from "@/core/version";
 
 // Command-palette easter egg ("✦ Reveal the leettui logo"). A full-screen ASCII
 // reveal that lingers until any key is pressed. No keymap bindings are mounted in

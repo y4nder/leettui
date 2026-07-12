@@ -1,11 +1,11 @@
 import { useRef, useState } from "react";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
 
-import { colors } from "../theme";
-import { useAppStore } from "../store";
-import { getSolutionsDir } from "../../config";
-import { ghCreateArgv } from "../../core/git";
-import { runRemoteSetup, type RemoteSetupResult } from "../../views/browse/handlers";
+import { colors } from "@/ui/theme";
+import { useAppStore } from "@/ui/store";
+import { getSolutionsDir } from "@/config";
+import { ghCreateArgv } from "@/core/git";
+import { runRemoteSetup, type RemoteSetupResult } from "@/views/browse/handlers";
 
 type Phase = "input" | "confirm" | "working" | "done";
 

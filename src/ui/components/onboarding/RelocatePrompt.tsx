@@ -1,13 +1,9 @@
 import { useState } from "react";
 import { useKeyboard } from "@opentui/react";
 
-import { Logo } from "./Logo";
-import { colors } from "../../theme";
-import {
-  relocateSolutions,
-  type RelocateResult,
-  type RelocationPlan,
-} from "../../../core/relocate";
+import { Logo } from "@/ui/components/onboarding/Logo";
+import { colors } from "@/ui/theme";
+import { relocateSolutions, type RelocateResult, type RelocationPlan } from "@/core/relocate";
 
 interface RelocatePromptProps {
   plan: RelocationPlan;

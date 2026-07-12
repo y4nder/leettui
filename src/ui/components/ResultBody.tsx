@@ -1,8 +1,8 @@
-import { colors } from "../theme";
-import type { ThemeColor } from "../themes";
-import type { ResultView, ResultKind, ResultCase } from "../../views/browse/resultView";
-import type { CaseStatus } from "../../core/testRunner";
-import { Loading } from "./Loading";
+import { colors } from "@/ui/theme";
+import type { ThemeColor } from "@/ui/themes";
+import type { ResultView, ResultKind, ResultCase } from "@/views/browse/resultView";
+import type { CaseStatus } from "@/core/testRunner";
+import { Loading } from "@/ui/components/Loading";
 
 interface ResultBodyProps {
   view: ResultView;

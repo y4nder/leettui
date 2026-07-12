@@ -1,5 +1,5 @@
 import { useTerminalDimensions } from "@opentui/react";
-import { colors } from "../../theme";
+import { colors } from "@/ui/theme";
 
 // Hand-crafted wordmark — block-letter "LEETTUI". Kept to three rows so it fits
 // comfortably on small terminals; a single-line wordmark is used when there isn't

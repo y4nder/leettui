@@ -6,10 +6,10 @@
 // runs as a plain async function, so the OpenTUI render loop runs between await
 // points and the user can keep navigating while it's in flight (D-04).
 
-import { useAppStore } from "../../../ui/store";
-import { backfillSubmissions, type CancelRef } from "../../../core/backfill";
-import { errorView, info } from "../resultView";
-import { releaseSync, tryAcquireSync } from "./shared";
+import { useAppStore } from "@/ui/store";
+import { backfillSubmissions, type CancelRef } from "@/core/backfill";
+import { errorView, info } from "@/views/browse/resultView";
+import { releaseSync, tryAcquireSync } from "@/views/browse/handlers/shared";
 
 // Module-level so handleCancelBackfill can reach the in-flight run without any
 // component needing to hold a ref; null when idle (also the no-op guard both for

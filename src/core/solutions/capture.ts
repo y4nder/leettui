@@ -24,8 +24,8 @@
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { addCase } from "./add-case";
-import { compareOutput, discoverCases, normalize } from "../testRunner";
+import { addCase } from "@/core/solutions/add-case";
+import { compareOutput, discoverCases, normalize } from "@/core/testRunner";
 
 export type CaptureOutcome = "captured" | "blessed" | "duplicate" | "mismatch";
 

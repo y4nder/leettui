@@ -6,10 +6,10 @@
 // aggregate attempt-count Map is a SEPARATE concern (owned by questionsSlice, plan 02-02).
 
 import type { StateCreator } from "zustand";
-import type { DbSubmission } from "../../../db/submissions";
-import { getSubmissionsForQuestion } from "../../../db/submissions";
-import { summarizeAcRuntime, type AcRuntimeSummary } from "../../verdict";
-import type { AppStore } from "../index";
+import type { DbSubmission } from "@/db/submissions";
+import { getSubmissionsForQuestion } from "@/db/submissions";
+import { summarizeAcRuntime, type AcRuntimeSummary } from "@/ui/verdict";
+import type { AppStore } from "@/ui/store/index";
 
 export interface SubmissionsSlice {
   problemSubmissions: DbSubmission[];

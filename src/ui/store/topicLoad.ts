@@ -9,8 +9,8 @@
 // The cursor move itself stays instant (a cheap `set`), so the highlight tracks
 // the key at frame rate while the heavier question-list load lags behind.
 
-import type { AppStore } from "./index";
-import { saveSession } from "../../core/session";
+import type { AppStore } from "@/ui/store/index";
+import { saveSession } from "@/core/session";
 
 const TOPIC_LOAD_DEBOUNCE_MS = 90;
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useBindings } from "@opentui/keymap/react";
-import { colors } from "../theme";
-import { useListMouse } from "../useListMouse";
+import { colors } from "@/ui/theme";
+import { useListMouse } from "@/ui/useListMouse";
 
 interface SelectPopupProps {
   title: string;

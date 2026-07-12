@@ -1,5 +1,5 @@
-import { getClient } from "./client";
-import type { GqlResponse } from "./types";
+import { getClient } from "@/api/client";
+import type { GqlResponse } from "@/api/types";
 
 const cache = new Map<string, { data: unknown; ts: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes

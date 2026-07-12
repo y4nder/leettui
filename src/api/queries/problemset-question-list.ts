@@ -1,5 +1,5 @@
-import { gqlQuery } from "../graphql";
-import type { ProblemsetQuestionListData } from "../types";
+import { gqlQuery } from "@/api/graphql";
+import type { ProblemsetQuestionListData } from "@/api/types";
 
 const QUERY = `
 query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {

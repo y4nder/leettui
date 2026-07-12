@@ -2,11 +2,11 @@
 // withSuspendedRenderer, currentTopic, makeReportError) lives in `views/shared`;
 // this module only adds what's specific to the browse list.
 
-import { useAppStore } from "../../../ui/store";
-import { makeReportError } from "../../shared";
+import { useAppStore } from "@/ui/store";
+import { makeReportError } from "@/views/shared";
 
-export type { Renderer } from "../../shared";
-export { withSuspendedRenderer, openInEditor, currentTopic } from "../../shared";
+export type { Renderer } from "@/views/shared";
+export { withSuspendedRenderer, openInEditor, currentTopic } from "@/views/shared";
 
 // Browse error reports log against the "browse" scope.
 export const reportError = makeReportError("browse");

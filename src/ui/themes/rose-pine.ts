@@ -1,4 +1,4 @@
-import type { Theme } from "./index";
+import type { Theme } from "@/ui/themes/index";
 
 export const rosePine: Theme = {
   easy: "#31748f",

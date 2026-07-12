@@ -1,7 +1,7 @@
-import { fetchQuestionList } from "../api/queries/problemset-question-list";
-import { upsertQuestion, upsertQuestionTopics, getQuestionCount } from "../db/questions";
-import { getDb } from "../db/index";
-import type { ApiQuestion } from "../api/types";
+import { fetchQuestionList } from "@/api/queries/problemset-question-list";
+import { upsertQuestion, upsertQuestionTopics, getQuestionCount } from "@/db/questions";
+import { getDb } from "@/db/index";
+import type { ApiQuestion } from "@/api/types";
 
 const PAGE_SIZE = 100;
 const CONCURRENCY = 5;

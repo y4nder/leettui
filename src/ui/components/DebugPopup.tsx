@@ -1,7 +1,7 @@
 import { useBindings } from "@opentui/keymap/react";
-import { colors } from "../theme";
-import { debugBindings } from "../keymap";
-import type { DebugEntry } from "../../debug";
+import { colors } from "@/ui/theme";
+import { debugBindings } from "@/ui/keymap";
+import type { DebugEntry } from "@/debug";
 
 interface DebugPopupProps {
   entries: DebugEntry[];

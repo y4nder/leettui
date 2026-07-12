@@ -11,10 +11,10 @@
 // hooks) stays plain and parseable. Editors/hooks branch on the *exit code*, not
 // this text.
 
-import type { DbQuestion } from "../db/questions";
-import type { ResultView, ResultKind } from "../views/browse/resultView";
-import type { CaseStatus, LocalRunReport } from "../core/testRunner";
-import type { SaveOutcome, SaveResult } from "../core/solutions";
+import type { DbQuestion } from "@/db/questions";
+import type { ResultView, ResultKind } from "@/views/browse/resultView";
+import type { CaseStatus, LocalRunReport } from "@/core/testRunner";
+import type { SaveOutcome, SaveResult } from "@/core/solutions";
 
 // ── ANSI ────────────────────────────────────────────────────────────────────
 

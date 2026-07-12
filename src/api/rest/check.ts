@@ -1,5 +1,5 @@
-import { getClient } from "../client";
-import { parseCheckResponse, type CheckResponse, type ParsedResponse } from "../types";
+import { getClient } from "@/api/client";
+import { parseCheckResponse, type CheckResponse, type ParsedResponse } from "@/api/types";
 
 const POLL_INTERVAL = 500;
 const MAX_POLLS = 60;

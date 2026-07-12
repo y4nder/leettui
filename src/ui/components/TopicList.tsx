@@ -1,9 +1,9 @@
-import { colors } from "../theme";
-import { getKeymap } from "../keymap";
-import { useAppStore } from "../store";
-import { useScrollableList } from "../useScrollableList";
-import { useGlide } from "../useGlide";
-import { useListMouse } from "../useListMouse";
+import { colors } from "@/ui/theme";
+import { getKeymap } from "@/ui/keymap";
+import { useAppStore } from "@/ui/store";
+import { useScrollableList } from "@/ui/useScrollableList";
+import { useGlide } from "@/ui/useGlide";
+import { useListMouse } from "@/ui/useListMouse";
 
 interface TopicListProps {
   topics: string[];

@@ -1,7 +1,7 @@
-import { colors } from "../theme";
-import { getKeymap } from "../keymap";
-import { useAppStore } from "../store";
-import { problemPanelMouseEnabled, useListMouse } from "../useListMouse";
+import { colors } from "@/ui/theme";
+import { getKeymap } from "@/ui/keymap";
+import { useAppStore } from "@/ui/store";
+import { problemPanelMouseEnabled, useListMouse } from "@/ui/useListMouse";
 
 interface SolutionsPanelProps {
   // langSlugs of solutions that exist on disk; the active one (focusedIndex) is what

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useKeyboard, useTimeline } from "@opentui/react";
 
-import { Logo } from "./Logo";
-import { colors } from "../../theme";
-import { VERSION } from "../../../core/version";
+import { Logo } from "@/ui/components/onboarding/Logo";
+import { colors } from "@/ui/theme";
+import { VERSION } from "@/core/version";
 
 interface SplashProps {
   /** Called once when the splash finishes (timer elapsed or a key was pressed). */

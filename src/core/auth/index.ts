@@ -11,10 +11,10 @@
 // before the OpenTUI renderer is created, or from within a `renderer.suspend()`
 // block (see handleReauth), exactly like the $EDITOR integration.
 
-import { createClient, AuthError } from "../../api/client";
-import { persistTokens } from "../../config";
-import { readFirefoxCookies } from "./firefox";
-import { parseCookieInput } from "./paste";
+import { createClient, AuthError } from "@/api/client";
+import { persistTokens } from "@/config";
+import { readFirefoxCookies } from "@/core/auth/firefox";
+import { parseCookieInput } from "@/core/auth/paste";
 
 const VALIDATE_QUERY = "query globalData { userStatus { isSignedIn username } }";
 export const LOGIN_URL = "https://leetcode.com/accounts/login/";

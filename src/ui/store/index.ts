@@ -1,22 +1,22 @@
 import { create } from "zustand";
-import { createQuestionsSlice } from "./slices/questionsSlice";
-import { createSelectionSlice } from "./slices/selectionSlice";
-import { createSearchSlice } from "./slices/searchSlice";
-import { createFiltersSlice } from "./slices/filtersSlice";
-import { createUiSlice } from "./slices/uiSlice";
-import { createProblemSlice } from "./slices/problemSlice";
-import { createSyncSlice } from "./slices/syncSlice";
-import { createSubmissionsSlice } from "./slices/submissionsSlice";
-import { createDashboardSlice } from "./slices/dashboardSlice";
-import type { QuestionsSlice } from "./slices/questionsSlice";
-import type { SelectionSlice } from "./slices/selectionSlice";
-import type { SearchSlice } from "./slices/searchSlice";
-import type { FiltersSlice } from "./slices/filtersSlice";
-import type { UiSlice } from "./slices/uiSlice";
-import type { ProblemSlice } from "./slices/problemSlice";
-import type { SyncSlice } from "./slices/syncSlice";
-import type { SubmissionsSlice } from "./slices/submissionsSlice";
-import type { DashboardSlice } from "./slices/dashboardSlice";
+import { createQuestionsSlice } from "@/ui/store/slices/questionsSlice";
+import { createSelectionSlice } from "@/ui/store/slices/selectionSlice";
+import { createSearchSlice } from "@/ui/store/slices/searchSlice";
+import { createFiltersSlice } from "@/ui/store/slices/filtersSlice";
+import { createUiSlice } from "@/ui/store/slices/uiSlice";
+import { createProblemSlice } from "@/ui/store/slices/problemSlice";
+import { createSyncSlice } from "@/ui/store/slices/syncSlice";
+import { createSubmissionsSlice } from "@/ui/store/slices/submissionsSlice";
+import { createDashboardSlice } from "@/ui/store/slices/dashboardSlice";
+import type { QuestionsSlice } from "@/ui/store/slices/questionsSlice";
+import type { SelectionSlice } from "@/ui/store/slices/selectionSlice";
+import type { SearchSlice } from "@/ui/store/slices/searchSlice";
+import type { FiltersSlice } from "@/ui/store/slices/filtersSlice";
+import type { UiSlice } from "@/ui/store/slices/uiSlice";
+import type { ProblemSlice } from "@/ui/store/slices/problemSlice";
+import type { SyncSlice } from "@/ui/store/slices/syncSlice";
+import type { SubmissionsSlice } from "@/ui/store/slices/submissionsSlice";
+import type { DashboardSlice } from "@/ui/store/slices/dashboardSlice";
 
 export type AppStore = QuestionsSlice &
   SelectionSlice &
@@ -40,7 +40,7 @@ export const useAppStore = create<AppStore>()((...a) => ({
   ...createDashboardSlice(...a),
 }));
 
-export type { AppMode, BrowsePanel } from "./slices/uiSlice";
-export { PANEL_ORDER } from "./slices/uiSlice";
-export type { ProblemPanel, RelatedQuestion } from "./slices/problemSlice";
-export { PROBLEM_PANEL_ORDER } from "./slices/problemSlice";
+export type { AppMode, BrowsePanel } from "@/ui/store/slices/uiSlice";
+export { PANEL_ORDER } from "@/ui/store/slices/uiSlice";
+export type { ProblemPanel, RelatedQuestion } from "@/ui/store/slices/problemSlice";
+export { PROBLEM_PANEL_ORDER } from "@/ui/store/slices/problemSlice";

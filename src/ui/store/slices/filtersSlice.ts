@@ -4,7 +4,7 @@
 // get() when projecting filteredQuestions; this slice never touches the DB.
 
 import type { StateCreator } from "zustand";
-import type { AppStore } from "../index";
+import type { AppStore } from "@/ui/store/index";
 
 export type DifficultyFilter = "all" | "Easy" | "Medium" | "Hard";
 

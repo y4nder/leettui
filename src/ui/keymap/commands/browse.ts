@@ -6,17 +6,17 @@
 // *between* them — keeping them as two arrays lets commands/index.ts reproduce that exact
 // byte order.
 
-import { useAppStore } from "../../store";
-import { getScrollJumpRows } from "../../../config";
-import { makeCommand, type CommandEntry } from "../command";
-import { getRenderer } from "../runtime";
+import { useAppStore } from "@/ui/store";
+import { getScrollJumpRows } from "@/config";
+import { makeCommand, type CommandEntry } from "@/ui/keymap/command";
+import { getRenderer } from "@/ui/keymap/runtime";
 import {
   handleOpenEditor,
   handleOpenRecent,
   handleOpenWorkspace,
   handleRandomQuestion,
   handleYankUrl,
-} from "../../../views/browse/handlers";
+} from "@/views/browse/handlers";
 
 export const browseNavCommands: CommandEntry[] = [
   makeCommand({

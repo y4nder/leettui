@@ -5,10 +5,10 @@
 // the whole AppStore).
 
 import type { StateCreator } from "zustand";
-import type { AppStore } from "../index";
-import type { ResultView } from "../../../views/browse/resultView";
-import type { DbQuestion } from "../../../db/questions";
-import type { CodeSnippet } from "../../../api/types";
+import type { AppStore } from "@/ui/store/index";
+import type { ResultView } from "@/views/browse/resultView";
+import type { DbQuestion } from "@/db/questions";
+import type { CodeSnippet } from "@/api/types";
 
 // Which ProblemView panel currently holds focus (lazygit-style, Stage 12). Only
 // meaningful while mode === "problem". Description (left) is full-height; Solutions,

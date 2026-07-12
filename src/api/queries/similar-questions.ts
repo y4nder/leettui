@@ -1,5 +1,5 @@
-import { gqlQuery } from "../graphql";
-import type { SimilarQuestionsData } from "../types";
+import { gqlQuery } from "@/api/graphql";
+import type { SimilarQuestionsData } from "@/api/types";
 
 const QUERY = `
 query similarQuestions($titleSlug: String!) {

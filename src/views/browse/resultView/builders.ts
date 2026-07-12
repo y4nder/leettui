@@ -2,9 +2,9 @@
 // view-model (and the small info/loading/error primitives). Types live in
 // `./types`; both are re-exported from the barrel `./index`.
 
-import type { ParsedResponse } from "../../../api/types";
-import type { LocalRunReport } from "../../../core/testRunner";
-import type { ResultKind, ResultMetric, ResultView } from "./types";
+import type { ParsedResponse } from "@/api/types";
+import type { LocalRunReport } from "@/core/testRunner";
+import type { ResultKind, ResultMetric, ResultView } from "@/views/browse/resultView/types";
 
 export function info(title: string): ResultView {
   return { kind: "info", title };

@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { getLanguageTemplateDir } from "../../config";
-import { generateHarness, prepareSolutionSnippet } from "../harness";
-import { parseMetaData } from "../harness/meta";
+import { getLanguageTemplateDir } from "@/config";
+import { generateHarness, prepareSolutionSnippet } from "@/core/harness";
+import { parseMetaData } from "@/core/harness/meta";
 import {
   getHarnessPath,
   getNotesPath,
@@ -11,8 +11,8 @@ import {
   getSolutionFilename,
   getSolutionPath,
   getTestsDir,
-} from "./paths";
-import { overlayTemplates, type TemplateVars } from "./templates";
+} from "@/core/solutions/paths";
+import { overlayTemplates, type TemplateVars } from "@/core/solutions/templates";
 
 // Ensures the shared `notes.md` exists (creating the problem dir + a minimal
 // title header if absent) and returns its path, ready to open in $EDITOR. The

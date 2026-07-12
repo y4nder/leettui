@@ -1,4 +1,4 @@
-import type { DbQuestion } from "../db/questions";
+import type { DbQuestion } from "@/db/questions";
 
 export function fuzzyMatch(needle: string, haystack: string): number {
   const lower = haystack.toLowerCase();

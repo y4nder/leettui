@@ -5,8 +5,8 @@
 // its caller. The folder slug round-trips through `getProblemDir`, so a slug
 // lookup (`getQuestionBySlug`) is the right join back to a `DbQuestion`.
 
-import { resolveProblemFromCwd } from "../core/solutions";
-import { getQuestionBySlug, type DbQuestion } from "../db/questions";
+import { resolveProblemFromCwd } from "@/core/solutions";
+import { getQuestionBySlug, type DbQuestion } from "@/db/questions";
 
 export interface ResolvedTarget {
   question: DbQuestion;

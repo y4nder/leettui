@@ -5,20 +5,25 @@
 
 import { mkdirSync } from "node:fs";
 
-import { useAppStore } from "../../../ui/store";
-import { htmlToMarkdown } from "../../../core/markdown";
-import { fetchQuestionContent } from "../../../api/queries/question-content";
-import { fetchEditorData } from "../../../api/queries/editor-data";
-import { fetchConsolePanelConfig } from "../../../api/queries/console-panel-config";
+import { useAppStore } from "@/ui/store";
+import { htmlToMarkdown } from "@/core/markdown";
+import { fetchQuestionContent } from "@/api/queries/question-content";
+import { fetchEditorData } from "@/api/queries/editor-data";
+import { fetchConsolePanelConfig } from "@/api/queries/console-panel-config";
 import {
   createSolutionWithHarness,
   ensureNotesFile,
   ensureProblemDir,
   ensureProblemMd,
-} from "../../../core/solutions";
-import { getSolutionsDir } from "../../../config";
-import { info } from "../resultView";
-import { currentQuestion, openInEditor, reportError, type Renderer } from "./shared";
+} from "@/core/solutions";
+import { getSolutionsDir } from "@/config";
+import { info } from "@/views/browse/resultView";
+import {
+  currentQuestion,
+  openInEditor,
+  reportError,
+  type Renderer,
+} from "@/views/browse/handlers/shared";
 
 export async function handleOpenEditor(triggerKey: string, renderer: Renderer) {
   const q = currentQuestion();

@@ -15,8 +15,8 @@
 // (`node main.js < tests/case-01.txt`) with cwd set to the language folder, but
 // the harness resolves `solution.js` via `__dirname` so it works regardless.
 
-import type { MetaData } from "./meta";
-import { generateEcmaHarness } from "./ecma";
+import type { MetaData } from "@/core/harness/meta";
+import { generateEcmaHarness } from "@/core/harness/ecma";
 
 export function generateJavascriptHarness(meta: MetaData): string {
   const loadSolution = `// Load the bare LeetCode function from solution.js without requiring it to

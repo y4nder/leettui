@@ -2,12 +2,12 @@ import { useRef, useState } from "react";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
 import { resolve } from "node:path";
 
-import { colors } from "../theme";
-import { useAppStore } from "../store";
-import { getSolutionsDir } from "../../config";
-import { resolveConfigPath } from "../../config/resolvePath";
-import { countProblemFolders } from "../../core/relocate";
-import { changeSolutionsDir, type ChangeLocationOutcome } from "../../views/browse/handlers";
+import { colors } from "@/ui/theme";
+import { useAppStore } from "@/ui/store";
+import { getSolutionsDir } from "@/config";
+import { resolveConfigPath } from "@/config/resolvePath";
+import { countProblemFolders } from "@/core/relocate";
+import { changeSolutionsDir, type ChangeLocationOutcome } from "@/views/browse/handlers";
 
 type Phase = "input" | "confirm" | "done";
 

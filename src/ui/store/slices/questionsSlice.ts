@@ -4,15 +4,15 @@
 // actions; this slice never imports UI state.
 
 import type { StateCreator } from "zustand";
-import type { DbQuestion, StatusCounts } from "../../../db/questions";
-import { getQuestionsByTopic, getStatusCounts } from "../../../db/questions";
-import { getAllTopicsWithAll } from "../../../db/topics";
-import { getSubmissionCountsByQuestion } from "../../../db/submissions";
-import { filterQuestions, filterTopics } from "../../../core/search";
-import { listSolutionQuestionIds } from "../../../core/solutions";
-import { scheduleTopicLoad, cancelTopicLoad } from "../topicLoad";
-import type { DifficultyFilter } from "./filtersSlice";
-import type { AppStore } from "../index";
+import type { DbQuestion, StatusCounts } from "@/db/questions";
+import { getQuestionsByTopic, getStatusCounts } from "@/db/questions";
+import { getAllTopicsWithAll } from "@/db/topics";
+import { getSubmissionCountsByQuestion } from "@/db/submissions";
+import { filterQuestions, filterTopics } from "@/core/search";
+import { listSolutionQuestionIds } from "@/core/solutions";
+import { scheduleTopicLoad, cancelTopicLoad } from "@/ui/store/topicLoad";
+import type { DifficultyFilter } from "@/ui/store/slices/filtersSlice";
+import type { AppStore } from "@/ui/store/index";
 
 export interface QuestionsSlice {
   // `allTopics` is the full DB list; `topics` is the displayed projection

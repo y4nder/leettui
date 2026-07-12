@@ -1,6 +1,6 @@
 import { count, desc, eq, like, min } from "drizzle-orm";
-import { getDb } from "./index";
-import { questions, submissions } from "./schema";
+import { getDb } from "@/db/index";
+import { questions, submissions } from "@/db/schema";
 
 // A single submission attempt (any verdict — D-08). Keyed by LeetCode's own
 // `submissionId`, so re-inserting the same id is a safe no-op regardless of
