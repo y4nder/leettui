@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 03
 current_phase_name: progress-dashboard
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-07-12T00:11:53.999Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-07-12T00:36:17.404Z"
 last_activity: 2026-07-12
 last_activity_desc: Phase 03 execution started
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
   percent: 80
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-11)
 ## Current Position
 
 Phase: 03 (progress-dashboard) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-07-12 — Phase 03 execution started
 
@@ -69,6 +69,7 @@ Progress: [████████████████████] 10/10 p
 | Phase 02.2 P01 | 6min | 2 tasks | 5 files |
 | Phase 02.2 P02 | 15min | 2 tasks | 7 files |
 | Phase 03 P01 | 6 | 2 tasks | 3 files |
+| Phase 03 P02 | 35 | 4 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,8 @@ Recent decisions affecting current work:
 - [Phase 02.2]: 02.2-01: captureFailingCase/blessRunOutputs reuse addCase/discoverCases/compareOutput/normalize verbatim rather than inventing a new capture-engine abstraction
 - [Phase 02.2]: 02.2-02: captureFromSubmitResult/captureFromRunResult are testsDir-injected (not internally resolving getTestsDir), mirroring capture.ts's own dir-injected shape — keeps them pure/config-free and unit-testable against a temp dir with zero network/config mocking
 - [Phase ?]: [Phase 03]: 03-01: computeStreaks today-grace: streak through yesterday stays current without inflating count; getFirstAcSummary uses LIKE substring match per verdict.ts:16 convention
+- [Phase ?]: [Phase 03]: 03-02: showDashboard writes ONLY mode + dashboardReturnMode — never touches problem state (D-11); unit test pins the return-mode round-trip invariant
+- [Phase ?]: [Phase 03]: 03-02: dashboard.open calls loadDashboardStats() then showDashboard(currentMode) — stats populated before view mounts, no load flash; bare p chosen (Ctrl+P is palette; p was unbound in browse + problem global layers)
 
 ### Pending Todos
 
@@ -122,6 +125,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-12T00:11:53.992Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-07-12T00:36:17.397Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None

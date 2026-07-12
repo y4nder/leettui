@@ -25,7 +25,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Dashboard
 
-- [ ] **DASH-01**: A new top-level dashboard view is reachable via a global keybinding and routed on `mode === "dashboard"` (sibling to BrowseView/ProblemView)
+- [x] **DASH-01**: A new top-level dashboard view is reachable via a global keybinding and routed on `mode === "dashboard"` (sibling to BrowseView/ProblemView)
 - [x] **DASH-02**: Dashboard shows total solved plus a breakdown by difficulty (Easy / Medium / Hard)
 - [x] **DASH-03**: Dashboard shows current streak and longest streak (consecutive solve-days), computed timezone-correctly against the user's local day boundaries
 - [x] **DASH-04**: Dashboard shows recent solve counts for the last 7 days and last 30 days
@@ -94,7 +94,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HIST-01 | Phase 2 | Complete |
 | HIST-02 | Phase 2 | Complete |
 | HIST-03 | Phase 2 | Complete |
-| DASH-01 | Phase 3 | Pending |
+| DASH-01 | Phase 3 | Complete |
 | DASH-02 | Phase 3 | Complete |
 | DASH-03 | Phase 3 | Complete |
 | DASH-04 | Phase 3 | Complete |

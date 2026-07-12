@@ -148,7 +148,7 @@ Plans:
   3. The dashboard shows current and longest streak computed against the user's local day boundaries (timezone-correct), alongside a rolling 30-day consistency score.
   4. The dashboard renders an activity heatmap (52-week × 7-day grid) and a ~12-week problems-per-week trend sparkline using OpenTUI primitives and Unicode glyphs — no new dependencies.
 
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 
 Plans:
 **Wave 1**
@@ -157,7 +157,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 — consumes `computeDashboardStats`)*
 
-- [ ] 03-02-PLAN.md — First visible slice: `"dashboard"` AppMode + return-mode wiring + `dashboardSlice` + `DashboardView` (summary block + empty-state) + `app.tsx` route + `dashboard.open`/`close` commands + global `p` binding (browse+problem) (DASH-01)
+- [x] 03-02-PLAN.md — First visible slice: `"dashboard"` AppMode + return-mode wiring + `dashboardSlice` + `DashboardView` (summary block + empty-state) + `app.tsx` route + `dashboard.open`/`close` commands + global `p` binding (browse+problem) (DASH-01)
 
 **Wave 3** *(blocked on Wave 2 — extends `DashboardView` + `analytics.ts`)*
 
@@ -176,4 +176,4 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 2.2 → 3
 | 2. Per-Problem History & Browse Badge | 3/3 | Complete    | 2026-07-01 |
 | 2.1 Local Test-Case Output Management | 2/2 | Complete    | 2026-07-10 |
 | 2.2 Auto-Capture Failing Cases | 2/2 | Complete    | 2026-07-11 |
-| 3. Progress Dashboard | 1/3 | In Progress|  |
+| 3. Progress Dashboard | 2/3 | In Progress|  |
