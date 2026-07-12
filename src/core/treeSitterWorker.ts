@@ -42,10 +42,23 @@
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const onDiskWorker = fileURLToPath(
-  new URL("../../node_modules/@opentui/core/parser.worker.js", import.meta.url),
-);
-
-process.env.OTUI_TREE_SITTER_WORKER_PATH = existsSync(onDiskWorker)
-  ? onDiskWorker
-  : fileURLToPath(new URL("./node_modules/@opentui/core/parser.worker.js", import.meta.url));
+// Resolve the worker path defensively. This module is imported *first* in
+// src/index.tsx, so a throw here (e.g. `fileURLToPath` rejecting a malformed
+// `import.meta.url` on some platform) would abort boot before the splash even
+// paints. A failure to resolve the path only degrades <markdown> highlighting to
+// flat text, so any error is swallowed and the override simply left unset.
+//
+// On the Windows `--compile` binary `import.meta.url` is `file:///B:/~BUN/root/<exe>`
+// (drive-lettered, so `fileURLToPath` is happy); the `./` fallback below correctly
+// yields `B:\~BUN\root\node_modules\@opentui\core\parser.worker.js`, the embedded
+// copy. On disk the `../../` on-disk path wins.
+try {
+  const onDiskWorker = fileURLToPath(
+    new URL("../../node_modules/@opentui/core/parser.worker.js", import.meta.url),
+  );
+  process.env.OTUI_TREE_SITTER_WORKER_PATH = existsSync(onDiskWorker)
+    ? onDiskWorker
+    : fileURLToPath(new URL("./node_modules/@opentui/core/parser.worker.js", import.meta.url));
+} catch {
+  // Leave OTUI_TREE_SITTER_WORKER_PATH unset — <markdown> falls back to flat text.
+}

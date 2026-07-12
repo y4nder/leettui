@@ -1,13 +1,9 @@
 import { useTerminalDimensions } from "@opentui/react";
-// Side-effect import: registers the `<spinner>` intrinsic via @opentui/react's
-// `extend`. It peer-targets @opentui/core ^0.3.4 (we're on 0.2.16) but every
-// internal it uses exists in 0.2.16 — verified rendering + animating.
-import "opentui-spinner/react";
 
 import { Logo } from "@/ui/components/onboarding/Logo";
 import { colors } from "@/ui/theme";
 import { useAppStore } from "@/ui/store";
-import { useTick } from "@/ui/components/Spinner";
+import { TextSpinner, useTick } from "@/ui/components/Spinner";
 import { smoothBar, sweepBar } from "@/ui/progress";
 
 // Shown while the DB is opened and (on first run) the problem set is synced. Reads
@@ -47,7 +43,7 @@ export function SyncStep() {
 
         <box flexDirection="row" width={barWidth} justifyContent="space-between">
           <box flexDirection="row" alignItems="center">
-            <spinner name="star" color={colors.accent} />
+            <TextSpinner color={colors.accent} />
             <text fg={colors.subtle} marginLeft={1}>
               {progress ? "Syncing problems" : "Setting things up"}
             </text>

@@ -1,7 +1,5 @@
-// Registers the `<spinner>` intrinsic (idempotent with the sync surfaces' imports).
-import "opentui-spinner/react";
-
 import { colors } from "@/ui/theme";
+import { TextSpinner } from "@/ui/components/Spinner";
 
 // The single in-flight affordance for the app: the same star spinner the sync
 // screens use, paired with a dim label. Used for the ProblemView fetch placeholder
@@ -10,7 +8,7 @@ import { colors } from "@/ui/theme";
 export function Loading({ label }: { label: string }) {
   return (
     <box flexDirection="row" alignItems="center">
-      <spinner name="star" color={colors.accent} />
+      <TextSpinner color={colors.accent} />
       <text fg={colors.fgDim} marginLeft={1}>
         {label}
       </text>

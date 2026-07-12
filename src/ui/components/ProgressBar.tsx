@@ -1,9 +1,5 @@
-// Registers the `<spinner>` intrinsic (idempotent with SyncStep's import). Same
-// star preset as the full-screen sync screen so both sync surfaces read alike.
-import "opentui-spinner/react";
-
 import { colors } from "@/ui/theme";
-import { useTick } from "@/ui/components/Spinner";
+import { TextSpinner, useTick } from "@/ui/components/Spinner";
 import { smoothBar, sweepBar } from "@/ui/progress";
 
 interface ProgressBarProps {
@@ -32,7 +28,7 @@ export function ProgressBar({ current, total }: ProgressBarProps) {
       paddingLeft={1}
       paddingRight={1}
     >
-      <spinner name="star" color={colors.accent} />
+      <TextSpinner color={colors.accent} />
       <text fg={colors.fg} marginLeft={1}>
         Syncing problems{" "}
       </text>
