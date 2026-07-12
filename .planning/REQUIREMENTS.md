@@ -29,8 +29,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [x] **DASH-02**: Dashboard shows total solved plus a breakdown by difficulty (Easy / Medium / Hard)
 - [x] **DASH-03**: Dashboard shows current streak and longest streak (consecutive solve-days), computed timezone-correctly against the user's local day boundaries
 - [x] **DASH-04**: Dashboard shows recent solve counts for the last 7 days and last 30 days
-- [ ] **DASH-05**: Dashboard shows an activity heatmap (52-week × 7-day calendar grid, cell intensity by daily solve count) rendered with OpenTUI primitives — no new dependencies
-- [ ] **DASH-06**: Dashboard shows a problems-per-week trend sparkline (~12 weeks) as Unicode block glyphs
+- [x] **DASH-05**: Dashboard shows an activity heatmap (52-week × 7-day calendar grid, cell intensity by daily solve count) rendered with OpenTUI primitives — no new dependencies
+- [x] **DASH-06**: Dashboard shows a problems-per-week trend sparkline (~12 weeks) as Unicode block glyphs
 - [x] **DASH-07**: Dashboard shows a rolling 30-day consistency score (solve-days / 30) alongside the streak
 
 ### Browse Integration
@@ -98,8 +98,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-02 | Phase 3 | Complete |
 | DASH-03 | Phase 3 | Complete |
 | DASH-04 | Phase 3 | Complete |
-| DASH-05 | Phase 3 | Pending |
-| DASH-06 | Phase 3 | Pending |
+| DASH-05 | Phase 3 | Complete |
+| DASH-06 | Phase 3 | Complete |
 | DASH-07 | Phase 3 | Complete |
 | BROWSE-01 | Phase 2 | Complete |
 | TCASE-01 | Phase 2.1 | Complete |
