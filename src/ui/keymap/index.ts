@@ -31,6 +31,7 @@ export {
 export {
   browseGlobalBindings,
   changelogBindings,
+  dashboardBindings,
   debugBindings,
   deletePromptBindings,
   helpBindings,

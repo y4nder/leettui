@@ -263,3 +263,16 @@ export const pickerBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
   "picker.openEditor": "o",
   "picker.cancel": ["escape", "q"],
 });
+
+// Mounted by DashboardView while open (Phase 3 / DASH-01). j/k + Ctrl+d/u scroll
+// the content (reusing the shared popup scroller), Esc/q close back to the origin
+// mode (dashboardReturnMode — D-11). `p` in browse/problem global layers opens the
+// dashboard; it is NOT bound here (the browse/problem layers are unmounted while
+// mode === "dashboard", so it is inert — that is correct and matches the footer hint).
+export const dashboardBindings: Binding<Renderable, KeyEvent>[] = bindingsFor({
+  "popup.scrollDown": ["j", "down"],
+  "popup.scrollUp": ["k", "up"],
+  "popup.scrollHalfDown": "ctrl+d",
+  "popup.scrollHalfUp": "ctrl+u",
+  "dashboard.close": ["escape", "q"],
+});
