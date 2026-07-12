@@ -148,12 +148,12 @@ Plans:
   3. The dashboard shows current and longest streak computed against the user's local day boundaries (timezone-correct), alongside a rolling 30-day consistency score.
   4. The dashboard renders an activity heatmap (52-week × 7-day grid) and a ~12-week problems-per-week trend sparkline using OpenTUI primitives and Unicode glyphs — no new dependencies.
 
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — TDD analytics foundation: `getFirstAcSummary()` first-AC join query + pure, unit-tested `analytics.ts` (first-time-solve unit D-01, timezone-correct `toLocaleDateString('en-CA')`, streak/consistency/counts/breakdown) (DASH-02, DASH-03, DASH-04, DASH-07)
+- [x] 03-01-PLAN.md — TDD analytics foundation: `getFirstAcSummary()` first-AC join query + pure, unit-tested `analytics.ts` (first-time-solve unit D-01, timezone-correct `toLocaleDateString('en-CA')`, streak/consistency/counts/breakdown) (DASH-02, DASH-03, DASH-04, DASH-07)
 
 **Wave 2** *(blocked on Wave 1 — consumes `computeDashboardStats`)*
 
@@ -176,4 +176,4 @@ Phases execute in numeric order: 1 → 2 → 2.1 → 2.2 → 3
 | 2. Per-Problem History & Browse Badge | 3/3 | Complete    | 2026-07-01 |
 | 2.1 Local Test-Case Output Management | 2/2 | Complete    | 2026-07-10 |
 | 2.2 Auto-Capture Failing Cases | 2/2 | Complete    | 2026-07-11 |
-| 3. Progress Dashboard | 0/3 | Deferred behind 2.1/2.2 | - |
+| 3. Progress Dashboard | 1/3 | In Progress|  |

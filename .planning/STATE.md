@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 3
-current_phase_name: Progress Dashboard
-status: ready-to-execute
-stopped_at: Phase 3 planned (3 plans, verified)
-last_updated: "2026-07-12"
+current_phase: 03
+current_phase_name: progress-dashboard
+status: executing
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-07-12T00:11:53.999Z"
 last_activity: 2026-07-12
-last_activity_desc: Phase 3 planned — 3 plans ready to execute (execution deferred until test-case-management lands)
+last_activity_desc: Phase 03 execution started
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 13
+  completed_plans: 11
   percent: 80
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-11)
 
 **Core value:** A LeetCode user grinding in the terminal can open one view and instantly see whether they're improving and keeping it up — solve streak, recent counts, and breakdown by difficulty/topic — backed by their real submission history, owned locally.
-**Current focus:** Wrap up feat/test-case-management (PR/merge); Phase 3 (Progress Dashboard) deferred by user decision 2026-07-11 — different feature, starts after this branch lands
+**Current focus:** Phase 03 — progress-dashboard
 
 ## Current Position
 
-Phase: 3 — Progress Dashboard
-Plan: 3 plans ready (03-01, 03-02, 03-03) — verified, not started
-Status: Planned — 3 plans verified & ready to execute. Execution still deferred (user decision 2026-07-11) until feat/test-case-management lands (PR/merge)
-Last activity: 2026-07-12 — Phase 3 planned (3 plans, verified)
+Phase: 03 (progress-dashboard) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-07-12 — Phase 03 execution started
 
 Progress: [████████████████████] 10/10 plans (100%) — 4/5 phases complete
 
@@ -68,6 +68,7 @@ Progress: [████████████████████] 10/10 p
 | Phase 02.1 P02 | 15min | 2 tasks | 5 files |
 | Phase 02.2 P01 | 6min | 2 tasks | 5 files |
 | Phase 02.2 P02 | 15min | 2 tasks | 7 files |
+| Phase 03 P01 | 6 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,7 @@ Recent decisions affecting current work:
 - [Phase 02.2]: 02.2-01: TDD RED phase shipped capture.ts as a type-checking stub (throws not-implemented) rather than omitting the file, so capture.test.ts fails on assertions instead of a missing-module compile error under the repo's zero-tolerance tsc pre-commit gate
 - [Phase 02.2]: 02.2-01: captureFailingCase/blessRunOutputs reuse addCase/discoverCases/compareOutput/normalize verbatim rather than inventing a new capture-engine abstraction
 - [Phase 02.2]: 02.2-02: captureFromSubmitResult/captureFromRunResult are testsDir-injected (not internally resolving getTestsDir), mirroring capture.ts's own dir-injected shape — keeps them pure/config-free and unit-testable against a temp dir with zero network/config mocking
+- [Phase ?]: [Phase 03]: 03-01: computeStreaks today-grace: streak through yesterday stays current without inflating count; getFirstAcSummary uses LIKE substring match per verdict.ts:16 convention
 
 ### Pending Todos
 
@@ -120,6 +122,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-11T15:10:49.249Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-progress-dashboard/03-CONTEXT.md
+Last session: 2026-07-12T00:11:53.992Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: None
