@@ -2,30 +2,30 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { createCliRenderer } from "@opentui/core";
 import { useKeyboard } from "@opentui/react";
 
-import { App } from "../../../app";
-import { Splash } from "./Splash";
-import { AuthWizard } from "./AuthWizard";
-import { SyncStep } from "./SyncStep";
-import { RelocatePrompt } from "./RelocatePrompt";
-import { SolutionsOnboarding } from "./SolutionsOnboarding";
-import { GitInitOnboarding } from "./GitInitOnboarding";
-import { Logo } from "./Logo";
-import { colors } from "../../theme";
-import { loadConfig, hasTokens, getDbPath, getSolutionsDir } from "../../../config";
-import { validateTokens, type AuthTokens } from "../../../core/auth";
-import { initClient } from "../../../api/client";
-import { openDatabase } from "../../../db";
-import { hasAnySubmissions } from "../../../db/submissions";
-import { syncIfEmpty } from "../../../core/sync";
-import { migrateSolutionsLayout } from "../../../core/migration";
-import { detectSolutionsRelocation, type RelocationPlan } from "../../../core/relocate";
+import { App } from "@/app";
+import { Splash } from "@/ui/components/onboarding/Splash";
+import { AuthWizard } from "@/ui/components/onboarding/AuthWizard";
+import { SyncStep } from "@/ui/components/onboarding/SyncStep";
+import { RelocatePrompt } from "@/ui/components/onboarding/RelocatePrompt";
+import { SolutionsOnboarding } from "@/ui/components/onboarding/SolutionsOnboarding";
+import { GitInitOnboarding } from "@/ui/components/onboarding/GitInitOnboarding";
+import { Logo } from "@/ui/components/onboarding/Logo";
+import { colors } from "@/ui/theme";
+import { loadConfig, hasTokens, getDbPath, getSolutionsDir } from "@/config";
+import { validateTokens, type AuthTokens } from "@/core/auth";
+import { initClient } from "@/api/client";
+import { openDatabase } from "@/db";
+import { hasAnySubmissions } from "@/db/submissions";
+import { syncIfEmpty } from "@/core/sync";
+import { migrateSolutionsLayout } from "@/core/migration";
+import { detectSolutionsRelocation, type RelocationPlan } from "@/core/relocate";
 import {
   checkForUpdate,
   fetchReleases,
   setPendingUpdate,
   shouldShowChangelog,
-} from "../../../core/update";
-import { IS_RELEASE, VERSION } from "../../../core/version";
+} from "@/core/update";
+import { IS_RELEASE, VERSION } from "@/core/version";
 import {
   getLastKnownSolutionsDir,
   setLastKnownSolutionsDir,
@@ -34,8 +34,8 @@ import {
   getBackfillNudgeShown,
   setBackfillNudgeShown,
   shouldShowBackfillNudge,
-} from "../../../core/session";
-import { useAppStore } from "../../store";
+} from "@/core/session";
+import { useAppStore } from "@/ui/store";
 
 type Phase =
   | "splash"

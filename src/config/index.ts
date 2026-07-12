@@ -1,9 +1,9 @@
 import { parse } from "smol-toml";
 import { mkdirSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { CONFIG_DIR, CONFIG_FILE, DB_PATH, SOLUTIONS_DIR, TEMPLATES_DIR } from "./paths";
-import { resolveConfigPath } from "./resolvePath";
-import type { Config } from "./types";
+import { CONFIG_DIR, CONFIG_FILE, DB_PATH, SOLUTIONS_DIR, TEMPLATES_DIR } from "@/config/paths";
+import { resolveConfigPath } from "@/config/resolvePath";
+import type { Config } from "@/config/types";
 
 const DEFAULT_TOML = `# LeetCode authentication tokens
 # These are filled in automatically by the auth flow (Firefox auto-import or a

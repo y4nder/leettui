@@ -4,25 +4,25 @@ import { useTerminalDimensions } from "@opentui/react";
 import { TextAttributes } from "@opentui/core";
 import type { createCliRenderer, MouseEvent, ScrollBoxRenderable } from "@opentui/core";
 
-import { useAppStore } from "../../ui/store";
-import type { ProblemPanel } from "../../ui/store";
-import type { DbQuestion } from "../../db/questions";
-import { problemPanelMouseEnabled } from "../../ui/useListMouse";
-import { colors, difficultyColor, statusColor } from "../../ui/theme";
-import { buildMarkdownSyntaxStyle } from "../../ui/markdownStyle";
-import { ResultBody } from "../../ui/components/ResultBody";
-import { Loading } from "../../ui/components/Loading";
-import { StatusBar } from "../../ui/components/StatusBar";
-import { ProgressBar } from "../../ui/components/ProgressBar";
-import { UpdateBanner } from "../../ui/components/UpdateBanner";
-import { SolutionPickerModal } from "../../ui/components/SolutionPickerModal";
-import { SolutionsPanel } from "../../ui/components/SolutionsPanel";
-import { RelatedPanel } from "../../ui/components/RelatedPanel";
-import { HistoryPanel } from "../../ui/components/HistoryPanel";
-import { NotesPopup } from "../../ui/components/NotesPopup";
-import { DeleteSolutionPrompt } from "../../ui/components/DeleteSolutionPrompt";
-import { HelpPopup } from "../../ui/components/HelpPopup";
-import { ResultFullscreen } from "../../ui/components/ResultFullscreen";
+import { useAppStore } from "@/ui/store";
+import type { ProblemPanel } from "@/ui/store";
+import type { DbQuestion } from "@/db/questions";
+import { problemPanelMouseEnabled } from "@/ui/useListMouse";
+import { colors, difficultyColor, statusColor } from "@/ui/theme";
+import { buildMarkdownSyntaxStyle } from "@/ui/markdownStyle";
+import { ResultBody } from "@/ui/components/ResultBody";
+import { Loading } from "@/ui/components/Loading";
+import { StatusBar } from "@/ui/components/StatusBar";
+import { ProgressBar } from "@/ui/components/ProgressBar";
+import { UpdateBanner } from "@/ui/components/UpdateBanner";
+import { SolutionPickerModal } from "@/ui/components/SolutionPickerModal";
+import { SolutionsPanel } from "@/ui/components/SolutionsPanel";
+import { RelatedPanel } from "@/ui/components/RelatedPanel";
+import { HistoryPanel } from "@/ui/components/HistoryPanel";
+import { NotesPopup } from "@/ui/components/NotesPopup";
+import { DeleteSolutionPrompt } from "@/ui/components/DeleteSolutionPrompt";
+import { HelpPopup } from "@/ui/components/HelpPopup";
+import { ResultFullscreen } from "@/ui/components/ResultFullscreen";
 import {
   problemGlobalBindings,
   scrollPanelBindings,
@@ -34,8 +34,8 @@ import {
   resultPanelBindings,
   isProblemScopeEntryVisible,
   registerProblemScroller,
-} from "../../ui/keymap";
-import { isDebugEnabled } from "../../debug";
+} from "@/ui/keymap";
+import { isDebugEnabled } from "@/debug";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
 

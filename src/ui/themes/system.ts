@@ -8,7 +8,7 @@
 // a terminal-theme change, we can re-derive without stale captures.
 
 import { RGBA } from "@opentui/core";
-import type { Theme } from "./index";
+import type { Theme } from "@/ui/themes/index";
 
 export function buildSystemTheme(): Theme {
   return {

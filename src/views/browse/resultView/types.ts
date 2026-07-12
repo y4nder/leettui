@@ -2,7 +2,7 @@
 // ResultPopup) and the run/submit/local-test builders produce. Pure types, no
 // logic; the constructors live in `./builders`, both re-exported from the barrel.
 
-import type { CaseStatus } from "../../../core/testRunner";
+import type { CaseStatus } from "@/core/testRunner";
 
 export type ResultKind = "accepted" | "wrong" | "error" | "info" | "loading";
 

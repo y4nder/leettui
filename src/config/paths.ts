@@ -1,6 +1,6 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { resolveBase } from "./resolvePath";
+import { resolveBase } from "@/config/resolvePath";
 
 const home = homedir();
 

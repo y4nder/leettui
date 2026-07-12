@@ -1,16 +1,16 @@
 // Must run before anything touches @opentui/core's tree-sitter client, so it is
 // the very first import: embeds the highlight worker into the compiled binary.
-import "./core/treeSitterWorker";
+import "@/core/treeSitterWorker";
 
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
 import { createOpenTuiKeymap } from "@opentui/keymap/opentui";
 import { KeymapProvider } from "@opentui/keymap/react";
 
-import { initDebug } from "./debug";
-import { loadConfig, getThemeName } from "./config";
-import { setTheme } from "./ui/theme";
-import { attachPaletteListener } from "./ui/palette";
+import { initDebug } from "@/debug";
+import { loadConfig, getThemeName } from "@/config";
+import { setTheme } from "@/ui/theme";
+import { attachPaletteListener } from "@/ui/palette";
 
 // Debug overlay is dev-only. Bun statically inlines NODE_ENV as "production" in the
 // compiled binary, so this branch is dead-code-eliminated from the production build.
@@ -18,11 +18,11 @@ const isProduction = process.env.NODE_ENV === "production";
 const debugFlag =
   !isProduction && (process.env.LEETTUI_DEBUG === "1" || process.argv.includes("--debug"));
 initDebug(debugFlag);
-import { BootFlow } from "./ui/components/onboarding/BootFlow";
-import { installKeymap } from "./ui/keymap";
-import { getPendingUpdate } from "./core/update";
-import { updateNotice } from "./core/updatePresent";
-import { VERSION } from "./core/version";
+import { BootFlow } from "@/ui/components/onboarding/BootFlow";
+import { installKeymap } from "@/ui/keymap";
+import { getPendingUpdate } from "@/core/update";
+import { updateNotice } from "@/core/updatePresent";
+import { VERSION } from "@/core/version";
 
 loadConfig();
 setTheme(getThemeName());
@@ -35,7 +35,7 @@ if (process.argv.includes("--version") || process.argv.includes("version")) {
 }
 
 if (process.argv.includes("update")) {
-  const { runUpdate } = await import("./core/update");
+  const { runUpdate } = await import("@/core/update");
   await runUpdate({ force: process.argv.includes("--force") });
   process.exit(0);
 }
@@ -46,7 +46,7 @@ if (process.argv.includes("update")) {
 // `new`'s positional language argument and any flags (`--save`, Phase 2.1)
 // itself — this seam only needs to learn the CLI dispatch once.
 {
-  const { matchCliVerb, runCli } = await import("./cli");
+  const { matchCliVerb, runCli } = await import("@/cli");
   const verb = matchCliVerb(process.argv);
   if (verb) {
     process.exit(await runCli(verb, process.cwd(), process.argv));

@@ -1,11 +1,11 @@
 import type { createCliRenderer } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/react";
-import { colors, difficultyColor } from "../theme";
-import type { ThemeColor } from "../themes";
-import { useAppStore } from "../store";
-import { dashboardBindings, registerPopupScroller } from "../keymap";
-import { hasAnySubmissions } from "../../db/submissions";
-import { buildSparkline } from "../analytics";
+import { colors, difficultyColor } from "@/ui/theme";
+import type { ThemeColor } from "@/ui/themes";
+import { useAppStore } from "@/ui/store";
+import { dashboardBindings, registerPopupScroller } from "@/ui/keymap";
+import { hasAnySubmissions } from "@/db/submissions";
+import { buildSparkline } from "@/ui/analytics";
 
 // Full-screen progress dashboard (Phase 3 / DASH-01). Opened with `p` from browse
 // or problem view; returns to the origin mode on Esc/q (dashboardReturnMode — D-11).

@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import { useTerminalDimensions } from "@opentui/react";
-import { colors, difficultyColor } from "../theme";
-import type { AppMode, BrowsePanel, ProblemPanel } from "../store";
-import type { DifficultyFilter } from "../store/slices/filtersSlice";
-import type { StatusCounts } from "../../db/questions";
-import { footerSegments, fitFooter } from "../keymap";
+import { colors, difficultyColor } from "@/ui/theme";
+import type { AppMode, BrowsePanel, ProblemPanel } from "@/ui/store";
+import type { DifficultyFilter } from "@/ui/store/slices/filtersSlice";
+import type { StatusCounts } from "@/db/questions";
+import { footerSegments, fitFooter } from "@/ui/keymap";
 
 // Columns reserved on the right for the stats / difficulty / debug block, so the
 // hint line truncates before colliding with it.

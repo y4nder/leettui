@@ -1,5 +1,5 @@
-import { gqlQuery } from "../graphql";
-import type { QuestionEditorData } from "../types";
+import { gqlQuery } from "@/api/graphql";
+import type { QuestionEditorData } from "@/api/types";
 
 const QUERY = `
 query questionEditorData($titleSlug: String!) {

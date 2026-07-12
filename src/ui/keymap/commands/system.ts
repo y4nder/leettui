@@ -4,12 +4,12 @@
 // COMMANDS array: search.start first, then the system actions, the theme cyclers, and the
 // theme.set.* spread at its mid-list position.
 
-import { useAppStore } from "../../store";
-import { makeCommand, type CommandEntry } from "../command";
-import { getRenderer } from "../runtime";
-import { cycleTheme, listThemeNames, setTheme } from "../../theme";
-import { isDebugEnabled } from "../../../debug";
-import type { AppMode } from "../../store/slices/uiSlice";
+import { useAppStore } from "@/ui/store";
+import { makeCommand, type CommandEntry } from "@/ui/keymap/command";
+import { getRenderer } from "@/ui/keymap/runtime";
+import { cycleTheme, listThemeNames, setTheme } from "@/ui/theme";
+import { isDebugEnabled } from "@/debug";
+import type { AppMode } from "@/ui/store/slices/uiSlice";
 import {
   handleCancelBackfill,
   handleOpenGitSync,
@@ -19,7 +19,7 @@ import {
   handleStartBackfill,
   handleSyncDb,
   handleViewChangelog,
-} from "../../../views/browse/handlers";
+} from "@/views/browse/handlers";
 
 function prettyThemeName(name: string): string {
   // kebab → Title Case: "tokyo-night" → "Tokyo Night", "system" → "System"

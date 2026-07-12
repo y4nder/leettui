@@ -1,6 +1,6 @@
 import { asc } from "drizzle-orm";
-import { getDb } from "./index";
-import { topics } from "./schema";
+import { getDb } from "@/db/index";
+import { topics } from "@/db/schema";
 
 export interface DbTopic {
   slug: string;

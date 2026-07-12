@@ -8,7 +8,7 @@
 // so it rebuilds when the user switches themes.
 
 import { SyntaxStyle } from "@opentui/core";
-import { colors } from "./theme";
+import { colors } from "@/ui/theme";
 
 export function buildMarkdownSyntaxStyle(): SyntaxStyle {
   return SyntaxStyle.fromStyles({

@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
 import type { createCliRenderer } from "@opentui/core";
 
-import { colors } from "../theme";
-import { useAppStore } from "../store";
-import { getGitUiCommand, getSolutionsDir } from "../../config";
-import { handleConfirmGitInit } from "../../views/browse/handlers";
+import { colors } from "@/ui/theme";
+import { useAppStore } from "@/ui/store";
+import { getGitUiCommand, getSolutionsDir } from "@/config";
+import { handleConfirmGitInit } from "@/views/browse/handlers";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
 

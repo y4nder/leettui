@@ -13,7 +13,7 @@
 
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { errMessage } from "../debug";
+import { errMessage } from "@/debug";
 
 // Discriminated result for every git/gh operation. `output` carries stdout/stderr
 // for the failure surface; `reason` splits a missing/unauthenticated tool (an

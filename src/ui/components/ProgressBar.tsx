@@ -2,9 +2,9 @@
 // star preset as the full-screen sync screen so both sync surfaces read alike.
 import "opentui-spinner/react";
 
-import { colors } from "../theme";
-import { useTick } from "./Spinner";
-import { smoothBar, sweepBar } from "../progress";
+import { colors } from "@/ui/theme";
+import { useTick } from "@/ui/components/Spinner";
+import { smoothBar, sweepBar } from "@/ui/progress";
 
 interface ProgressBarProps {
   current: number;

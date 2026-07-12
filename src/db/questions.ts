@@ -1,6 +1,6 @@
 import { eq, and, asc, isNull, sql } from "drizzle-orm";
-import { getDb } from "./index";
-import { questions, questionTopics, topics } from "./schema";
+import { getDb } from "@/db/index";
+import { questions, questionTopics, topics } from "@/db/schema";
 
 export interface DbQuestion {
   id: number;

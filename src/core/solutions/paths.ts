@@ -1,7 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
-import { getSolutionsDir } from "../../config";
-import { getExtension } from "../../api/types";
+import { getSolutionsDir } from "@/config";
+import { getExtension } from "@/api/types";
 
 const ID_PADDING = 4;
 

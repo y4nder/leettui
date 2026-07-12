@@ -9,7 +9,7 @@
 // writes. Unlike rust's serde, `System.Text.Json` ships in the framework — the
 // `.csproj` needs no NuGet `PackageReference`, so the first build is offline.
 
-import { type HarnessFile, type MetaData, DEFERRED_TYPES, baseType } from "./meta";
+import { type HarnessFile, type MetaData, DEFERRED_TYPES, baseType } from "@/core/harness/meta";
 
 // LeetCode scalar metaData types → their concrete C# types. A JSON number/string/
 // bool round-trips into these via `JsonSerializer.Deserialize<T>`: a 1-char JSON

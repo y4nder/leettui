@@ -8,13 +8,18 @@
 // second). Adding a language is one `case` below + one `RUNNERS` entry — the
 // runner stays unchanged.
 
-import { type HarnessFile, type MetaData, hasDeferredType, parseMetaData } from "./meta";
-import { generatePythonHarness } from "./python";
-import { generateJavascriptHarness } from "./javascript";
-import { generateTypescriptHarness } from "./typescript";
-import { generateRustHarness, prepareRustSolution } from "./rust";
-import { generateCsharpHarness } from "./csharp";
-import { generateJavaHarness, prepareJavaSolution } from "./java";
+import {
+  type HarnessFile,
+  type MetaData,
+  hasDeferredType,
+  parseMetaData,
+} from "@/core/harness/meta";
+import { generatePythonHarness } from "@/core/harness/python";
+import { generateJavascriptHarness } from "@/core/harness/javascript";
+import { generateTypescriptHarness } from "@/core/harness/typescript";
+import { generateRustHarness, prepareRustSolution } from "@/core/harness/rust";
+import { generateCsharpHarness } from "@/core/harness/csharp";
+import { generateJavaHarness, prepareJavaSolution } from "@/core/harness/java";
 
 // A harness is a *set* of files, because a compiled language needs more than the
 // single interpreter-run script: Rust emits `Cargo.toml` + `.gitignore` +

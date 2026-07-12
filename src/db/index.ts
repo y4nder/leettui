@@ -2,8 +2,8 @@ import { Database } from "bun:sqlite";
 import { drizzle, type BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import * as schema from "./schema";
-import { embeddedMigrations } from "./migrations";
+import * as schema from "@/db/schema";
+import { embeddedMigrations } from "@/db/migrations";
 
 export type Db = BunSQLiteDatabase<typeof schema>;
 

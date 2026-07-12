@@ -8,7 +8,7 @@
 import type { KeyEvent, Renderable } from "@opentui/core";
 import type { Binding } from "@opentui/keymap";
 
-import type { BrowsePanel, ProblemPanel } from "../store";
+import type { BrowsePanel, ProblemPanel } from "@/ui/store";
 import {
   historyPanelBindings,
   questionPanelBindings,
@@ -17,7 +17,7 @@ import {
   scrollPanelBindings,
   solutionsPanelBindings,
   topicPanelBindings,
-} from "./bindings";
+} from "@/ui/keymap/bindings";
 
 const KEY_DISPLAY: Record<string, string> = {
   tab: "Tab",

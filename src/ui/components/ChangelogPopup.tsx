@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 import { TextAttributes } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/react";
-import { colors } from "../theme";
-import { buildMarkdownSyntaxStyle } from "../markdownStyle";
-import { useAppStore } from "../store";
-import { changelogBindings, registerPopupScroller } from "../keymap";
-import { formatReleaseDate, type ReleaseInfo } from "../../core/update";
-import { VERSION } from "../../core/version";
+import { colors } from "@/ui/theme";
+import { buildMarkdownSyntaxStyle } from "@/ui/markdownStyle";
+import { useAppStore } from "@/ui/store";
+import { changelogBindings, registerPopupScroller } from "@/ui/keymap";
+import { formatReleaseDate, type ReleaseInfo } from "@/core/update";
+import { VERSION } from "@/core/version";
 
 interface ChangelogPopupProps {
   releases: ReleaseInfo[];

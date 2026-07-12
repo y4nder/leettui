@@ -2,28 +2,28 @@ import { useTerminalDimensions } from "@opentui/react";
 import { useBindings } from "@opentui/keymap/react";
 import type { createCliRenderer } from "@opentui/core";
 
-import { useAppStore, PANEL_ORDER } from "../../ui/store";
-import { TopicList } from "../../ui/components/TopicList";
-import { QuestionList } from "../../ui/components/QuestionList";
-import { StatusBar } from "../../ui/components/StatusBar";
-import { QuestionPopup } from "../../ui/components/QuestionPopup";
-import { SelectPopup } from "../../ui/components/SelectPopup";
-import { ResultPopup } from "../../ui/components/ResultPopup";
-import { HelpPopup } from "../../ui/components/HelpPopup";
-import { DebugPopup } from "../../ui/components/DebugPopup";
-import { ProgressBar } from "../../ui/components/ProgressBar";
-import { UpdateBanner } from "../../ui/components/UpdateBanner";
-import { CommandPalette } from "../../ui/components/CommandPalette";
-import { ChangeLocationPrompt } from "../../ui/components/ChangeLocationPrompt";
-import { SettingsEditor } from "../../ui/components/SettingsEditor";
-import { GitInitPrompt } from "../../ui/components/GitInitPrompt";
-import { GitRemotePrompt } from "../../ui/components/GitRemotePrompt";
-import { GitSyncPrompt } from "../../ui/components/GitSyncPrompt";
-import { ChangelogPopup } from "../../ui/components/ChangelogPopup";
-import { RecentPopup } from "../../ui/components/RecentPopup";
-import { BackfillNudge } from "../../ui/components/BackfillNudge";
-import { EasterEgg } from "../../ui/components/EasterEgg";
-import { isDebugEnabled, getEntries } from "../../debug";
+import { useAppStore, PANEL_ORDER } from "@/ui/store";
+import { TopicList } from "@/ui/components/TopicList";
+import { QuestionList } from "@/ui/components/QuestionList";
+import { StatusBar } from "@/ui/components/StatusBar";
+import { QuestionPopup } from "@/ui/components/QuestionPopup";
+import { SelectPopup } from "@/ui/components/SelectPopup";
+import { ResultPopup } from "@/ui/components/ResultPopup";
+import { HelpPopup } from "@/ui/components/HelpPopup";
+import { DebugPopup } from "@/ui/components/DebugPopup";
+import { ProgressBar } from "@/ui/components/ProgressBar";
+import { UpdateBanner } from "@/ui/components/UpdateBanner";
+import { CommandPalette } from "@/ui/components/CommandPalette";
+import { ChangeLocationPrompt } from "@/ui/components/ChangeLocationPrompt";
+import { SettingsEditor } from "@/ui/components/SettingsEditor";
+import { GitInitPrompt } from "@/ui/components/GitInitPrompt";
+import { GitRemotePrompt } from "@/ui/components/GitRemotePrompt";
+import { GitSyncPrompt } from "@/ui/components/GitSyncPrompt";
+import { ChangelogPopup } from "@/ui/components/ChangelogPopup";
+import { RecentPopup } from "@/ui/components/RecentPopup";
+import { BackfillNudge } from "@/ui/components/BackfillNudge";
+import { EasterEgg } from "@/ui/components/EasterEgg";
+import { isDebugEnabled, getEntries } from "@/debug";
 import {
   browseGlobalBindings,
   topicPanelBindings,
@@ -31,7 +31,7 @@ import {
   searchBindings,
   panelBindings,
   helpBindings,
-} from "../../ui/keymap";
+} from "@/ui/keymap";
 
 type Renderer = Awaited<ReturnType<typeof createCliRenderer>>;
 

@@ -1,7 +1,7 @@
 import { desc, eq, sql } from "drizzle-orm";
-import { getDb } from "./index";
-import { type DbQuestion, toDbQuestion } from "./questions";
-import { questions, recents } from "./schema";
+import { getDb } from "@/db/index";
+import { type DbQuestion, toDbQuestion } from "@/db/questions";
+import { questions, recents } from "@/db/schema";
 
 // A recently-viewed question: the full question row plus the epoch-millis instant
 // it was last viewed (so the modal can show "when"). `viewedAt` is the same value

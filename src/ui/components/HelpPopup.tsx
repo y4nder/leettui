@@ -1,8 +1,8 @@
 import { useBindings } from "@opentui/keymap/react";
 import type { Binding } from "@opentui/keymap";
 import type { KeyEvent, Renderable } from "@opentui/core";
-import { colors } from "../theme";
-import { describeScope, formatKeys, isScopeEntryVisible, type ScopeBinding } from "../keymap";
+import { colors } from "@/ui/theme";
+import { describeScope, formatKeys, isScopeEntryVisible, type ScopeBinding } from "@/ui/keymap";
 
 const KEY_WIDTH = 16;
 

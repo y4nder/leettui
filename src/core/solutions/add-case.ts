@@ -9,7 +9,7 @@
 
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { discoverCases } from "../testRunner";
+import { discoverCases } from "@/core/testRunner";
 
 // The next `case-NN` base name: max existing index + 1, zero-padded to 2
 // digits to match `seedTests`' convention. Not gap-fill — a gap (case-01,

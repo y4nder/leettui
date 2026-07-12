@@ -10,10 +10,10 @@
 import type { KeyEvent, Renderable } from "@opentui/core";
 import type { Binding } from "@opentui/keymap";
 
-import type { BrowsePanel } from "../store";
-import { COMMAND_BY_NAME, SHORT_BY_NAME } from "./commands";
-import { browseGlobalBindings } from "./bindings";
-import { formatKeyToken, panelBindings } from "./format";
+import type { BrowsePanel } from "@/ui/store";
+import { COMMAND_BY_NAME, SHORT_BY_NAME } from "@/ui/keymap/commands";
+import { browseGlobalBindings } from "@/ui/keymap/bindings";
+import { formatKeyToken, panelBindings } from "@/ui/keymap/format";
 
 export interface ScopeBinding {
   cmd: string;

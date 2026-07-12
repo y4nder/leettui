@@ -1,9 +1,9 @@
 import { useRef } from "react";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
 
-import { Logo } from "./Logo";
-import { colors } from "../../theme";
-import { persistSolutionsDir } from "../../../config";
+import { Logo } from "@/ui/components/onboarding/Logo";
+import { colors } from "@/ui/theme";
+import { persistSolutionsDir } from "@/config";
 
 interface SolutionsOnboardingProps {
   /** The resolved default solutions dir, pre-filled into the input. */

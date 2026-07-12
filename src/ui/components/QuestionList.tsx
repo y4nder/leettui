@@ -1,10 +1,10 @@
-import type { DbQuestion } from "../../db/questions";
-import { colors, difficultyColor, statusIcon, statusColor } from "../theme";
-import { getKeymap } from "../keymap";
-import { useAppStore } from "../store";
-import { useScrollableList } from "../useScrollableList";
-import { useGlide } from "../useGlide";
-import { useListMouse } from "../useListMouse";
+import type { DbQuestion } from "@/db/questions";
+import { colors, difficultyColor, statusIcon, statusColor } from "@/ui/theme";
+import { getKeymap } from "@/ui/keymap";
+import { useAppStore } from "@/ui/store";
+import { useScrollableList } from "@/ui/useScrollableList";
+import { useGlide } from "@/ui/useGlide";
+import { useListMouse } from "@/ui/useListMouse";
 
 interface QuestionListProps {
   questions: DbQuestion[];

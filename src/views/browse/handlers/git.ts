@@ -7,7 +7,7 @@
 
 import { mkdirSync } from "node:fs";
 
-import { useAppStore } from "../../../ui/store";
+import { useAppStore } from "@/ui/store";
 import {
   cloneGitHubRepo,
   commandExists,
@@ -22,11 +22,11 @@ import {
   isGitRepo,
   manualCloneInstructions,
   manualRemoteInstructions,
-} from "../../../core/git";
-import { getGitUiCommand, getSolutionsDir } from "../../../config";
-import { errMessage } from "../../../debug";
-import { errorView, info } from "../resultView";
-import { withSuspendedRenderer, type Renderer } from "./shared";
+} from "@/core/git";
+import { getGitUiCommand, getSolutionsDir } from "@/config";
+import { errMessage } from "@/debug";
+import { errorView, info } from "@/views/browse/resultView";
+import { withSuspendedRenderer, type Renderer } from "@/views/browse/handlers/shared";
 
 // Launch the configured git UI in the solutions dir. cwd = the solutions root, so
 // the tool is scoped to the whole tree — tool-agnostic (lazygit/gitui/tig/git all

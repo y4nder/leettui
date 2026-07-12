@@ -1,5 +1,5 @@
-import { colors } from "../theme";
-import { useAppStore } from "../store";
+import { colors } from "@/ui/theme";
+import { useAppStore } from "@/ui/store";
 import { TextAttributes } from "@opentui/core";
 
 // One-line informational banner shown at the top of the app when a newer release

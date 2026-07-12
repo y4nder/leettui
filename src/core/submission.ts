@@ -1,13 +1,18 @@
-import type { DbQuestion } from "../db/questions";
-import { markAccepted, markAttempted, setSubmissionStats } from "../db/questions";
-import type { ParsedResponse } from "../api/types";
-import { fetchEditorData } from "../api/queries/editor-data";
-import { fetchConsolePanelConfig } from "../api/queries/console-panel-config";
-import { runCode } from "../api/rest/run";
-import { submitCode } from "../api/rest/submit";
-import { pollResult } from "../api/rest/check";
-import { readSolutionFile, getTestsDir, captureFailingCase, blessRunOutputs } from "./solutions";
-import { insertSubmission } from "../db/submissions";
+import type { DbQuestion } from "@/db/questions";
+import { markAccepted, markAttempted, setSubmissionStats } from "@/db/questions";
+import type { ParsedResponse } from "@/api/types";
+import { fetchEditorData } from "@/api/queries/editor-data";
+import { fetchConsolePanelConfig } from "@/api/queries/console-panel-config";
+import { runCode } from "@/api/rest/run";
+import { submitCode } from "@/api/rest/submit";
+import { pollResult } from "@/api/rest/check";
+import {
+  readSolutionFile,
+  getTestsDir,
+  captureFailingCase,
+  blessRunOutputs,
+} from "@/core/solutions";
+import { insertSubmission } from "@/db/submissions";
 
 export class SolutionError extends Error {
   constructor(message: string) {

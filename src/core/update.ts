@@ -7,8 +7,8 @@ import { dirname, join } from "node:path";
 import { Readable } from "node:stream";
 import { createGunzip } from "node:zlib";
 
-import { IS_RELEASE, VERSION } from "./version";
-import { brandBanner, startProgress, updateError, updateSuccess } from "./updatePresent";
+import { IS_RELEASE, VERSION } from "@/core/version";
+import { brandBanner, startProgress, updateError, updateSuccess } from "@/core/updatePresent";
 
 const REPO = "y4nder/leettui";
 

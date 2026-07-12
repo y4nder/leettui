@@ -4,9 +4,9 @@
 // malformed/unexpected input by returning a safe fallback, mirroring
 // `core/backfill.ts`'s `mapSubmission()` guards. Feeds `HistoryPanel` (HIST-01/02/03).
 
-import { colors } from "./theme";
-import type { ThemeColor } from "./themes";
-import type { DbSubmission } from "../db/submissions";
+import { colors } from "@/ui/theme";
+import type { ThemeColor } from "@/ui/themes";
+import type { DbSubmission } from "@/db/submissions";
 
 // D-02: verdict → color, substring-matched (not exact `===`) since statusDisplay comes
 // from two independently reverse-engineered API surfaces that may not be byte-identical

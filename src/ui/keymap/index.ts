@@ -1,7 +1,7 @@
 // Command catalog and per-scope binding specs built on top of @opentui/keymap.
 //
 // This barrel re-exports the entire public surface of the keymap module so external import
-// sites (`from "../keymap"`, `from "../../ui/keymap"`, the test's `./keymap`) resolve
+// sites (`from "@/ui/keymap"`, `from "@/ui/keymap"`, the test's `./keymap`) resolve
 // unchanged after the split from a single keymap.ts into this directory.
 //
 // Architecture:
@@ -18,7 +18,7 @@
 // commands/* (the catalog), bindings (per-scope specs), scopes (introspection + footer
 // segments), format (key formatting leaf).
 
-export type { ActionCategory } from "./command";
+export type { ActionCategory } from "@/ui/keymap/command";
 
 export {
   type AppKeymap,
@@ -26,7 +26,7 @@ export {
   installKeymap,
   registerPopupScroller,
   registerProblemScroller,
-} from "./runtime";
+} from "@/ui/keymap/runtime";
 
 export {
   browseGlobalBindings,
@@ -50,7 +50,7 @@ export {
   searchBindings,
   solutionsPanelBindings,
   topicPanelBindings,
-} from "./bindings";
+} from "@/ui/keymap/bindings";
 
 export {
   type ScopeBinding,
@@ -58,7 +58,7 @@ export {
   footerSegments,
   isProblemScopeEntryVisible,
   isScopeEntryVisible,
-} from "./scopes";
+} from "@/ui/keymap/scopes";
 
 export {
   fitFooter,
@@ -66,4 +66,4 @@ export {
   formatKeyToken,
   panelBindings,
   problemPanelBindings,
-} from "./format";
+} from "@/ui/keymap/format";

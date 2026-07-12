@@ -1,9 +1,9 @@
 import type { RGBA } from "@opentui/core";
-import { tokyoNight } from "./tokyo-night";
-import { catppuccin } from "./catppuccin";
-import { rosePine } from "./rose-pine";
-import { nord } from "./nord";
-import { buildSystemTheme } from "./system";
+import { tokyoNight } from "@/ui/themes/tokyo-night";
+import { catppuccin } from "@/ui/themes/catppuccin";
+import { rosePine } from "@/ui/themes/rose-pine";
+import { nord } from "@/ui/themes/nord";
+import { buildSystemTheme } from "@/ui/themes/system";
 
 export type ThemeColor = string | RGBA;
 

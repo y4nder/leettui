@@ -6,7 +6,7 @@
 // arg-reading and `main()` body are identical, so they live here and each
 // language file passes in just its `loadSolution()` definition.
 
-import type { MetaData } from "./meta";
+import type { MetaData } from "@/core/harness/meta";
 
 // Renders the `const x = JSON.parse(data[i]);` lines (2-space indented) with a
 // trailing type comment. Only called for round-trippable signatures — the

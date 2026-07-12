@@ -1,12 +1,12 @@
 import { SyntaxStyle, extToFiletype } from "@opentui/core";
 import { useBindings } from "@opentui/keymap/react";
 
-import { useAppStore } from "../store";
-import { colors } from "../theme";
-import { getKeymap, pickerBindings } from "../keymap";
-import { useListMouse } from "../useListMouse";
-import { getExtension } from "../../api/types";
-import { readSolutionFile } from "../../core/solutions";
+import { useAppStore } from "@/ui/store";
+import { colors } from "@/ui/theme";
+import { getKeymap, pickerBindings } from "@/ui/keymap";
+import { useListMouse } from "@/ui/useListMouse";
+import { getExtension } from "@/api/types";
+import { readSolutionFile } from "@/core/solutions";
 
 const defaultSyntaxStyle = SyntaxStyle.create();
 

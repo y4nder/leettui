@@ -3,5 +3,5 @@
 // This barrel preserves the `views/browse/resultView` import path every
 // consumer (both views, the store slices, the CLI presenter) already uses.
 
-export * from "./types";
-export * from "./builders";
+export * from "@/views/browse/resultView/types";
+export * from "@/views/browse/resultView/builders";

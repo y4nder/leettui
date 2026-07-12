@@ -5,9 +5,9 @@
 // from getFirstAcSummary() (a bounded indexed DB read) via computeDashboardStats().
 
 import type { StateCreator } from "zustand";
-import type { AppStore } from "../index";
-import { getFirstAcSummary } from "../../../db/submissions";
-import { computeDashboardStats, type DashboardStats } from "../../analytics";
+import type { AppStore } from "@/ui/store/index";
+import { getFirstAcSummary } from "@/db/submissions";
+import { computeDashboardStats, type DashboardStats } from "@/ui/analytics";
 
 export interface DashboardSlice {
   dashboardStats: DashboardStats | null;

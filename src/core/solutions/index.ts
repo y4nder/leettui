@@ -1,6 +1,6 @@
 // Barrel for the solutions module. Re-exports exactly the public surface that
 // `core/solutions.ts` exposed before the split, so every existing importer
-// (`from "../core/solutions"`, `from "./solutions"`, …) resolves unchanged.
+// (`from "@/core/core/solutions"`, `from "@/core/solutions/solutions"`, …) resolves unchanged.
 //
 // Lifecycle grouping (see docs/refactor):
 //   paths.ts     — path math (problem/solution/notes/tests/lang locations) + cwd resolution
@@ -21,7 +21,7 @@ export {
   getTestsDir,
   resolveProblemFromCwd,
   resolveProblemPath,
-} from "./paths";
+} from "@/core/solutions/paths";
 
 export {
   findExistingSolutions,
@@ -30,9 +30,9 @@ export {
   readProblemMd,
   readSolutionFile,
   solutionExists,
-} from "./discovery";
+} from "@/core/solutions/discovery";
 
-export { type TemplateVars, overlayTemplates, renderTemplate } from "./templates";
+export { type TemplateVars, overlayTemplates, renderTemplate } from "@/core/solutions/templates";
 
 export {
   createHarnessFile,
@@ -42,17 +42,17 @@ export {
   ensureProblemDir,
   ensureProblemMd,
   seedTests,
-} from "./create";
+} from "@/core/solutions/create";
 
-export { deleteSolution } from "./remove";
+export { deleteSolution } from "@/core/solutions/remove";
 
-export { type SaveOutcome, type SaveResult, saveGoldenOutputs } from "./save-output";
+export { type SaveOutcome, type SaveResult, saveGoldenOutputs } from "@/core/solutions/save-output";
 
-export { addCase, nextCaseName } from "./add-case";
+export { addCase, nextCaseName } from "@/core/solutions/add-case";
 
 export {
   type CaptureOutcome,
   type CaptureResult,
   blessRunOutputs,
   captureFailingCase,
-} from "./capture";
+} from "@/core/solutions/capture";

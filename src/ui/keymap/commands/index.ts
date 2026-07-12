@@ -14,11 +14,11 @@
 import type { KeyEvent, Renderable } from "@opentui/core";
 import type { Command } from "@opentui/keymap";
 
-import type { CommandEntry } from "../command";
-import { browseNavCommands, browseSolveCommands } from "./browse";
-import { problemCommands } from "./problem";
-import { systemCommands } from "./system";
-import { modalCommands } from "./modal";
+import type { CommandEntry } from "@/ui/keymap/command";
+import { browseNavCommands, browseSolveCommands } from "@/ui/keymap/commands/browse";
+import { problemCommands } from "@/ui/keymap/commands/problem";
+import { systemCommands } from "@/ui/keymap/commands/system";
+import { modalCommands } from "@/ui/keymap/commands/modal";
 
 const ENTRIES: CommandEntry[] = [
   ...browseNavCommands,

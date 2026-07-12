@@ -1,6 +1,6 @@
 import { rmSync } from "node:fs";
 import { join } from "node:path";
-import { getProblemDir } from "./paths";
+import { getProblemDir } from "@/core/solutions/paths";
 
 // Removes a single language subfolder (`{paddedId}_{slug}/{langSlug}/`) and all
 // it holds — `solution.{ext}`, the generated harness/manifest, and any compiled

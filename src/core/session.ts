@@ -15,7 +15,7 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { DATA_DIR } from "../config/paths";
+import { DATA_DIR } from "@/config/paths";
 
 const SESSION_FILE = join(DATA_DIR, "session.json");
 

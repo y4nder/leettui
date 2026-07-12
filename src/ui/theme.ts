@@ -3,9 +3,9 @@ import {
   listThemeNames as listPresetNames,
   type Theme,
   type ThemeColor,
-} from "./themes";
-import { useAppStore } from "./store";
-import { persistThemeName } from "../config";
+} from "@/ui/themes";
+import { useAppStore } from "@/ui/store";
+import { persistThemeName } from "@/config";
 
 const DEFAULT_NAME = "tokyo-night";
 

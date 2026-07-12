@@ -15,7 +15,7 @@
 // state pick up new values.
 
 import { CliRenderEvents, type CliRenderer } from "@opentui/core";
-import { rebuildSystemTheme } from "./theme";
+import { rebuildSystemTheme } from "@/ui/theme";
 
 export function attachPaletteListener(renderer: CliRenderer): void {
   // Warm the cache. Failures are expected on terminals without OSC support;

@@ -10,8 +10,8 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { compareOutput } from "../testRunner";
-import type { LocalCaseResult } from "../testRunner";
+import { compareOutput } from "@/core/testRunner";
+import type { LocalCaseResult } from "@/core/testRunner";
 
 export type SaveOutcome = "created" | "changed" | "unchanged" | "skipped";
 

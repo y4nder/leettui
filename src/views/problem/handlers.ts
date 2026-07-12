@@ -2,20 +2,20 @@
 // handlers but routes results to the in-view inline result panel instead of
 // the modal popup.
 
-import { useAppStore } from "../../ui/store";
-import type { RelatedQuestion } from "../../ui/store";
-import { htmlToMarkdown } from "../../core/markdown";
-import { fetchQuestionContent } from "../../api/queries/question-content";
-import { fetchSimilarQuestions } from "../../api/queries/similar-questions";
-import { fetchEditorData } from "../../api/queries/editor-data";
-import { fetchConsolePanelConfig } from "../../api/queries/console-panel-config";
+import { useAppStore } from "@/ui/store";
+import type { RelatedQuestion } from "@/ui/store";
+import { htmlToMarkdown } from "@/core/markdown";
+import { fetchQuestionContent } from "@/api/queries/question-content";
+import { fetchSimilarQuestions } from "@/api/queries/similar-questions";
+import { fetchEditorData } from "@/api/queries/editor-data";
+import { fetchConsolePanelConfig } from "@/api/queries/console-panel-config";
 import {
   getQuestionsByTopic,
   getQuestionBySlug,
   getTopicsForQuestion,
   type DbQuestion,
-} from "../../db/questions";
-import { recordRecent } from "../../db/recents";
+} from "@/db/questions";
+import { recordRecent } from "@/db/recents";
 import {
   createSolutionWithHarness,
   deleteSolution,
@@ -25,12 +25,18 @@ import {
   ensureProblemDir,
   ensureProblemMd,
   readNotes,
-} from "../../core/solutions";
-import { runSolution, submitSolution, SolutionError } from "../../core/submission";
-import { runLocalTests } from "../../core/testRunner";
-import { errMessage } from "../../debug";
-import { buildResultView, buildLocalRunView, info, loading, errorView } from "../browse/resultView";
-import { currentTopic, makeReportError, openInEditor, type Renderer } from "../shared";
+} from "@/core/solutions";
+import { runSolution, submitSolution, SolutionError } from "@/core/submission";
+import { runLocalTests } from "@/core/testRunner";
+import { errMessage } from "@/debug";
+import {
+  buildResultView,
+  buildLocalRunView,
+  info,
+  loading,
+  errorView,
+} from "@/views/browse/resultView";
+import { currentTopic, makeReportError, openInEditor, type Renderer } from "@/views/shared";
 
 // Problem-view error reports log against the "problem" scope.
 const reportError = makeReportError("problem");

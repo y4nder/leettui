@@ -2,8 +2,8 @@ import { useBindings } from "@opentui/keymap/react";
 import { useTerminalDimensions } from "@opentui/react";
 import { TextAttributes } from "@opentui/core";
 
-import { colors } from "../theme";
-import { deletePromptBindings } from "../keymap";
+import { colors } from "@/ui/theme";
+import { deletePromptBindings } from "@/ui/keymap";
 
 interface DeleteSolutionPromptProps {
   // The language folder about to be removed (frozen at open time in problemSlice).

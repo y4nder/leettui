@@ -8,7 +8,7 @@
 // `generateRustHarness` (item 2) assembles them into the `Cargo.toml`/`.gitignore`/
 // `main.rs` file set that `index.ts` dispatches and `create.ts` writes.
 
-import { type HarnessFile, type MetaData, DEFERRED_TYPES, baseType } from "./meta";
+import { type HarnessFile, type MetaData, DEFERRED_TYPES, baseType } from "@/core/harness/meta";
 
 // LeetCode scalar metaData types → their concrete serde-deserializable Rust types.
 // A JSON number/string/bool round-trips into these via `serde_json::from_str`:

@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
 
-import { Logo } from "./Logo";
-import { colors } from "../../theme";
-import { persistTokens } from "../../../config";
-import { readFirefoxCookies } from "../../../core/auth/firefox";
-import { parseCookieInput } from "../../../core/auth/paste";
+import { Logo } from "@/ui/components/onboarding/Logo";
+import { colors } from "@/ui/theme";
+import { persistTokens } from "@/config";
+import { readFirefoxCookies } from "@/core/auth/firefox";
+import { parseCookieInput } from "@/core/auth/paste";
 import {
   validateTokens,
   openInBrowser,
   LOGIN_URL,
   MAX_PASTE_ATTEMPTS,
   type AuthTokens,
-} from "../../../core/auth";
+} from "@/core/auth";
 
 interface AuthWizardProps {
   onComplete: (tokens: AuthTokens) => void;

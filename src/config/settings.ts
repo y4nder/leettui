@@ -17,7 +17,7 @@ import {
   getGitUiCommand,
   getScrollJumpRows,
   loadConfig,
-} from "./index";
+} from "@/config/index";
 
 export type SettingKind = "enum" | "text" | "number";
 

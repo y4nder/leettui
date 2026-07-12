@@ -1,5 +1,5 @@
 import { useReducer, useRef } from "react";
-import { followCursor, scrollViewport } from "./listWindow";
+import { followCursor, scrollViewport } from "@/ui/listWindow";
 
 // Windowing for the cursor-driven lists, superseding the old useScrollOffset hook with
 // a wheel-scrollable viewport. Two inputs move the window:

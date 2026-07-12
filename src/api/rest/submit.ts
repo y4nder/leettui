@@ -1,5 +1,5 @@
-import { getClient } from "../client";
-import type { SubmitCodeResponse } from "../types";
+import { getClient } from "@/api/client";
+import type { SubmitCodeResponse } from "@/api/types";
 
 export async function submitCode(
   slug: string,

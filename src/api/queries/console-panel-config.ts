@@ -1,5 +1,5 @@
-import { gqlQuery } from "../graphql";
-import type { ConsolePanelConfigData } from "../types";
+import { gqlQuery } from "@/api/graphql";
+import type { ConsolePanelConfigData } from "@/api/types";
 
 const QUERY = `
 query consolePanelConfig($titleSlug: String!) {

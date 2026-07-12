@@ -3,14 +3,14 @@
 // those act on a chosen solution and belong to the problem view; browse stays a
 // navigator over the question list.
 
-import { useAppStore } from "../../../ui/store";
-import { initClient } from "../../../api/client";
-import { runAuthFlow } from "../../../core/auth";
-import { getQuestionsByTopic } from "../../../db/questions";
-import { copyToClipboard, problemUrl } from "../../../core/clipboard";
-import { syncQuestions } from "../../../core/sync";
-import { errMessage, logError } from "../../../debug";
-import { info, errorView } from "../resultView";
+import { useAppStore } from "@/ui/store";
+import { initClient } from "@/api/client";
+import { runAuthFlow } from "@/core/auth";
+import { getQuestionsByTopic } from "@/db/questions";
+import { copyToClipboard, problemUrl } from "@/core/clipboard";
+import { syncQuestions } from "@/core/sync";
+import { errMessage, logError } from "@/debug";
+import { info, errorView } from "@/views/browse/resultView";
 import {
   currentQuestion,
   currentTopic,
@@ -19,7 +19,7 @@ import {
   tryAcquireSync,
   withSuspendedRenderer,
   type Renderer,
-} from "./shared";
+} from "@/views/browse/handlers/shared";
 
 export async function handleSyncDb(triggerKey: string) {
   const { setSyncProgress, clearSyncProgress, refreshQuestions, init, showResult } =
