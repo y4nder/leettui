@@ -33,7 +33,7 @@ lc_session = ""
 # default = "python3"
 
 # [theme]
-# name = "tokyo-night"  # available: tokyo-night, catppuccin, system
+# name = "tokyo-night"  # pick in-app with the 't' theme picker; 'system' follows the terminal palette
 
 # [scroll]
 # jump_rows = 10  # how many rows Ctrl+d/Ctrl+u jump (a positive integer)

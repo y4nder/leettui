@@ -5,7 +5,7 @@
 // palette lists in array order. The concatenation below reproduces the original flat
 // keymap.ts order exactly — browse navigation/focus, then the whole ProblemView block,
 // then the browse question-targeted solve commands, then the system + theme commands
-// (with the theme.set.* spread at its mid-list position), then the popup/result modals.
+// (theme.open launches the picker; the theme cyclers follow), then the popup/result modals.
 //
 // SHORT_BY_NAME is colocated here (not in command.ts) on purpose: it is populated as the
 // catalog is assembled, so any reader importing it gets a fully-built map — sidestepping the

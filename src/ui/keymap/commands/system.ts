@@ -1,13 +1,12 @@
 // System + theme commands and the global modal-openers (search / help / debug / palette).
-// Includes buildThemeSetCommands, which emits one theme.set.<name> entry per preset so each
-// is its own searchable command-palette item. The order here mirrors the original flat
-// COMMANDS array: search.start first, then the system actions, the theme cyclers, and the
-// theme.set.* spread at its mid-list position.
+// `theme.open` launches the searchable theme picker popup (ThemePickerPopup); the theme
+// cyclers stay as un-bound palette-runnable entries. The order here mirrors the original
+// flat COMMANDS array: search.start first, then the system actions, then the theme entries.
 
 import { useAppStore } from "@/ui/store";
 import { makeCommand, type CommandEntry } from "@/ui/keymap/command";
 import { getRenderer } from "@/ui/keymap/runtime";
-import { cycleTheme, listThemeNames, setTheme } from "@/ui/theme";
+import { cycleTheme } from "@/ui/theme";
 import { isDebugEnabled } from "@/debug";
 import type { AppMode } from "@/ui/store/slices/uiSlice";
 import {
@@ -20,25 +19,6 @@ import {
   handleSyncDb,
   handleViewChangelog,
 } from "@/views/browse/handlers";
-
-function prettyThemeName(name: string): string {
-  // kebab → Title Case: "tokyo-night" → "Tokyo Night", "system" → "System"
-  return name
-    .split(/[-_]/)
-    .map((p) => (p.length ? p[0]!.toUpperCase() + p.slice(1) : p))
-    .join(" ");
-}
-
-export function buildThemeSetCommands(): CommandEntry[] {
-  return listThemeNames().map((name) =>
-    makeCommand({
-      name: `theme.set.${name}`,
-      title: `Theme: ${prettyThemeName(name)}`,
-      category: "System",
-      run: () => setTheme(name, { persist: true }),
-    }),
-  );
-}
 
 export const systemCommands: CommandEntry[] = [
   makeCommand({
@@ -189,6 +169,13 @@ export const systemCommands: CommandEntry[] = [
   }),
 
   makeCommand({
+    name: "theme.open",
+    title: "Theme… — pick a color theme",
+    category: "System",
+    short: "Theme",
+    run: () => useAppStore.getState().showThemePicker(),
+  }),
+  makeCommand({
     name: "theme.cycle.next",
     title: "Theme: cycle next",
     category: "System",
@@ -200,8 +187,4 @@ export const systemCommands: CommandEntry[] = [
     category: "System",
     run: () => cycleTheme(-1),
   }),
-
-  // theme.set.<name> commands are appended below (one per preset) so each
-  // shows up as its own searchable entry in the command palette.
-  ...buildThemeSetCommands(),
 ];

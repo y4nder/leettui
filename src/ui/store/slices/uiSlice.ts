@@ -31,6 +31,7 @@ export type AppMode =
   | "relocate"
   | "changelog"
   | "recent"
+  | "themePicker"
   | "gitInit"
   | "gitRemote"
   | "gitSync"
@@ -87,6 +88,8 @@ export interface UiSlice {
   hideChangelog: () => void;
   showRecent: (items: RecentQuestion[]) => void;
   hideRecent: () => void;
+  showThemePicker: () => void;
+  hideThemePicker: () => void;
   setMode: (mode: AppMode) => void;
   setFocusedPanel: (panel: BrowsePanel) => void;
   // dir 1 = next panel, -1 = previous (wraps). Generalizes past two panels.
@@ -161,6 +164,10 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   // showSelect/showChangelog. Closing clears it back to browse.
   showRecent: (items) => set({ mode: "recent", recents: items }),
   hideRecent: () => set({ mode: "browse", recents: [] }),
+  // The theme picker owns all its sub-state (needle, selection, original-theme ref),
+  // so opening/closing is a bare mode toggle — no payload.
+  showThemePicker: () => set({ mode: "themePicker" }),
+  hideThemePicker: () => set({ mode: "browse" }),
   setMode: (mode) => set({ mode }),
   setFocusedPanel: (panel) => set({ focusedPanel: panel }),
   cycleFocusedPanel: (dir) =>
