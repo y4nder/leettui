@@ -125,6 +125,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
   const difficultyFilter = useAppStore((s) => s.difficultyFilter);
   const syncProgress = useAppStore((s) => s.syncProgress);
   const updateAvailable = useAppStore((s) => s.updateAvailable);
+  const updateInstalled = useAppStore((s) => s.updateInstalled);
   const problem = useAppStore((s) => s.problem);
   const problemSubmissions = useAppStore((s) => s.problemSubmissions);
   const submissionSummary = useAppStore((s) => s.submissionSummary);
@@ -140,7 +141,7 @@ export function ProblemView({ renderer: _renderer }: ProblemViewProps) {
     [],
   );
 
-  const mainHeight = height - (syncProgress ? 2 : 1) - (updateAvailable ? 1 : 0);
+  const mainHeight = height - (syncProgress ? 2 : 1) - (updateAvailable || updateInstalled ? 1 : 0);
 
   // Focus-on-click for the two non-list panels (the list panels wire their own mouse
   // support via useListMouse). Their scrollboxes keep native wheel scroll — no

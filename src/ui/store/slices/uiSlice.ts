@@ -59,6 +59,9 @@ export interface UiSlice {
   resultView: ResultView | null;
   // The newer release tag to advertise in the top banner, or null when none.
   updateAvailable: string | null;
+  // The tag the background auto-update already downloaded + installed — drives
+  // the "restart to apply" banner, superseding updateAvailable for that tag.
+  updateInstalled: string | null;
   // The open "What's new" payload (recent releases newest-first + which tag is
   // emphasized — installed at boot, latest via the palette), or null when closed.
   changelog: ChangelogPayload | null;
@@ -84,6 +87,7 @@ export interface UiSlice {
   bumpThemeVersion: () => void;
   requestSmoothScroll: (panel: BrowsePanel) => void;
   setUpdateAvailable: (tag: string | null) => void;
+  setUpdateInstalled: (tag: string | null) => void;
   showChangelog: (payload: ChangelogPayload) => void;
   hideChangelog: () => void;
   showRecent: (items: RecentQuestion[]) => void;
@@ -138,6 +142,7 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   selectResolve: null,
   resultView: null,
   updateAvailable: null,
+  updateInstalled: null,
   changelog: null,
   recents: [],
   gitSyncMode: null,
@@ -153,6 +158,10 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
         : { questionScrollNonce: s.questionScrollNonce + 1 },
     ),
   setUpdateAvailable: (tag) => set({ updateAvailable: tag }),
+  // Setting an installed tag supersedes the "available" banner (only one of the
+  // two shows); clearing (the dismiss) touches only itself.
+  setUpdateInstalled: (tag) =>
+    set(tag ? { updateInstalled: tag, updateAvailable: null } : { updateInstalled: null }),
 
   // "What's new" popup (Stage 18). Auto-opened once per new version at boot and
   // on demand from the command palette; closing returns to browse.

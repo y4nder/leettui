@@ -44,6 +44,17 @@ describe("enum coercion", () => {
     expect(detach.coerce("false")).toBe(false);
     expect(detach.coerce("garbage")).toBe("auto");
   });
+
+  test("update.auto coerces to a real boolean and rejects the rest", () => {
+    const auto = byId("update.auto");
+    expect(auto.kind).toBe("enum");
+    expect(auto.options?.()).toEqual(["true", "false"]);
+    expect(auto.coerce("true")).toBe(true);
+    expect(auto.coerce(" FALSE ")).toBe(false);
+    // Rejected (null) rather than defaulted — the editor keeps the edit open.
+    expect(auto.coerce("garbage")).toBeNull();
+    expect(auto.coerce("")).toBeNull();
+  });
 });
 
 describe("number coercion (scroll.jump_rows)", () => {

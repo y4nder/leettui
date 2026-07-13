@@ -16,6 +16,7 @@ import {
   getEditorDetach,
   getGitUiCommand,
   getScrollJumpRows,
+  getUpdateAuto,
   loadConfig,
 } from "@/config/index";
 
@@ -59,7 +60,7 @@ export const LANGUAGE_SLUGS: string[] = [
   "racket",
 ];
 
-// The five non-theme settings. `read` goes through the coercing accessors, so a
+// The non-theme settings. `read` goes through the coercing accessors, so a
 // garbage on-disk value displays as its safe coerced form and any edit overwrites it.
 export const SETTINGS: SettingSpec[] = [
   {
@@ -115,5 +116,23 @@ export const SETTINGS: SettingSpec[] = [
     // (≥1) exactly as the accessor would, and persisted as a bare TOML integer.
     coerce: (raw) => (/^\d+$/.test(raw.trim()) ? clampJumpRows(Number(raw.trim())) : null),
     hint: "How many rows Ctrl+d/Ctrl+u jump (a positive integer).",
+  },
+  {
+    id: "update.auto",
+    section: "update",
+    key: "auto",
+    label: "Auto-update",
+    kind: "enum",
+    options: () => ["true", "false"],
+    read: () => String(getUpdateAuto()),
+    // Persist a real boolean (a bare TOML scalar via upsertSectionRaw); reject
+    // anything that isn't exactly true/false.
+    coerce: (raw) => {
+      const s = raw.trim().toLowerCase();
+      if (s === "true") return true;
+      if (s === "false") return false;
+      return null;
+    },
+    hint: "Download new releases in the background; restart to apply.",
   },
 ];

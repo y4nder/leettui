@@ -97,3 +97,9 @@ export function updateNotice(tag: string, current: string): string {
     `  Run ${bold(blue("leettui update"))} to upgrade.\n`
   );
 }
+
+// The quit notice's "already installed" variant: the background auto-update
+// swapped the binary during the session, so the only step left is a relaunch.
+export function updateInstalledNotice(tag: string): string {
+  return `\n${green("✓")} ${bold(`leettui ${tag} installed`)}  ${dim("— takes effect on next launch.")}\n`;
+}

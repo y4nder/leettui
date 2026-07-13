@@ -24,4 +24,10 @@ export interface Config {
     // Ctrl+d/Ctrl+u jump distance, in rows (a positive integer). Default 10.
     jump_rows?: number;
   };
+  update?: {
+    // Background auto-update (default true): download new releases and install
+    // them in place; the banner then says "restart to apply". false = only
+    // show the "update available" banner.
+    auto?: boolean;
+  };
 }
