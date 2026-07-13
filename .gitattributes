@@ -7,3 +7,6 @@
 
 # install.sh is a shell script — LF is required, made explicit here.
 *.sh text eol=lf
+
+# install.cmd is a Windows batch script — CRLF is required, made explicit here.
+*.cmd text eol=crlf
