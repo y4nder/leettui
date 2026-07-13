@@ -37,6 +37,10 @@ lc_session = ""
 
 # [scroll]
 # jump_rows = 10  # how many rows Ctrl+d/Ctrl+u jump (a positive integer)
+
+# [update]
+# auto = true  # download new releases in the background and install them (the
+#              # banner then says "restart to apply"); false = notify only
 `;
 
 // Default Ctrl+d/Ctrl+u jump distance, in rows.
@@ -240,6 +244,27 @@ export function clampJumpRows(raw: unknown): number {
 
 export function getScrollJumpRows(): number {
   return clampJumpRows(loadConfig().scroll?.jump_rows);
+}
+
+// Coerce a raw `[update] auto` TOML value: real booleans pass through,
+// "true"/"false" strings are tolerated, everything else (including garbage or
+// an absent key) defaults to true — auto-update is on unless clearly turned
+// off. Pure, unit-tested like coerceEditorDetach.
+export function coerceUpdateAuto(raw: unknown): boolean {
+  if (typeof raw === "boolean") return raw;
+  if (typeof raw === "string") {
+    const s = raw.trim().toLowerCase();
+    if (s === "true") return true;
+    if (s === "false") return false;
+  }
+  return true;
+}
+
+// Whether the TUI may download + install new releases in the background
+// (`[update] auto`, default true). The other gates (IS_RELEASE, platform
+// support) live in core/update's shouldAutoDownload.
+export function getUpdateAuto(): boolean {
+  return coerceUpdateAuto(loadConfig().update?.auto);
 }
 
 // Root of the per-language template-override tree. Users drop files under

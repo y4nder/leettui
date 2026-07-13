@@ -128,9 +128,16 @@ export const systemCommands: CommandEntry[] = [
     name: "update.dismiss",
     title: "Dismiss update notification",
     category: "System",
-    // No-op when no banner is showing; hides it for the rest of the session
-    // (not persisted — it reappears on the next launch if still out of date).
-    run: () => useAppStore.getState().setUpdateAvailable(null),
+    // No-op when no banner is showing; hides whichever update banner is up
+    // ("available" or the installed "restart to apply") for the rest of the
+    // session. Not persisted — "available" reappears next launch if still out
+    // of date, and the module-level installed flag survives for the on-quit
+    // notice.
+    run: () => {
+      const s = useAppStore.getState();
+      s.setUpdateInstalled(null);
+      s.setUpdateAvailable(null);
+    },
   }),
   makeCommand({
     name: "changelog.open",

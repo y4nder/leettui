@@ -87,11 +87,12 @@ export function BrowseView({ renderer }: BrowseViewProps) {
   const resultView = useAppStore((s) => s.resultView);
   const syncProgress = useAppStore((s) => s.syncProgress);
   const updateAvailable = useAppStore((s) => s.updateAvailable);
+  const updateInstalled = useAppStore((s) => s.updateInstalled);
   const changelog = useAppStore((s) => s.changelog);
   const topicScrollNonce = useAppStore((s) => s.topicScrollNonce);
   const questionScrollNonce = useAppStore((s) => s.questionScrollNonce);
 
-  const mainHeight = height - (syncProgress ? 2 : 1) - (updateAvailable ? 1 : 0);
+  const mainHeight = height - (syncProgress ? 2 : 1) - (updateAvailable || updateInstalled ? 1 : 0);
 
   return (
     <box flexDirection="column" width="100%" height="100%">

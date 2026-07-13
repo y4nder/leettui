@@ -27,8 +27,8 @@ const debugFlag =
 initDebug(debugFlag);
 import { BootFlow } from "@/ui/components/onboarding/BootFlow";
 import { installKeymap } from "@/ui/keymap";
-import { getPendingUpdate } from "@/core/update";
-import { updateNotice } from "@/core/updatePresent";
+import { cleanupActiveTmp, getInstalledUpdate, getPendingUpdate } from "@/core/update";
+import { updateInstalledNotice, updateNotice } from "@/core/updatePresent";
 import { VERSION } from "@/core/version";
 
 loadConfig();
@@ -71,9 +71,19 @@ const renderer = await createCliRenderer({
 });
 
 // On quit (q, Ctrl+C, or any clean exit), remind the user if a newer release was
-// found this session. Runs after the renderer has restored the main screen, so
-// the notice lands in normal scrollback rather than the alternate buffer.
+// found this session — "already installed, relaunch" when the background
+// auto-update completed, else the "run leettui update" nudge. Runs after the
+// renderer has restored the main screen, so the notice lands in normal
+// scrollback rather than the alternate buffer.
 process.on("exit", () => {
+  // Remove an in-flight background download's temp file — the download's own
+  // async cleanup can't run once the process is exiting.
+  cleanupActiveTmp();
+  const installed = getInstalledUpdate();
+  if (installed) {
+    process.stdout.write(updateInstalledNotice(installed));
+    return;
+  }
   const tag = getPendingUpdate();
   if (tag) process.stdout.write(updateNotice(tag, VERSION));
 });

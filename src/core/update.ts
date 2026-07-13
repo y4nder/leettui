@@ -2,7 +2,7 @@
 // in over the running executable. Mirrors the platform/asset logic in
 // install.sh — keep the two in sync if the release matrix changes.
 import { chmod, rename, rm } from "node:fs/promises";
-import { createWriteStream } from "node:fs";
+import { createWriteStream, readdirSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { Readable } from "node:stream";
 import { createGunzip } from "node:zlib";
@@ -26,6 +26,24 @@ export function setPendingUpdate(tag: string | null): void {
 /** The newer-release tag to remind the user about on quit, or null. */
 export function getPendingUpdate(): string | null {
   return pendingUpdate;
+}
+
+// The tag the background auto-update already downloaded and atomically swapped
+// over the binary this session, or null. Like `pendingUpdate`, tracked apart
+// from the banner's store state so dismissing the "restart to apply" banner
+// doesn't suppress the on-quit installed notice — the fourth "told the user"
+// state (see the exit hook in `index.tsx`). Also read by the scheduler so a
+// 4h re-check never re-downloads a tag that's already installed.
+let installedUpdate: string | null = null;
+
+/** Record (or clear) the tag already installed in the background this session. */
+export function setInstalledUpdate(tag: string | null): void {
+  installedUpdate = tag;
+}
+
+/** The tag already installed in the background this session, or null. */
+export function getInstalledUpdate(): string | null {
+  return installedUpdate;
 }
 
 // Only the combinations the release workflow actually builds (see
@@ -68,6 +86,36 @@ function resolveAsset(): { asset: string } | { error: string } {
     };
   }
   return { asset };
+}
+
+/**
+ * The release asset name when this platform can self-update, else null (win32,
+ * unsupported arch). The silent background path needs the yes/no + asset without
+ * the error prose, so this wraps the private resolveAsset for it.
+ */
+export function selfUpdateSupported(): string | null {
+  const resolved = resolveAsset();
+  return "error" in resolved ? null : resolved.asset;
+}
+
+/**
+ * Pure decision: should the background auto-update download+install `tag`?
+ * False when the `[update] auto` knob is off, on a dev/from-source build
+ * (mirrors runUpdate's IS_RELEASE gate — LEETTUI_FAKE_UPDATE stays banner-only),
+ * on a platform with no self-update, or when an equal-or-newer tag was already
+ * installed this session — that last rule is what stops the 4h loop from
+ * re-downloading the same release every tick.
+ */
+export function shouldAutoDownload(opts: {
+  auto: boolean;
+  isRelease: boolean;
+  assetSupported: boolean;
+  tag: string;
+  installedTag: string | null;
+}): boolean {
+  if (!opts.auto || !opts.isRelease || !opts.assetSupported) return false;
+  if (opts.installedTag && !isNewerVersion(opts.tag, opts.installedTag)) return false;
+  return true;
 }
 
 /**
@@ -268,8 +316,159 @@ export async function fetchAsset(
   return { res: rawRes, compressed: false, url: raw };
 }
 
+// Temp files are pid-suffixed (`.leettui.update.<pid>.tmp`) so a background
+// install and a concurrent manual `leettui update` in another terminal never
+// interleave writes into one file and rename corrupt bytes over the binary.
+// The legacy un-suffixed `.leettui.update.tmp` arm exists so the sweep can
+// clean orphans left by pre-auto-update builds.
+const UPDATE_TMP_RE = /^\.leettui\.update(?:\.(\d+))?\.tmp$/;
+
+/**
+ * Parse an update temp filename: `{ pid }` for a pid-suffixed name,
+ * `{ pid: null }` for the legacy un-suffixed name, null for anything else.
+ * Pure so the sweep's "is this ours to delete?" matching is unit-tested.
+ */
+export function parseUpdateTmpPid(filename: string): { pid: number | null } | null {
+  const m = UPDATE_TMP_RE.exec(filename);
+  if (!m) return null;
+  return { pid: m[1] ? Number(m[1]) : null };
+}
+
+// True when `pid` is a live process. EPERM means "exists but not ours" — alive.
+function pidAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (err) {
+    return (err as NodeJS.ErrnoException).code === "EPERM";
+  }
+}
+
+/**
+ * Remove orphaned update temp files next to the binary — left behind when a
+ * process died mid-download (crash/SIGKILL, where the exit-hook cleanup never
+ * ran). A temp file whose pid is still a live process belongs to a concurrent
+ * updater and is never touched; the legacy un-suffixed name has no owner to
+ * check and predates pid-suffixing, so it's always stale. Best-effort and
+ * fail-silent: a sweep failure must never affect boot or an update.
+ */
+export function sweepStaleUpdateTmp(): void {
+  try {
+    const dir = dirname(process.execPath);
+    for (const name of readdirSync(dir)) {
+      const parsed = parseUpdateTmpPid(name);
+      if (!parsed) continue;
+      if (parsed.pid !== null && (parsed.pid === process.pid || pidAlive(parsed.pid))) continue;
+      rmSync(join(dir, name), { force: true });
+    }
+  } catch {
+    // Fail-silent by contract.
+  }
+}
+
+// The in-flight download's temp path, so the exit hook can remove it on a
+// graceful quit mid-download (the async catch below never runs once the
+// process is exiting).
+let activeTmpPath: string | null = null;
+
+/** Synchronously remove an in-flight download's temp file. Exit-hook safe. */
+export function cleanupActiveTmp(): void {
+  if (!activeTmpPath) return;
+  try {
+    rmSync(activeTmpPath, { force: true });
+  } catch {
+    // Best-effort — never let cleanup break the exit path.
+  }
+  activeTmpPath = null;
+}
+
+/**
+ * Stream a release asset to a temp file next to process.execPath and atomically
+ * rename it over the running binary. Silent — never writes to stdout/stderr
+ * (the TUI owns the screen on the background path); progress goes through the
+ * optional callback (runUpdate feeds its bar). Throws on any failure, after
+ * removing the temp file — the rename is the only mutation of the real binary,
+ * so an interrupted download can never leave it torn.
+ */
+export async function downloadAndInstall(
+  tag: string,
+  asset: string,
+  onProgress?: (received: number, total: number) => void,
+): Promise<void> {
+  const target = process.execPath;
+  const tmp = join(dirname(target), `.leettui.update.${process.pid}.tmp`);
+  activeTmpPath = tmp;
+  try {
+    // Prefer the gzip sibling (Stage 19), falling back to the raw asset on an
+    // older tag without one.
+    const { res, compressed } = await fetchAsset(tag, asset);
+    // Stream to a temp file in the target's directory so the final rename is
+    // atomic on the same filesystem. A `data` listener counts bytes for the
+    // progress callback without disturbing `pipe`'s backpressure handling —
+    // counting on `src` (pre-gunzip) measures the *compressed* bytes against
+    // the compressed `content-length`. A corrupt/truncated gzip stream rejects
+    // via the gunzip `error` event, lands in `catch`, and the temp file is
+    // removed so the running binary is never clobbered.
+    const total = Number(res.headers.get("content-length")) || 0;
+    let received = 0;
+    await new Promise<void>((resolve, reject) => {
+      const out = createWriteStream(tmp);
+      out.on("error", reject);
+      out.on("finish", resolve);
+      const src = Readable.fromWeb(res.body as Parameters<typeof Readable.fromWeb>[0]);
+      src.on("data", (chunk: Buffer) => {
+        received += chunk.length;
+        onProgress?.(received, total);
+      });
+      src.on("error", reject);
+      if (compressed) {
+        const gunzip = createGunzip();
+        gunzip.on("error", reject);
+        src.pipe(gunzip).pipe(out);
+      } else {
+        src.pipe(out);
+      }
+    });
+
+    await chmod(tmp, 0o755);
+    // Renaming over the running binary's inode is safe on Linux/macOS — the
+    // running process keeps the old inode; the next launch uses the new one.
+    await rename(tmp, target);
+  } catch (err) {
+    await rm(tmp, { force: true });
+    throw err;
+  } finally {
+    activeTmpPath = null;
+  }
+}
+
+// Guards overlapping background installs (a slow download outlasting the next
+// scheduler tick, or a re-check racing an in-flight one).
+let installInFlight = false;
+
+/**
+ * The silent background install driver: download+install `tag`, returning
+ * whether it succeeded. Never throws and never prints — the TUI owns the
+ * screen; callers gate what the user is told through the store/exit-hook flags.
+ */
+export async function autoInstallUpdate(tag: string): Promise<boolean> {
+  if (installInFlight) return false;
+  const asset = selfUpdateSupported();
+  if (!asset) return false;
+  installInFlight = true;
+  try {
+    await downloadAndInstall(tag, asset);
+    return true;
+  } catch {
+    return false;
+  } finally {
+    installInFlight = false;
+  }
+}
+
 export async function runUpdate(opts: { force?: boolean } = {}): Promise<void> {
   process.stdout.write(`${brandBanner()}\n`);
+  sweepStaleUpdateTmp();
 
   // Only official release binaries self-update. A from-source build (or
   // `bun src/index.tsx update`, where process.execPath is bun, not leettui) is
@@ -304,49 +503,11 @@ export async function runUpdate(opts: { force?: boolean } = {}): Promise<void> {
     return;
   }
 
-  const target = process.execPath;
-  const tmp = join(dirname(target), ".leettui.update.tmp");
-
   const progress = startProgress(`Downloading ${asset} (${tag})`);
   try {
-    // Prefer the gzip sibling (Stage 19), falling back to the raw asset on an
-    // older tag without one.
-    const { res, compressed } = await fetchAsset(tag, asset);
-    // Stream to a temp file in the target's directory so the final rename is
-    // atomic on the same filesystem. A `data` listener counts bytes for the
-    // progress bar without disturbing `pipe`'s backpressure handling — counting
-    // on `src` (pre-gunzip) measures the *compressed* bytes against the
-    // compressed `content-length`. A corrupt/truncated gzip stream rejects via
-    // the gunzip `error` event, lands in `catch`, and the temp file is removed
-    // so the running binary is never clobbered.
-    const total = Number(res.headers.get("content-length")) || 0;
-    let received = 0;
-    await new Promise<void>((resolve, reject) => {
-      const out = createWriteStream(tmp);
-      out.on("error", reject);
-      out.on("finish", resolve);
-      const src = Readable.fromWeb(res.body as Parameters<typeof Readable.fromWeb>[0]);
-      src.on("data", (chunk: Buffer) => {
-        received += chunk.length;
-        progress.update(received, total);
-      });
-      src.on("error", reject);
-      if (compressed) {
-        const gunzip = createGunzip();
-        gunzip.on("error", reject);
-        src.pipe(gunzip).pipe(out);
-      } else {
-        src.pipe(out);
-      }
-    });
-
-    await chmod(tmp, 0o755);
-    // Renaming over the running binary's inode is safe on Linux/macOS — the
-    // running process keeps the old inode; the next launch uses the new one.
-    await rename(tmp, target);
+    await downloadAndInstall(tag, asset, progress.update);
   } catch (err) {
     progress.done();
-    await rm(tmp, { force: true });
     console.error(updateError((err as Error).message));
     return;
   }

@@ -19,12 +19,8 @@ import { hasAnySubmissions } from "@/db/submissions";
 import { syncIfEmpty } from "@/core/sync";
 import { migrateSolutionsLayout } from "@/core/migration";
 import { detectSolutionsRelocation, type RelocationPlan } from "@/core/relocate";
-import {
-  checkForUpdate,
-  fetchReleases,
-  setPendingUpdate,
-  shouldShowChangelog,
-} from "@/core/update";
+import { fetchReleases, shouldShowChangelog } from "@/core/update";
+import { startUpdateScheduler } from "@/ui/updateScheduler";
 import { IS_RELEASE, VERSION } from "@/core/version";
 import {
   getLastKnownSolutionsDir,
@@ -124,17 +120,10 @@ export function BootFlow({ renderer, force }: BootFlowProps) {
     (async () => {
       try {
         initClient(tokens.csrftoken, tokens.lc_session);
-        // Non-blocking, fail-silent update check: lands in the store whenever it
-        // resolves and the banner appears reactively. Never gates the ready hand-off.
-        checkForUpdate()
-          .then((tag) => {
-            if (!tag) return;
-            useAppStore.getState().setUpdateAvailable(tag);
-            // Also park it for the on-quit reminder, independent of the
-            // banner's session-only dismiss state.
-            setPendingUpdate(tag);
-          })
-          .catch(() => {});
+        // Boot update check + 4h background re-check + silent auto-install all
+        // live in the scheduler (ui/updateScheduler.ts). Non-blocking and
+        // fail-silent; idempotent, so this effect re-running is harmless.
+        startUpdateScheduler();
         // Post-update "What's new" (Stage 18): on the first launch after an
         // update, pop the release notes once — the *running* version emphasized,
         // past releases scrolling below — into a calm browse view. A fresh

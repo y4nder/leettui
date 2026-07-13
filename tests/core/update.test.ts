@@ -7,6 +7,8 @@ import {
   fetchReleases,
   formatReleaseDate,
   isNewerVersion,
+  parseUpdateTmpPid,
+  shouldAutoDownload,
   shouldShowChangelog,
 } from "@/core/update";
 
@@ -219,5 +221,62 @@ describe("shouldShowChangelog (post-update)", () => {
 
   test("true on the first launch after an update (new version + browse mode)", () => {
     expect(shouldShowChangelog("v0.5.2", "v0.5.1", "browse")).toBe(true);
+  });
+});
+
+describe("shouldAutoDownload (background auto-update decision)", () => {
+  // All gates open — the baseline each refusal case flips one field of.
+  const open = {
+    auto: true,
+    isRelease: true,
+    assetSupported: true,
+    tag: "v0.6.0",
+    installedTag: null,
+  };
+
+  test("true when auto is on, the build is a release, and the platform supports it", () => {
+    expect(shouldAutoDownload(open)).toBe(true);
+  });
+
+  test("false when the [update] auto knob is off", () => {
+    expect(shouldAutoDownload({ ...open, auto: false })).toBe(false);
+  });
+
+  test("false on a dev/from-source build (LEETTUI_FAKE_UPDATE stays banner-only)", () => {
+    expect(shouldAutoDownload({ ...open, isRelease: false })).toBe(false);
+  });
+
+  test("false when the platform has no self-update (win32/unsupported arch)", () => {
+    expect(shouldAutoDownload({ ...open, assetSupported: false })).toBe(false);
+  });
+
+  test("false when the tag is already installed — no re-download every tick", () => {
+    expect(shouldAutoDownload({ ...open, installedTag: "v0.6.0" })).toBe(false);
+  });
+
+  test("false when a newer tag is already installed", () => {
+    expect(shouldAutoDownload({ ...open, installedTag: "v0.7.0" })).toBe(false);
+  });
+
+  test("true when a strictly newer tag arrives after an install", () => {
+    expect(shouldAutoDownload({ ...open, tag: "v0.7.0", installedTag: "v0.6.0" })).toBe(true);
+  });
+});
+
+describe("parseUpdateTmpPid (stale temp-file sweep matching)", () => {
+  test("extracts the pid from a pid-suffixed temp name", () => {
+    expect(parseUpdateTmpPid(".leettui.update.12345.tmp")).toEqual({ pid: 12345 });
+  });
+
+  test("recognizes the legacy un-suffixed name with a null pid", () => {
+    expect(parseUpdateTmpPid(".leettui.update.tmp")).toEqual({ pid: null });
+  });
+
+  test("null for anything that isn't an update temp file", () => {
+    expect(parseUpdateTmpPid("leettui")).toBeNull();
+    expect(parseUpdateTmpPid("leettui-linux-x64.gz")).toBeNull();
+    expect(parseUpdateTmpPid(".leettui.update.abc.tmp")).toBeNull();
+    expect(parseUpdateTmpPid(".leettui.update.12345.tmp.bak")).toBeNull();
+    expect(parseUpdateTmpPid("x.leettui.update.tmp")).toBeNull();
   });
 });
